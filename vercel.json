@@ -1,0 +1,17 @@
+{
+  "regions": ["icn1"],
+  "headers": [
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, max-age=0, must-revalidate" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/robots.txt", "destination": "/api/seo?type=robots" },
+    { "source": "/sitemap.xml", "destination": "/api/seo?type=sitemap" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

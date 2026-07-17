@@ -1,0 +1,130 @@
+import { prisma } from '../server/api/db.js'
+import { normalizeFilterCriteria } from '../server/api/product-filter.js'
+import { toApiProduct, getCatalogProducts } from '../server/api/products-source.js'
+import { applyCors, handlePreflight } from '../server/api/cors.js'
+
+const DB_CATEGORY_MAP = {
+  rings: 'Rings',
+  earrings: 'Earrings',
+  'mangal sutra': 'Mangal Sutra',
+  necklaces: 'Necklaces',
+  bracelets: 'Bracelets',
+}
+
+export default async function handler(req, res) {
+  const preflight = handlePreflight(req, res)
+  if (preflight) return preflight
+  applyCors(req, res)
+
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', 'POST')
+    return res.status(405).json({ message: 'Method not allowed' })
+  }
+
+  const body =
+    typeof req.body === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(req.body)
+          } catch {
+            return {}
+          }
+        })()
+      : req.body || {}
+  const tab = typeof body?.tab === 'string' ? body.tab : 'all'
+  const inputFilters = body?.filters || {}
+  const normalized = normalizeFilterCriteria({ ...inputFilters, tab })
+
+  const categories = normalized.categories
+    .map((key) => DB_CATEGORY_MAP[key])
+    .filter((value) => Boolean(value))
+
+  const where = {
+    active: true,
+    ...(normalized.tab === 'new' ? { isNewArrival: true } : {}),
+    ...(normalized.tab === 'bestseller' ? { isBestSeller: true } : {}),
+    ...(categories.length ? { category: { in: categories } } : {}),
+    ...(normalized.materials.length ? { material: { in: normalized.materials } } : {}),
+    ...(normalized.colors.length ? { color: { in: normalized.colors } } : {}),
+    ...(normalized.priceMin != null || normalized.priceMax != null
+      ? {
+          OR: [
+            {
+              variants: {
+                some: {
+                  active: true,
+                  listPricePaise: {
+                    ...(normalized.priceMin != null ? { gte: normalized.priceMin } : {}),
+                    ...(normalized.priceMax != null ? { lte: normalized.priceMax } : {}),
+                  },
+                },
+              },
+            },
+            {
+              priceBookMap: {
+                some: {
+                  minQty: { lte: 1 },
+                  priceBook: { active: true, channel: 'B2C' },
+                  pricePaise: {
+                    ...(normalized.priceMin != null ? { gte: normalized.priceMin } : {}),
+                    ...(normalized.priceMax != null ? { lte: normalized.priceMax } : {}),
+                  },
+                },
+              },
+            },
+          ],
+        }
+      : {
+          variants: { some: { active: true } },
+        }),
+  }
+
+  try {
+    const dbProducts = await prisma.product.findMany({
+      where,
+      include: {
+        variants: {
+          where: { active: true },
+          orderBy: { listPricePaise: 'asc' },
+        },
+        images: {
+          where: { active: true },
+          orderBy: { sortOrder: 'asc' },
+          take: 2,
+        },
+        priceBookMap: {
+          where: {
+            minQty: { lte: 1 },
+            priceBook: { active: true, channel: 'B2C' },
+          },
+          include: { priceBook: true },
+          orderBy: [{ minQty: 'asc' }, { validFrom: 'desc' }],
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+    const products = Array.isArray(dbProducts) ? dbProducts.map(toApiProduct) : []
+
+    // The filter query reads images straight from the DB, so products whose
+    // images live only in S3 (e.g. mass-uploaded ones) come back with none.
+    // Overlay images from the cached catalog (which already merges S3) so grid
+    // thumbnails match the detail page, without an S3 sweep on every request.
+    try {
+      const catalog = await getCatalogProducts()
+      const imagesBySlug = new Map(catalog.map((p) => [p.slug, p.images]))
+      for (const product of products) {
+        if (!product.images?.length) {
+          const merged = imagesBySlug.get(product.slug)
+          if (merged?.length) product.images = merged
+        }
+      }
+    } catch (err) {
+      console.error('Catalog image overlay failed (serving DB images only):', err?.message || err)
+    }
+
+    return res.status(200).json({ products })
+  } catch (err) {
+    console.error('DB filtered products fetch failed:', err)
+    return res.status(500).json({ message: 'Failed to load filtered products.' })
+  }
+}
