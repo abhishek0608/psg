@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useSiteConfig } from '../composables/useSiteConfig'
 
 const year = new Date().getFullYear()
 const email = ref('')
 const subscribed = ref(false)
+const { logoSrc } = useSiteConfig()
+const brandName = 'Jewelet'
 
 function handleSubscribe() {
   if (!email.value.trim()) return
@@ -22,7 +25,7 @@ function handleSubscribe() {
     <section class="ect-relative ect-max-w-7xl ect-mx-auto ect-px-6 ect-pt-16 ect-pb-12 ect-border-b ect-border-white/10">
       <div class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 ect-gap-8 lg:ect-gap-16 ect-items-center">
         <div>
-          <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.18em] ect-text-gold-400 ect-mb-3">BlueStone updates</p>
+          <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.18em] ect-text-gold-400 ect-mb-3">Jewelet updates</p>
           <h2 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-semibold ect-leading-tight ect-text-white">Be the first to see new arrivals</h2>
           <p class="ect-font-body ect-text-sm ect-text-white/55 ect-mt-3 ect-max-w-md">New designs, festive offers, store updates and curated jewellery edits.</p>
         </div>
@@ -50,9 +53,8 @@ function handleSubscribe() {
 
     <section class="ect-relative ect-max-w-7xl ect-mx-auto ect-px-6 ect-pt-14 ect-grid ect-grid-cols-2 sm:ect-grid-cols-4 ect-gap-10 ect-items-start ect-mb-12">
       <section class="ect-col-span-2 sm:ect-col-span-1">
-        <span class="ect-flex ect-items-center ect-gap-3 ect-mb-4">
-          <span class="ect-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-white ect-font-display ect-text-xl ect-font-semibold ect-text-bluestone-800">B</span>
-          <span class="ect-font-body ect-text-xl ect-font-bold">BlueStone</span>
+        <span class="ect-inline-flex ect-items-center ect-rounded-md ect-bg-white ect-px-3 ect-py-2 ect-mb-4">
+          <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[150px] ect-object-contain" />
         </span>
         <p class="ect-font-body ect-text-sm ect-text-white/55 ect-leading-relaxed ect-max-w-xs">Certified fine jewellery for modern India, with gold and diamond designs for everyday wear, gifting and celebrations.</p>
       </section>
@@ -80,7 +82,7 @@ function handleSubscribe() {
       <nav>
         <h3 class="ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-400 ect-mb-4">Get in Touch</h3>
         <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2.5">
-          <li><a href="mailto:care@bluestone.example" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">care@bluestone.example</a></li>
+          <li><a href="mailto:care@jewelet.example" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">care@jewelet.example</a></li>
           <li><a href="tel:+910000000000" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">+91 00000 00000</a></li>
           <li><p class="ect-font-body ect-text-sm ect-text-white/40">Online and retail store experience</p></li>
         </ul>
@@ -90,7 +92,7 @@ function handleSubscribe() {
     <div class="ect-relative ect-max-w-7xl ect-mx-auto ect-px-6">
       <div class="ect-h-px ect-bg-white/10 ect-mb-6" />
       <div class="ect-flex ect-flex-col sm:ect-flex-row ect-items-start sm:ect-items-center ect-justify-between ect-gap-3 ect-pb-8">
-        <p class="ect-font-body ect-text-xs ect-text-white/40">© {{ year }} BlueStone — Fine Jewellery</p>
+        <p class="ect-font-body ect-text-xs ect-text-white/40">© {{ year }} Jewelet — Fine Jewellery</p>
         <p class="ect-font-body ect-text-xs ect-text-white/40 ect-tracking-[0.04em]">BIS Hallmarked · Certified Stones · Lifetime Exchange</p>
       </div>
     </div>

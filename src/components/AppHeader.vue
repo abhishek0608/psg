@@ -13,7 +13,8 @@ import { useSiteConfig } from '../composables/useSiteConfig'
 
 const router = useRouter()
 const route = useRoute()
-const { collectionImages, ensureSiteConfigLoaded } = useSiteConfig()
+const { collectionImages, ensureSiteConfigLoaded, logoSrc } = useSiteConfig()
+const brandName = 'Jewelet'
 const { user, isLoggedIn, isInternalUser, refreshCurrentUser, logout } = useAuth()
 const { query, searchByImage, submitTextSearch } = useSearch()
 const { totalItems } = useCart()
@@ -222,8 +223,7 @@ function toggleNotifications() {
             class="ect-items-center ect-gap-2.5 ect-shrink-0"
             :class="isInternalPath ? 'ect-flex' : 'ect-hidden lg:ect-flex'"
           >
-            <span class="ect-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-bluestone-700 ect-font-display ect-text-xl ect-font-semibold ect-text-white">B</span>
-            <span class="ect-font-body ect-text-xl ect-font-bold ect-text-bluestone-800">BlueStone</span>
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[150px] ect-object-contain" />
           </RouterLink>
         </section>
 
@@ -233,8 +233,8 @@ function toggleNotifications() {
           @submit.prevent="handleSearch"
           class="lg:ect-hidden ect-flex-1 ect-min-w-0 ect-mx-2.5 ect-flex ect-items-center ect-rounded-full ect-bg-cream ect-ring-1 ect-ring-charcoal/[0.08] focus-within:ect-ring-gold-400/50 focus-within:ect-bg-white ect-transition-all ect-duration-200"
         >
-          <RouterLink to="/" aria-label="BlueStone home" class="ect-ml-1 ect-p-0.5 ect-shrink-0">
-            <span class="ect-flex ect-h-8 ect-w-8 ect-items-center ect-justify-center ect-rounded-full ect-bg-bluestone-700 ect-font-display ect-text-base ect-font-semibold ect-text-white">B</span>
+          <RouterLink to="/" :aria-label="`${brandName} home`" class="ect-ml-1 ect-p-0.5 ect-shrink-0">
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 ect-w-auto ect-max-w-[96px] ect-object-contain" />
           </RouterLink>
           <input
             v-model="query"
@@ -600,8 +600,7 @@ function toggleNotifications() {
             </svg>
           </button>
           <span class="ect-flex ect-items-center ect-gap-2">
-            <span class="ect-flex ect-h-9 ect-w-9 ect-items-center ect-justify-center ect-rounded-full ect-bg-bluestone-700 ect-font-display ect-text-lg ect-font-semibold ect-text-white">B</span>
-            <span class="ect-font-body ect-text-xl ect-font-bold ect-text-bluestone-800">BlueStone</span>
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[150px] ect-object-contain" />
           </span>
         </header>
 

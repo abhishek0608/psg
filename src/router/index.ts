@@ -29,7 +29,7 @@ const router = createRouter({
     { path: '/orders', name: 'orders', component: () => import('../views/MyOrdersView.vue'), meta: { title: 'My Orders', noindex: true } },
     { path: '/checkout', name: 'checkout', component: () => import('../views/CheckoutView.vue'), meta: { title: 'Checkout', noindex: true } },
     { path: '/order-confirmation', name: 'order-confirmation', component: () => import('../views/OrderConfirmationView.vue'), meta: { title: 'Order Confirmation', noindex: true } },
-    { path: '/about', name: 'about', component: () => import('../views/AboutView.vue'), meta: { title: 'About Us', description: 'BlueStone-style trust promise for certified jewellery, lifetime exchange, free shipping and assisted buying.' } },
+    { path: '/about', name: 'about', component: () => import('../views/AboutView.vue'), meta: { title: 'About Us', description: 'Jewelet trust promise for certified jewellery, lifetime exchange, free shipping and assisted buying.' } },
     { path: '/services', name: 'services', component: () => import('../views/ServicesView.vue'), meta: { title: 'Services', description: 'Jewellery services including video consultation, custom design, repair, resizing and polishing.' } },
     { path: '/contact', redirect: '/about' },
     { path: '/careers', redirect: '/about' },

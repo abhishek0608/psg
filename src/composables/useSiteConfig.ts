@@ -3,7 +3,7 @@ import { API_BASE } from '../config-api'
 
 // Bundled fallback logo, used until a custom logo is configured in the
 // internal workspace (or if the config request fails).
-export const DEFAULT_LOGO_SRC = '/logo.png'
+export const DEFAULT_LOGO_SRC = '/jewelet-logo.svg'
 
 export interface VolumeDiscountTier {
   minQty: number

@@ -17,7 +17,7 @@ const features: { icon: IconName; title: string; text: string }[] = [
       <section>
         <p class="ect-inline-flex ect-items-center ect-gap-2.5 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-gold-700 ect-mb-4">
           <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
-          Why BlueStone
+          Why Jewelet
         </p>
         <h2 class="ect-font-display ect-text-3xl sm:ect-text-[2.75rem] ect-font-semibold ect-leading-[1.1] ect-text-charcoal ect-mb-5">Certified sparkle,<br class="ect-hidden sm:ect-block" /> everyday confidence</h2>
         <p class="ect-font-body ect-text-base ect-text-charcoal/60 ect-leading-relaxed ect-mb-5">A Bluestone-style jewellery store should feel premium, helpful and easy to shop. This homepage brings together category discovery, featured products, offers and trust signals in one polished flow.</p>

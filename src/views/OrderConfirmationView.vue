@@ -31,7 +31,7 @@ const referenceNumber = computed(() => {
         {{ confirmationKind === 'service' ? 'Custom Request Received!' : 'Order Placed!' }}
       </h1>
       <p class="ect-font-body ect-text-lg ect-text-charcoal/60 ect-mb-2">
-        {{ confirmationKind === 'service' ? 'Thank you for sharing your custom jewellery requirements with BlueStone.' : 'Thank you for shopping with BlueStone.' }}
+        {{ confirmationKind === 'service' ? 'Thank you for sharing your custom jewellery requirements with Jewelet.' : 'Thank you for shopping with Jewelet.' }}
       </p>
       <p class="ect-font-body ect-text-base ect-text-charcoal/50 ect-mb-10">
         {{ confirmationKind === 'service' ? 'Your request reference is ' : 'Your order number is ' }}
