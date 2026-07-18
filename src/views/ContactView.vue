@@ -45,7 +45,7 @@ function handleSubmit() {
             </span>
             <span>
               <h2 class="ect-font-display ect-text-lg ect-font-medium ect-text-charcoal ect-mb-1">Email</h2>
-              <a href="mailto:sales@kianajewels.in" class="ect-font-body ect-text-sm ect-text-gold-700 hover:ect-text-gold-800 ect-transition-colors">sales@kianajewels.in</a>
+              <a href="mailto:sales@jewelet.example" class="ect-font-body ect-text-sm ect-text-gold-700 hover:ect-text-gold-800 ect-transition-colors">sales@jewelet.example</a>
             </span>
           </article>
           <article class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-sand ect-shadow-sm ect-flex ect-items-start ect-gap-4">

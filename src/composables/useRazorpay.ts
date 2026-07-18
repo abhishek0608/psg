@@ -88,7 +88,7 @@ export function useRazorpay() {
         amount: options.amountPaise,
         currency: 'INR',
         order_id: options.orderId,
-        name: 'Kiana Jewels',
+        name: 'Jewelet',
         description: 'Fine Jewellery',
         prefill: {
           name: options.customerName,

@@ -130,7 +130,7 @@ export const SERVICE_OFFERINGS: ServiceOffering[] = [
       },
       {
         label: 'Hallmarking & Dispatch',
-        desc: 'BIS hallmark applied, certificate of authenticity issued, and piece packaged in Kiana luxury box.',
+        desc: 'BIS hallmark applied, certificate of authenticity issued, and piece packaged in Jewelet luxury box.',
       },
     ],
   },

@@ -36,13 +36,13 @@ const defaultJourney = [
   {
     year: '2024',
     place: 'Jaipur',
-    title: 'Kiana Jewels',
-    desc: 'Kiana Jewels Private Limited is established in the Sitapura SEZ, Jaipur — a state-of-the-art facility dedicated to semi-mount, fine, lab-grown diamond and colored stone jewellery for clients worldwide.',
+    title: 'Jewelet',
+    desc: 'Jewelet Private Limited is established in the Sitapura SEZ, Jaipur — a state-of-the-art facility dedicated to semi-mount, fine, lab-grown diamond and colored stone jewellery for clients worldwide.',
     imageUrl: '/necklace-1.jpg',
   },
 ]
 
-const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'Kiana Jewels · Jaipur')
+const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'Jewelet · Jaipur')
 const heroHeadline = computed(() => aboutContent.value.heroHeadline || 'Brilliance by Design')
 const heroSubheadline = computed(
   () =>
@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
       <!-- Founders & team — portraits, only when configured in the internal workspace -->
       <section v-if="team.length" class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pt-24 sm:ect-pt-28">
         <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-4">Our story</p>
-        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">The people behind Kiana</h2>
+        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">The people behind Jewelet</h2>
         <ul class="ect-grid ect-grid-cols-2 sm:ect-grid-cols-3 lg:ect-grid-cols-4 ect-gap-x-6 ect-gap-y-12 ect-justify-center ect-list-none ect-m-0 ect-p-0">
           <li v-for="(member, i) in team" :key="`${member.name}-${i}`" class="ect-text-center">
             <figure class="ect-relative ect-overflow-hidden ect-aspect-[3/4] ect-bg-cream ect-m-0 ect-mb-5">
@@ -359,7 +359,7 @@ onBeforeUnmount(() => {
             </span>
             <div>
               <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Email</p>
-              <a href="mailto:sales@kianajewels.in" class="ect-font-body ect-text-sm ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors">sales@kianajewels.in</a>
+              <a href="mailto:sales@jewelet.example" class="ect-font-body ect-text-sm ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors">sales@jewelet.example</a>
             </div>
           </li>
           <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
@@ -438,7 +438,7 @@ onBeforeUnmount(() => {
               </div>
               <p class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-leading-relaxed">{{ job.desc }}</p>
             </div>
-            <a href="mailto:careers@kianajewels.in"
+            <a href="mailto:careers@jewelet.example"
               class="ect-shrink-0 ect-inline-flex ect-items-center ect-gap-2 ect-px-5 ect-py-2.5 ect-rounded-xl ect-border ect-border-charcoal/15 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal hover:ect-bg-charcoal hover:ect-text-cream hover:ect-border-charcoal ect-transition-all ect-duration-200">
               Apply
               <svg class="ect-w-3.5 ect-h-3.5 group-hover:ect-translate-x-0.5 ect-transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
@@ -453,7 +453,7 @@ onBeforeUnmount(() => {
           <h3 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-mb-2">Don't see your role?</h3>
           <p class="ect-font-body ect-text-sm ect-text-cream/50 ect-max-w-sm">We're always open to meeting talented people. Send us your CV and tell us how you'd contribute.</p>
         </div>
-        <a href="mailto:careers@kianajewels.in"
+        <a href="mailto:careers@jewelet.example"
           class="ect-shrink-0 ect-inline-flex ect-items-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-xl ect-bg-cream ect-text-charcoal ect-font-body ect-text-sm ect-font-semibold hover:ect-bg-cream/90 ect-transition-colors">
           Get in touch
           <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>

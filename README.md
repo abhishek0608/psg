@@ -1,4 +1,4 @@
-# Kiana — Jewellery Website
+# Jewelet — Jewellery Website
 
 A Vue 3 + TypeScript jewellery landing page with Tailwind CSS (ect prefix).
 

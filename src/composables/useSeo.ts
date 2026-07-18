@@ -1,8 +1,8 @@
 import type { Product } from '../data/products'
 
-const SITE_NAME = 'Kiana — Fine Jewellery'
+const SITE_NAME = 'Jewelet — Fine Jewellery'
 const DEFAULT_DESCRIPTION =
-  'Kiana Jewels — handcrafted fine jewellery from Jaipur. Shop gold and silver rings, earrings, pendants, bracelets and necklaces.'
+  'Jewelet — handcrafted fine jewellery from Jaipur. Shop gold and silver rings, earrings, pendants, bracelets and necklaces.'
 
 const PRODUCT_JSONLD_ID = 'seo-product-jsonld'
 
@@ -22,7 +22,7 @@ function upsertMeta(attr: 'name' | 'property', key: string, content: string) {
  * their data resolves; static routes are covered by the router hook.
  */
 export function setPageMeta(options: { title?: string; description?: string; noindex?: boolean } = {}) {
-  const title = options.title ? `${options.title} | Kiana` : SITE_NAME
+  const title = options.title ? `${options.title} | Jewelet` : SITE_NAME
   const description = options.description?.trim() || DEFAULT_DESCRIPTION
 
   document.title = title
@@ -65,7 +65,7 @@ export function setProductJsonLd(product: Product) {
       src.startsWith('http') ? src : `${window.location.origin}${src}`,
     ),
     url: `${window.location.origin}/product/${product.slug}`,
-    brand: { '@type': 'Brand', name: 'Kiana Jewels' },
+    brand: { '@type': 'Brand', name: 'Jewelet' },
     category: product.category,
   }
 

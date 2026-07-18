@@ -23,7 +23,7 @@ interface Filters {
 
 defineProps<{ hideHeader?: boolean; sidebar?: boolean }>()
 
-const { products, ensureProductsLoaded, loading: productsLoading, loaded: productsLoaded } = useProductsApi()
+const { products, ensureProductsLoaded, loading: productsLoading, loaded: productsLoaded, usingFallback } = useProductsApi()
 const maxPrice = computed(() => {
   const values = products.value.map((p) => p.priceValue).filter((v) => typeof v === 'number')
   return values.length ? Math.max(...values) : 0
@@ -47,6 +47,7 @@ function applyPreset(p: NonNullable<typeof preset.value>) {
   if (p.category) f.categories = [p.category]
   if (p.material) f.materials = [p.material]
   if (p.color) f.colors = [p.color]
+  if (p.priceMin !== undefined) f.priceMin = p.priceMin
   if (p.priceMax !== undefined) f.priceMax = p.priceMax
   if (p.stoneTags !== undefined) f.stoneTags = p.stoneTags
   if (p.subtypes !== undefined) f.subtypes = p.subtypes
@@ -171,6 +172,23 @@ function formatPrice(val: number) {
   return '$' + val.toLocaleString('en-US')
 }
 
+function applyClientFilters() {
+  let list = products.value
+  if (activeTab.value === 'new') list = list.filter((p) => p.isNewArrival)
+  else if (activeTab.value === 'bestseller') list = list.filter((p) => p.isBestSeller)
+  const f = appliedFilters.value
+  if (f.categories.length) list = list.filter((p) => f.categories.includes(p.category))
+  if (f.materials.length) list = list.filter((p) => f.materials.includes(p.material))
+  if (f.colors.length) list = list.filter((p) => f.colors.includes(p.color))
+  if (f.priceMin > 0) list = list.filter((p) => p.priceValue >= f.priceMin)
+  if (f.priceMax < maxPrice.value) list = list.filter((p) => p.priceValue <= f.priceMax)
+  if (f.stoneTags?.length) list = list.filter((p) => f.stoneTags.some((tag) => p.stoneTags?.includes(tag)))
+  if (f.subtypes?.length) list = list.filter((p) => f.subtypes.includes(p.subtype as ProductSubtype))
+  if (f.centerShapes?.length) list = list.filter((p) => f.centerShapes.some((s) => p.customizationOptions?.centerShapes?.includes(s)))
+  if (f.centerStoneSizes?.length) list = list.filter((p) => f.centerStoneSizes.some((s) => p.customizationOptions?.centerStoneSizes?.includes(s)))
+  return list
+}
+
 async function loadFilteredProducts() {
   listLoading.value = true
   try {
@@ -201,23 +219,10 @@ async function loadFilteredProducts() {
     if (sizes?.length) {
       list = list.filter((p: any) => sizes.some((s) => Array.isArray(p.customizationOptions?.centerStoneSizes) && p.customizationOptions.centerStoneSizes.includes(s)))
     }
-    filteredProducts.value = list
+    filteredProducts.value = list.length || !usingFallback.value ? list : applyClientFilters()
   } catch (err) {
     console.error('Filter API error:', err)
-    let list = products.value
-    if (activeTab.value === 'new') list = list.filter((p) => p.isNewArrival)
-    else if (activeTab.value === 'bestseller') list = list.filter((p) => p.isBestSeller)
-    const f = appliedFilters.value
-    if (f.categories.length) list = list.filter((p) => f.categories.includes(p.category))
-    if (f.materials.length) list = list.filter((p) => f.materials.includes(p.material))
-    if (f.colors.length) list = list.filter((p) => f.colors.includes(p.color))
-    if (f.priceMin > 0) list = list.filter((p) => p.priceValue >= f.priceMin)
-    if (f.priceMax < maxPrice.value) list = list.filter((p) => p.priceValue <= f.priceMax)
-    if (f.stoneTags?.length) list = list.filter((p) => f.stoneTags.some((tag) => p.stoneTags?.includes(tag)))
-    if (f.subtypes?.length) list = list.filter((p) => f.subtypes.includes(p.subtype as ProductSubtype))
-    if (f.centerShapes?.length) list = list.filter((p) => f.centerShapes.some((s) => p.customizationOptions?.centerShapes?.includes(s)))
-    if (f.centerStoneSizes?.length) list = list.filter((p) => f.centerStoneSizes.some((s) => p.customizationOptions?.centerStoneSizes?.includes(s)))
-    filteredProducts.value = list
+    filteredProducts.value = applyClientFilters()
   } finally {
     listLoading.value = false
     firstLoadDone.value = true
@@ -334,9 +339,9 @@ watch([activeTab, appliedFilters], () => {
         <!-- Price -->
         <section class="ect-mb-6">
           <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Price</h3>
-          <div class="kiana-range">
-            <span class="kiana-range__track"></span>
-            <span class="kiana-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
+          <div class="jewelet-range">
+            <span class="jewelet-range__track"></span>
+            <span class="jewelet-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
             <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="appliedFilters.priceMin" @input="onPriceMinInput" aria-label="Minimum price" />
             <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="appliedFilters.priceMax" @input="onPriceMaxInput" aria-label="Maximum price" />
           </div>
@@ -554,26 +559,26 @@ watch([activeTab, appliedFilters], () => {
 .ect-no-scrollbar::-webkit-scrollbar { display: none; }
 .ect-no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.kiana-range {
+.jewelet-range {
   position: relative;
   height: 22px;
 }
-.kiana-range__track,
-.kiana-range__fill {
+.jewelet-range__track,
+.jewelet-range__fill {
   position: absolute;
   top: 9px;
   height: 3px;
   border-radius: 3px;
 }
-.kiana-range__track {
+.jewelet-range__track {
   left: 0;
   right: 0;
   background: #ebe7e2;
 }
-.kiana-range__fill {
+.jewelet-range__fill {
   background: #a33d4f;
 }
-.kiana-range input[type='range'] {
+.jewelet-range input[type='range'] {
   position: absolute;
   top: 0;
   left: 0;
@@ -585,7 +590,7 @@ watch([activeTab, appliedFilters], () => {
   -webkit-appearance: none;
   appearance: none;
 }
-.kiana-range input[type='range']::-webkit-slider-thumb {
+.jewelet-range input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   pointer-events: auto;
@@ -597,7 +602,7 @@ watch([activeTab, appliedFilters], () => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
-.kiana-range input[type='range']::-moz-range-thumb {
+.jewelet-range input[type='range']::-moz-range-thumb {
   pointer-events: auto;
   width: 18px;
   height: 18px;
@@ -607,7 +612,7 @@ watch([activeTab, appliedFilters], () => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
-.kiana-range input[type='range']:focus-visible::-webkit-slider-thumb {
+.jewelet-range input[type='range']:focus-visible::-webkit-slider-thumb {
   outline: 2px solid #a33d4f;
   outline-offset: 2px;
 }

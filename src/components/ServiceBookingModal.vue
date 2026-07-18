@@ -466,7 +466,7 @@ const FINISHES = ['Mirror Polish', 'Satin / Brushed', 'Matte', 'Hammered', 'Comb
 const CASTING_SOURCE_WAX = 'I will ship my wax model'
 const CASTING_SOURCE_CAD = 'I have a CAD file'
 const CASTING_SOURCES = [CASTING_SOURCE_WAX, CASTING_SOURCE_CAD]
-const STONE_SUPPLIES = ['I will provide the stones', 'Kiana sources the stones']
+const STONE_SUPPLIES = ['I will provide the stones', 'Jewelet sources the stones']
 const STONE_SETTING_YES = 'Yes — please set stones'
 // min attribute for the needed-by date input
 const todayIso = new Date().toISOString().slice(0, 10)

@@ -184,7 +184,12 @@ export async function getCatalogProductSummaries() {
   }))
 }
 
-export async function getCatalogProducts() {
+export async function getCatalogProducts(options = {}) {
+  const throwOnError = Boolean(options?.throwOnError)
+  if (throwOnError && !String(process.env.DATABASE_URL || '').trim()) {
+    throw new Error('DATABASE_URL is not configured.')
+  }
+
   const now = Date.now()
   if (catalogCache.products && catalogCache.expiresAt > now) {
     return catalogCache.products
@@ -202,6 +207,7 @@ export async function getCatalogProducts() {
       })
       .catch((err) => {
         console.error('DB products fetch failed:', err)
+        if (throwOnError) throw err
         // Keep any stale catalog so callers can fall back to it below.
         return catalogCache.products || []
       })

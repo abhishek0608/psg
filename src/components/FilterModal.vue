@@ -357,9 +357,9 @@ function formatPrice(val: number) {
                 </section>
 
                 <!-- Dual-handle gold slider -->
-                <div class="kiana-range">
-                  <span class="kiana-range__track"></span>
-                  <span class="kiana-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
+                <div class="jewelet-range">
+                  <span class="jewelet-range__track"></span>
+                  <span class="jewelet-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
                   <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="local.priceMin" @input="onPriceMinChange" aria-label="Minimum price" />
                   <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="local.priceMax" @input="onPriceMaxChange" aria-label="Maximum price" />
                 </div>
@@ -496,26 +496,26 @@ function formatPrice(val: number) {
 .ect-no-scrollbar::-webkit-scrollbar { display: none; }
 .ect-no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.kiana-range {
+.jewelet-range {
   position: relative;
   height: 22px;
 }
-.kiana-range__track,
-.kiana-range__fill {
+.jewelet-range__track,
+.jewelet-range__fill {
   position: absolute;
   top: 9px;
   height: 3px;
   border-radius: 3px;
 }
-.kiana-range__track {
+.jewelet-range__track {
   left: 0;
   right: 0;
   background: #ebe7e2;
 }
-.kiana-range__fill {
+.jewelet-range__fill {
   background: #c9a227;
 }
-.kiana-range input[type='range'] {
+.jewelet-range input[type='range'] {
   position: absolute;
   top: 0;
   left: 0;
@@ -527,7 +527,7 @@ function formatPrice(val: number) {
   -webkit-appearance: none;
   appearance: none;
 }
-.kiana-range input[type='range']::-webkit-slider-thumb {
+.jewelet-range input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   pointer-events: auto;
@@ -539,7 +539,7 @@ function formatPrice(val: number) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
-.kiana-range input[type='range']::-moz-range-thumb {
+.jewelet-range input[type='range']::-moz-range-thumb {
   pointer-events: auto;
   width: 18px;
   height: 18px;
@@ -549,7 +549,7 @@ function formatPrice(val: number) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
-.kiana-range input[type='range']:focus-visible::-webkit-slider-thumb {
+.jewelet-range input[type='range']:focus-visible::-webkit-slider-thumb {
   outline: 2px solid #c9a227;
   outline-offset: 2px;
 }

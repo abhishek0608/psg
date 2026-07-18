@@ -1,57 +1,74 @@
 <script setup lang="ts">
-// Refined line icons replace the previous emoji set — emoji read as casual,
-// crisp gold-toned line marks read as a maison.
-type IconName = 'gem' | 'inhouse' | 'quality' | 'global'
-
-const features: { icon: IconName; title: string; text: string }[] = [
-  { icon: 'gem', title: '7000+ Inspired Designs', text: 'A wide catalogue experience across rings, earrings, pendants, bracelets, necklaces and occasion-led styles.' },
-  { icon: 'inhouse', title: 'Omnichannel Shopping', text: 'Browse online, book a video call, or visit a store-style consultation flow for assisted jewellery buying.' },
-  { icon: 'quality', title: 'Certified Quality', text: 'Trust-first details for BIS hallmarking, certified stones, clear pricing and dependable craftsmanship.' },
-  { icon: 'global', title: 'Lifetime Confidence', text: 'Retail policies for exchange, buyback, free shipping and easy returns create a reassuring premium experience.' },
+// "The Jewelet promise" cards (Aurelle design) — trust content adapted from the
+// site's actual policies (see AboutView / footer).
+const promise: { icon: 'pricing' | 'buyback' | 'quality' | 'returns'; title: string; text: string; bg: string }[] = [
+  {
+    icon: 'pricing',
+    title: 'Transparent pricing',
+    text: 'Metal rate, making charges and taxes shown clearly on every product — no hidden markups.',
+    bg: '#1f6b52',
+  },
+  {
+    icon: 'buyback',
+    title: 'Lifetime exchange',
+    text: 'Exchange or upgrade at prevailing rates, any time. Your investment stays protected.',
+    bg: '#26406e',
+  },
+  {
+    icon: 'quality',
+    title: 'Certified quality',
+    text: 'Every piece BIS hallmarked and stones certified for guaranteed purity.',
+    bg: '#9c2c3e',
+  },
+  {
+    icon: 'returns',
+    title: 'Easy returns',
+    text: 'Changed your mind? Free, hassle-free returns within the return window.',
+    bg: '#c9765a',
+  },
 ]
 </script>
 
 <template>
-  <section id="about" class="ect-py-16 sm:ect-py-24 ect-px-6">
-    <article class="ect-max-w-7xl ect-mx-auto ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 ect-gap-12 lg:ect-gap-16 ect-items-center">
-      <section>
-        <p class="ect-inline-flex ect-items-center ect-gap-2.5 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-gold-700 ect-mb-4">
-          <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
-          Why Jewelet
-        </p>
-        <h2 class="ect-font-display ect-text-3xl sm:ect-text-[2.75rem] ect-font-semibold ect-leading-[1.1] ect-text-charcoal ect-mb-5">Certified sparkle,<br class="ect-hidden sm:ect-block" /> everyday confidence</h2>
-        <p class="ect-font-body ect-text-base ect-text-charcoal/60 ect-leading-relaxed ect-mb-5">A Bluestone-style jewellery store should feel premium, helpful and easy to shop. This homepage brings together category discovery, featured products, offers and trust signals in one polished flow.</p>
-        <p class="ect-font-body ect-text-base ect-text-charcoal/60 ect-leading-relaxed ect-mb-8">Customers can browse by jewellery type, save favourites, add to cart, request assistance and continue into checkout with a familiar ecommerce experience.</p>
-        <RouterLink to="/about" class="ect-group ect-inline-flex ect-items-center ect-gap-2.5 ect-px-7 ect-py-3.5 ect-bg-bluestone-700 ect-text-white ect-font-body ect-text-[12px] ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-rounded-md hover:ect-bg-bluestone-800 ect-transition-colors">
-          Explore Trust Promise
-          <svg class="ect-w-4 ect-h-4 ect-transition-transform ect-duration-200 group-hover:ect-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-        </RouterLink>
-      </section>
+  <section id="about" class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-16 sm:ect-pt-20">
+    <header class="ect-text-center ect-mb-9">
+      <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.24em] ect-text-[#b79a56]">The Jewelet promise</p>
+      <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
+        Shop with total confidence
+      </h2>
+    </header>
 
-      <ul class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4 ect-list-none ect-m-0 ect-p-0">
-        <li
-          v-for="f in features"
-          :key="f.title"
-          class="ect-group ect-p-6 ect-bg-pearl ect-border ect-border-sand ect-rounded-lg ect-transition-all ect-duration-300 hover:ect-shadow-luxe-sm hover:ect-border-bluestone-300/60 hover:-ect-translate-y-1"
+    <div class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4">
+      <article
+        v-for="p in promise"
+        :key="p.title"
+        class="ect-bg-white ect-border ect-border-[#ece4d5] ect-rounded-[10px] ect-p-7"
+      >
+        <span
+          class="ect-inline-flex ect-items-center ect-justify-center ect-w-11 ect-h-11 ect-rounded-xl ect-text-white ect-mb-4"
+          :style="{ background: p.bg }"
         >
-          <span class="ect-inline-flex ect-items-center ect-justify-center ect-w-11 ect-h-11 ect-rounded-full ect-bg-champagne ect-text-bluestone-700 ect-mb-4 ect-transition-colors group-hover:ect-bg-bluestone-700 group-hover:ect-text-white">
-            <svg v-if="f.icon === 'gem'" class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M12 21L2.25 8.25 6 3.75h12l3.75 4.5L12 21zM8.25 8.25L12 3.75l3.75 4.5M12 21L8.25 8.25M12 21l3.75-12.75" />
-            </svg>
-            <svg v-else-if="f.icon === 'inhouse'" class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 21V9.349m15 11.651V9.349M3 9.349l9-5.599 9 5.599M8.25 21v-6.75h7.5V21M9 12h.008M15 12h.008" />
-            </svg>
-            <svg v-else-if="f.icon === 'quality'" class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <svg v-else class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 100-18 9 9 0 000 18zm0 0c2.485 0 3.75-4.03 3.75-9S14.485 3 12 3 8.25 7.03 8.25 12 9.515 21 12 21zM3 12h18" />
-            </svg>
-          </span>
-          <h3 class="ect-font-display ect-text-lg ect-font-medium ect-text-charcoal ect-mb-1.5">{{ f.title }}</h3>
-          <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-leading-relaxed">{{ f.text }}</p>
-        </li>
-      </ul>
-    </article>
+          <svg v-if="p.icon === 'pricing'" class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          </svg>
+          <svg v-else-if="p.icon === 'buyback'" class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          <svg v-else-if="p.icon === 'quality'" class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M12 21L2.25 8.25 6 3.75h12l3.75 4.5L12 21zM8.25 8.25L12 3.75l3.75 4.5M12 21L8.25 8.25M12 21l3.75-12.75" />
+          </svg>
+          <svg v-else class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+          </svg>
+        </span>
+        <h3 class="ect-font-body ect-text-base ect-font-medium ect-text-[#2b2723]">{{ p.title }}</h3>
+        <p class="ect-mt-2 ect-font-body ect-text-[13.5px] ect-leading-relaxed ect-text-[#7a7264]">{{ p.text }}</p>
+      </article>
+    </div>
+
+    <p class="ect-text-center ect-mt-6 ect-font-body ect-text-[13px] ect-text-[#8a8172]">
+      Full price breakup — metal rate, making charges &amp; taxes — shown on every product page.
+      <RouterLink to="/about" class="ect-underline hover:ect-text-[#1f5c4d] ect-transition-colors">Read our trust promise</RouterLink>
+    </p>
   </section>
 </template>

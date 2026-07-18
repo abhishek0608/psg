@@ -8,6 +8,7 @@ export interface CollectionPreset {
   material?: Material
   color?: Color
   tab?: TabId
+  priceMin?: number
   priceMax?: number
   stoneTags?: string[]
   subtypes?: ProductSubtype[]

@@ -1,12 +1,46 @@
 <script setup lang="ts">
+import { watch } from 'vue'
+import { useRoute } from 'vue-router'
 import CollectionGrid from '../components/CollectionGrid.vue'
-import { useCollectionPreset } from '../composables/useCollectionPreset'
+import { useCollectionPreset, type CollectionPreset } from '../composables/useCollectionPreset'
+import type { Color, Material, ProductSubtype } from '../data/products'
 
+const route = useRoute()
 const { setPreset } = useCollectionPreset()
 
-// No category lock — show the full catalogue across every collection. Set
-// synchronously so the preset is in place before CollectionGrid mounts.
-setPreset({ tab: 'all' })
+const MATERIALS: Material[] = ['gold', 'silver']
+const COLOR_IDS: Color[] = ['yellow', 'white', 'rose', 'oxidised']
+
+// No category lock — show the full catalogue across every collection, refined
+// by the same query params CollectionView supports
+// (?metal=gold&color=rose&stone=diamond&type=solitaire&priceMin=500&priceMax=1000).
+function presetFromQuery(): CollectionPreset {
+  const q = route.query
+  const p: CollectionPreset = { tab: 'all' }
+  const metal = String(q.metal || '')
+  if ((MATERIALS as string[]).includes(metal)) p.material = metal as Material
+  const color = String(q.color || '')
+  if ((COLOR_IDS as string[]).includes(color)) p.color = color as Color
+  const stone = String(q.stone || '')
+  if (stone) p.stoneTags = stone.split(',').filter(Boolean)
+  const type = String(q.type || '')
+  if (type) p.subtypes = type.split(',').filter(Boolean) as ProductSubtype[]
+  const priceMin = Number(q.priceMin)
+  if (Number.isFinite(priceMin) && priceMin > 0) p.priceMin = priceMin
+  const priceMax = Number(q.priceMax)
+  if (Number.isFinite(priceMax) && priceMax > 0) p.priceMax = priceMax
+  return p
+}
+
+function apply() {
+  // Ignore watcher calls fired while navigating away from this page.
+  if (route.name !== 'collections') return
+  setPreset(presetFromQuery())
+}
+
+// Set synchronously so the preset is in place before CollectionGrid mounts.
+apply()
+watch(() => route.fullPath, apply)
 </script>
 
 <template>

@@ -367,7 +367,7 @@ const CUSTOM_HINT_REGEX =
 const BROWSE_INTENT_REGEX =
   /\b(show|find|search|browse|recommend|looking\s+for|see|view|display|list|catalog(?:ue)?)\b/
 const QUESTION_OFFER_REGEX =
-  /\b(do|does|can|are|is|will|could|would)\s+(you|u|y'?all|kiana)\b/
+  /\b(do|does|can|are|is|will|could|would)\s+(you|u|y'?all|jewelet)\b/
 const CREATE_PRONOUN_OBJECT_REGEX =
   /\b(make|build|cast|craft|produce|design|print)\s+(it|this|that|one|something|these|them)\b/
 
@@ -596,7 +596,7 @@ export default async function handler(req, res) {
   try {
     assertProviderKey(provider, keys)
     const systemPrompt = buildSystemPrompt(productSummary, { includeMultiCategoryFilterExample: true })
-    const extractorPrompt = `You are an intent extraction engine for a jewellery assistant at Kiana Jewels (Jaipur).
+    const extractorPrompt = `You are an intent extraction engine for a jewellery assistant at Jewelet (Jaipur).
 Return ONLY valid JSON with no markdown and no extra text.
 
 Schema:
@@ -691,7 +691,7 @@ Users may write in English, Hindi, Hinglish, or transliterated text. Normalize l
       // If the catalog carries no matching colour this yields [] on purpose, so the
       // reply is an honest "no blue pieces" rather than a fallback to other stones.
       const matches = filterByStoneColor(ranked, lastMessage.content)
-      const polishPrompt = `You are Priya, a warm jewellery consultant at Kiana Jewels in Jaipur. You talk like a real, enthusiastic person — not a robot. Use natural contractions, show genuine excitement about the pieces, and keep it conversational and short. Recommend specific products from the search results by name with their prices. If no exact match, warmly suggest the closest options. Never invent products not in the list.`
+      const polishPrompt = `You are Priya, a warm jewellery consultant at Jewelet in Jaipur. You talk like a real, enthusiastic person — not a robot. Use natural contractions, show genuine excitement about the pieces, and keep it conversational and short. Recommend specific products from the search results by name with their prices. If no exact match, warmly suggest the closest options. Never invent products not in the list.`
       // aiDescription is for colour matching only — keep it out of the polish
       // prompt (it duplicates the manual description and inflates tokens).
       const polishResults = matches.map(({ aiDescription, ...rest }) => rest)

@@ -30,7 +30,7 @@ const openings = [
               </span>
             </header>
             <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-leading-relaxed ect-mb-5">{{ job.description }}</p>
-            <a href="mailto:careers@kianajewels.in" class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-sm ect-font-semibold ect-text-gold-700 hover:ect-text-gold-800 ect-transition-colors">
+            <a href="mailto:careers@jewelet.example" class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-sm ect-font-semibold ect-text-gold-700 hover:ect-text-gold-800 ect-transition-colors">
               Apply now
               <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -43,7 +43,7 @@ const openings = [
       <section class="ect-bg-gradient-to-br ect-from-champagne/60 ect-to-cream ect-rounded-2xl ect-p-10 sm:ect-p-12 ect-border ect-border-sand ect-shadow-sm ect-text-center">
         <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-text-charcoal ect-mb-3">Don't see your role?</h2>
         <p class="ect-font-body ect-text-sm ect-text-charcoal/60 ect-mb-6 ect-max-w-md ect-mx-auto">We're always interested in meeting talented people. Send us your CV and tell us how you'd contribute.</p>
-        <a href="mailto:careers@kianajewels.in" class="ect-inline-flex ect-items-center ect-gap-2 ect-px-6 ect-py-3 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-rounded-full hover:ect-bg-noir ect-transition-colors">
+        <a href="mailto:careers@jewelet.example" class="ect-inline-flex ect-items-center ect-gap-2 ect-px-6 ect-py-3 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-rounded-full hover:ect-bg-noir ect-transition-colors">
           Get in touch
           <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />

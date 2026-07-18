@@ -1,4 +1,4 @@
-const REFERENCE_COUNTER_PREFIX = 'kiana-reference-counter:'
+const REFERENCE_COUNTER_PREFIX = 'jewelet-reference-counter:'
 
 function readCounter(counterKey: string) {
   if (typeof window === 'undefined') return 0

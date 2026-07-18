@@ -1,7 +1,7 @@
 import { reactive, computed } from 'vue'
 import { API_BASE } from '../config-api'
 
-const AUTH_STORAGE_KEY = 'kiana-auth-user'
+const AUTH_STORAGE_KEY = 'jewelet-auth-user'
 
 interface User {
   id: string

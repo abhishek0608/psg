@@ -9,6 +9,7 @@ import { useWishlist } from '../composables/useWishlist'
 import { useOrders } from '../composables/useOrders'
 import { fetchServiceRequests, type ServiceRequest } from '../composables/useServiceRequests'
 import { COLLECTION_LINKS, type CollectionLink } from '../data/collections'
+import { MEGA_MENUS, MEGA_PRICE_RANGES } from '../data/megaMenu'
 import { useSiteConfig } from '../composables/useSiteConfig'
 
 const router = useRouter()
@@ -86,6 +87,20 @@ interface ServiceItem {
 }
 
 const collectionItems: CollectionLink[] = COLLECTION_LINKS
+
+// Bluestone-style mega menu: the dark category bar opens a full-width panel
+// for the hovered collection.
+const activeMegaItem = computed(
+  () => collectionItems.find((c) => c.slug === activeDropdown.value) ?? null,
+)
+const activeMegaMenu = computed(() =>
+  activeMegaItem.value ? MEGA_MENUS[activeMegaItem.value.slug] ?? null : null,
+)
+
+// Tile image for the "Browse By Collections" card: configured image first,
+// bundled category photo as fallback.
+const megaTileImage = (slug: string) =>
+  collectionImages.value[slug] || MEGA_MENUS[slug]?.fallbackImage || ''
 
 const serviceItems: ServiceItem[] = [
   { id: 'cad', label: 'CAD' },
@@ -191,8 +206,9 @@ function toggleNotifications() {
   />
 
   <header class="ect-fixed ect-top-0 ect-left-0 ect-right-0 ect-z-50">
-    <!-- Announcement bar -->
-    <section class="ect-bg-bluestone-800 ect-text-champagne ect-text-center ect-py-1.5 ect-px-4">
+    <!-- Announcement bar (mobile only — on desktop the dark category bar
+         below the logo row takes its place, matching the Bluestone layout) -->
+    <section class="lg:ect-hidden ect-bg-bluestone-800 ect-text-champagne ect-text-center ect-py-1.5 ect-px-4">
       <p class="ect-font-body ect-text-[10px] sm:ect-text-[11px] ect-tracking-[0.18em] sm:ect-tracking-[0.22em] ect-uppercase ect-whitespace-nowrap ect-text-cream/85">
         <span class="sm:ect-hidden">Free shipping &middot; Certified jewellery</span>
         <span class="ect-hidden sm:ect-inline">Free insured shipping &middot; Certified gold and diamond jewellery &middot; Lifetime exchange</span>
@@ -223,7 +239,7 @@ function toggleNotifications() {
             class="ect-items-center ect-gap-2.5 ect-shrink-0"
             :class="isInternalPath ? 'ect-flex' : 'ect-hidden lg:ect-flex'"
           >
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[150px] ect-object-contain" />
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[180px] ect-object-contain" />
           </RouterLink>
         </section>
 
@@ -234,7 +250,7 @@ function toggleNotifications() {
           class="lg:ect-hidden ect-flex-1 ect-min-w-0 ect-mx-2.5 ect-flex ect-items-center ect-rounded-full ect-bg-cream ect-ring-1 ect-ring-charcoal/[0.08] focus-within:ect-ring-gold-400/50 focus-within:ect-bg-white ect-transition-all ect-duration-200"
         >
           <RouterLink to="/" :aria-label="`${brandName} home`" class="ect-ml-1 ect-p-0.5 ect-shrink-0">
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 ect-w-auto ect-max-w-[96px] ect-object-contain" />
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 ect-w-auto ect-max-w-[120px] ect-object-contain" />
           </RouterLink>
           <input
             v-model="query"
@@ -267,80 +283,15 @@ function toggleNotifications() {
           </button>
         </form>
 
-        <!-- Desktop nav -->
-        <ul class="ect-hidden lg:ect-flex ect-items-center ect-gap-6 ect-list-none ect-m-0 ect-p-0">
-          <li v-if="isInternalPath">
+        <!-- Desktop: internal workspace link (category links live in the dark bar below) -->
+        <ul v-if="isInternalPath" class="ect-hidden lg:ect-flex ect-items-center ect-gap-6 ect-list-none ect-m-0 ect-p-0">
+          <li>
             <RouterLink
               :to="{ path: '/internal', query: { tab: 'orders' } }"
               class="ect-font-body ect-text-[13px] ect-font-medium ect-uppercase ect-tracking-[0.12em] ect-text-gold-700 hover:ect-text-gold-800 ect-transition-colors ect-py-1"
             >
               Internal workspace
             </RouterLink>
-          </li>
-
-          <li v-if="!isInternalPath" class="ect-relative" @mouseenter="activeDropdown = 'collection'" @mouseleave="activeDropdown = null">
-            <button class="ect-flex ect-items-center ect-gap-1 ect-font-body ect-text-[13px] ect-font-medium ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 hover:ect-text-charcoal ect-transition-colors ect-py-1">
-              Shop
-              <svg class="ect-w-3 ect-h-3 ect-transition-transform ect-duration-200" :class="activeDropdown === 'collection' ? 'ect-rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
-            </button>
-
-            <Transition enter-active-class="ect-transition ect-duration-200 ect-ease-out" enter-from-class="ect-opacity-0 ect-translate-y-1" enter-to-class="ect-opacity-100 ect-translate-y-0" leave-active-class="ect-transition ect-duration-150 ect-ease-in" leave-from-class="ect-opacity-100 ect-translate-y-0" leave-to-class="ect-opacity-0 ect-translate-y-1">
-              <ul v-if="activeDropdown === 'collection'" class="ect-absolute ect-top-full ect-left-1/2 -ect-translate-x-1/2 ect-mt-3 ect-w-60 ect-bg-white ect-rounded-2xl ect-shadow-2xl ect-shadow-charcoal/[0.12] ect-ring-1 ect-ring-charcoal/[0.06] ect-p-3 ect-list-none ect-m-0">
-                <li v-for="item in collectionItems" :key="item.label">
-                  <button type="button" @click="goToCollection(item.slug)" class="ect-w-full ect-flex ect-items-center ect-gap-2.5 ect-px-3 ect-py-2.5 ect-rounded-xl hover:ect-bg-champagne/40 ect-transition-colors ect-text-left ect-group">
-                    <span class="ect-w-6 ect-h-6 ect-shrink-0 ect-flex ect-items-center ect-justify-center ect-text-gold-700">
-                      <svg v-if="item.icon === 'ring'" class="ect-w-5 ect-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 14.5a5.5 5.5 0 1011 0 5.5 5.5 0 10-11 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 10.5l3-5 3 5-3 2-3-2z" />
-                      </svg>
-                      <svg v-else-if="item.icon === 'earrings'" class="ect-w-5 ect-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7.5a2 2 0 114 0c0 1.1-.9 1.7-1.5 2.4-.5.6-.8 1.2-.8 2.1a2.7 2.7 0 105.3 0c0-.9-.3-1.5-.8-2.1-.6-.7-1.5-1.3-1.5-2.4a2 2 0 114 0" />
-                      </svg>
-                      <svg v-else-if="item.icon === 'pendant'" class="ect-w-5 ect-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v3.5m-4 0h8M7 7.5c.7 3.8 2.4 6.6 5 9 2.6-2.4 4.3-5.2 5-9" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.3 16.4L12 20l1.7-3.6" />
-                      </svg>
-                      <svg v-else-if="item.icon === 'bracelet'" class="ect-w-5 ect-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-                        <rect x="6.5" y="7" width="11" height="10" rx="5" />
-                        <path stroke-linecap="round" d="M9 7V5.8M15 7V5.8M9 18.2V17M15 18.2V17" />
-                      </svg>
-                      <svg v-else class="ect-w-5 ect-h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6c0 4.2 2.2 7 6 10 3.8-3 6-5.8 6-10" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.2 15.1L12 18l1.8-2.9" />
-                      </svg>
-                    </span>
-                    <span class="ect-font-body ect-text-sm ect-font-medium ect-text-charcoal/80 group-hover:ect-text-charcoal ect-transition-colors">{{ item.label }}</span>
-                  </button>
-                </li>
-              </ul>
-            </Transition>
-          </li>
-
-          <li v-if="!isInternalPath" class="ect-relative" @mouseenter="activeDropdown = 'services'" @mouseleave="activeDropdown = null">
-            <button class="ect-flex ect-items-center ect-gap-1 ect-font-body ect-text-[13px] ect-font-medium ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 hover:ect-text-charcoal ect-transition-colors ect-py-1">
-              Services
-              <svg class="ect-w-3 ect-h-3 ect-transition-transform ect-duration-200" :class="activeDropdown === 'services' ? 'ect-rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
-            </button>
-
-            <Transition enter-active-class="ect-transition ect-duration-200 ect-ease-out" enter-from-class="ect-opacity-0 ect-translate-y-1" enter-to-class="ect-opacity-100 ect-translate-y-0" leave-active-class="ect-transition ect-duration-150 ect-ease-in" leave-from-class="ect-opacity-100 ect-translate-y-0" leave-to-class="ect-opacity-0 ect-translate-y-1">
-              <ul v-if="activeDropdown === 'services'" class="ect-absolute ect-top-full ect-left-1/2 -ect-translate-x-1/2 ect-mt-3 ect-w-72 ect-bg-white ect-rounded-2xl ect-shadow-2xl ect-shadow-charcoal/[0.12] ect-ring-1 ect-ring-charcoal/[0.06] ect-p-3 ect-list-none ect-m-0">
-                <li v-for="svc in serviceItems" :key="svc.id">
-                  <RouterLink :to="{ name: 'services', hash: '#' + svc.id }" class="ect-block ect-px-3 ect-py-2.5 ect-rounded-xl ect-font-body ect-text-sm ect-font-medium ect-text-charcoal/80 hover:ect-bg-champagne/40 hover:ect-text-charcoal ect-transition-colors">
-                    {{ svc.label }}
-                  </RouterLink>
-                </li>
-              </ul>
-            </Transition>
-          </li>
-
-          <li v-if="!isInternalPath">
-            <RouterLink to="/chat" class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-[13px] ect-font-medium ect-uppercase ect-tracking-[0.12em] ect-text-gold-700 hover:ect-text-gold-800 ect-transition-colors ect-py-1">
-              <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg>
-              Video Call
-            </RouterLink>
-          </li>
-          <li v-if="!isInternalPath">
-            <RouterLink to="/about" class="ect-relative ect-font-body ect-text-[13px] ect-font-medium ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 hover:ect-text-charcoal ect-transition-colors ect-py-1 after:ect-absolute after:ect-bottom-0 after:ect-left-0 after:ect-w-0 after:ect-h-px after:ect-bg-gold-400 hover:after:ect-w-full after:ect-transition-all after:ect-duration-300">About Us</RouterLink>
           </li>
         </ul>
 
@@ -361,8 +312,8 @@ function toggleNotifications() {
             <input
               v-model="query"
               type="text"
-              placeholder="Search…"
-              class="ect-w-36 focus:ect-w-48 ect-px-2.5 ect-py-1.5 ect-bg-transparent ect-font-body ect-text-xs ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all ect-duration-300"
+              placeholder="Search for jewellery…"
+              class="ect-w-44 focus:ect-w-64 ect-px-2.5 ect-py-2 ect-bg-transparent ect-font-body ect-text-xs ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all ect-duration-300"
               @focus="searchFocused = true"
               @blur="searchFocused = false"
             />
@@ -380,20 +331,30 @@ function toggleNotifications() {
             </button>
           </form>
 
+          <!-- Video call -->
+          <RouterLink v-if="!isInternalPath" to="/chat" class="ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Video call">
+            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            <span class="ect-font-body ect-text-[10px] ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Video call</span>
+          </RouterLink>
+
           <!-- Wishlist -->
-          <RouterLink v-if="!isInternalPath" to="/wishlist" class="ect-relative ect-group ect-p-1.5" aria-label="Wishlist">
-            <svg class="ect-w-[18px] ect-h-[18px] ect-text-charcoal/60 group-hover:ect-text-rose-500 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <RouterLink v-if="!isInternalPath" to="/wishlist" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Wishlist">
+            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-rose-500 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
             </svg>
-            <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-0.5 -ect-right-0.5 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-[9px] ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
+            <span class="ect-font-body ect-text-[10px] ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Wishlist</span>
+            <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-[9px] ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
           </RouterLink>
 
           <!-- Cart -->
-          <RouterLink v-if="!isInternalPath" to="/cart" class="ect-relative ect-group ect-p-1.5">
-            <svg class="ect-w-[18px] ect-h-[18px] ect-text-charcoal/60 group-hover:ect-text-charcoal ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <RouterLink v-if="!isInternalPath" to="/cart" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Cart">
+            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-charcoal ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
-            <span v-if="totalItems > 0" class="ect-absolute -ect-top-0.5 -ect-right-0.5 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-[9px] ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ totalItems }}</span>
+            <span class="ect-font-body ect-text-[10px] ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Cart</span>
+            <span v-if="totalItems > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-[9px] ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ totalItems }}</span>
           </RouterLink>
 
           <!-- Internal notifications -->
@@ -507,7 +468,12 @@ function toggleNotifications() {
             </Transition>
           </section>
 
-          <RouterLink v-else to="/login" class="ect-font-body ect-text-[13px] ect-font-medium ect-uppercase ect-tracking-[0.08em] ect-text-charcoal/70 hover:ect-text-charcoal ect-transition-colors ect-py-1">Sign in</RouterLink>
+          <RouterLink v-else to="/login" class="ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Sign in">
+            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-charcoal ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span class="ect-font-body ect-text-[10px] ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Sign in</span>
+          </RouterLink>
         </section>
 
         <!-- Mobile right: wishlist, cart (sign-in lives in the drawer) -->
@@ -572,6 +538,151 @@ function toggleNotifications() {
       </section>
     </nav>
 
+    <!-- Desktop category bar + Bluestone-style mega menu -->
+    <nav
+      v-if="!isInternalPath"
+      class="ect-hidden lg:ect-block ect-relative ect-bg-bluestone-800"
+      @mouseleave="activeDropdown = null"
+    >
+      <ul class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-stretch ect-list-none ect-m-0 ect-p-0">
+        <li v-for="item in collectionItems" :key="item.slug" @mouseenter="activeDropdown = item.slug">
+          <RouterLink
+            :to="`/collections/${item.slug}`"
+            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-transition-colors"
+            :class="activeDropdown === item.slug ? 'ect-bg-white ect-text-bluestone-800' : 'ect-text-cream/85 hover:ect-text-white'"
+            @click="activeDropdown = null"
+          >
+            {{ item.title }}
+          </RouterLink>
+        </li>
+        <li @mouseenter="activeDropdown = null">
+          <RouterLink
+            to="/collections"
+            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-text-cream/85 hover:ect-text-white ect-transition-colors"
+          >
+            All Jewellery
+          </RouterLink>
+        </li>
+
+        <li class="ect-relative ect-ml-auto" @mouseenter="activeDropdown = 'services'">
+          <button class="ect-flex ect-items-center ect-gap-1 ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-transition-colors" :class="activeDropdown === 'services' ? 'ect-bg-white ect-text-bluestone-800' : 'ect-text-cream/85 hover:ect-text-white'">
+            Services
+            <svg class="ect-w-3 ect-h-3 ect-transition-transform ect-duration-200" :class="activeDropdown === 'services' ? 'ect-rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+          </button>
+          <Transition enter-active-class="ect-transition ect-duration-200 ect-ease-out" enter-from-class="ect-opacity-0 ect-translate-y-1" enter-to-class="ect-opacity-100 ect-translate-y-0" leave-active-class="ect-transition ect-duration-150 ect-ease-in" leave-from-class="ect-opacity-100 ect-translate-y-0" leave-to-class="ect-opacity-0 ect-translate-y-1">
+            <ul v-if="activeDropdown === 'services'" class="ect-absolute ect-top-full ect-right-0 ect-w-72 ect-bg-white ect-shadow-2xl ect-shadow-charcoal/[0.15] ect-ring-1 ect-ring-charcoal/[0.06] ect-p-2 ect-list-none ect-m-0 ect-z-10">
+              <li v-for="svc in serviceItems" :key="svc.id">
+                <RouterLink :to="{ name: 'services', hash: '#' + svc.id }" class="ect-block ect-px-3 ect-py-2.5 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal/80 hover:ect-bg-champagne/40 hover:ect-text-charcoal ect-transition-colors" @click="activeDropdown = null">
+                  {{ svc.label }}
+                </RouterLink>
+              </li>
+            </ul>
+          </Transition>
+        </li>
+        <li @mouseenter="activeDropdown = null">
+          <RouterLink
+            to="/about"
+            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-text-cream/85 hover:ect-text-white ect-transition-colors"
+          >
+            About Us
+          </RouterLink>
+        </li>
+      </ul>
+
+      <!-- Full-width mega panel for the hovered collection -->
+      <Transition enter-active-class="ect-transition ect-duration-200 ect-ease-out" enter-from-class="ect-opacity-0 -ect-translate-y-1" enter-to-class="ect-opacity-100 ect-translate-y-0" leave-active-class="ect-transition ect-duration-150 ect-ease-in" leave-from-class="ect-opacity-100 ect-translate-y-0" leave-to-class="ect-opacity-0 -ect-translate-y-1">
+        <section
+          v-if="activeMegaMenu && activeMegaItem"
+          class="ect-absolute ect-top-full ect-left-0 ect-right-0 ect-bg-white ect-shadow-2xl ect-shadow-charcoal/[0.18] ect-border-t ect-border-sand"
+        >
+          <div class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-py-7 ect-grid ect-grid-cols-[1.35fr_1fr_1fr_1.15fr] ect-gap-x-10">
+            <!-- Popular types -->
+            <section>
+              <h3 class="ect-font-body ect-text-[13px] ect-font-semibold ect-text-charcoal ect-tracking-[0.04em] ect-mb-4">{{ activeMegaMenu.typesHeading }}</h3>
+              <ul class="ect-grid ect-grid-cols-2 ect-gap-x-6 ect-list-none ect-m-0 ect-p-0">
+                <li v-for="t in activeMegaMenu.types" :key="t.label">
+                  <RouterLink
+                    :to="{ path: `/collections/${activeMegaItem.slug}`, query: t.query }"
+                    class="ect-block ect-py-1.5 ect-font-body ect-text-sm ect-text-charcoal/65 hover:ect-text-gold-700 ect-transition-colors"
+                    @click="activeDropdown = null"
+                  >
+                    {{ t.label }}
+                  </RouterLink>
+                </li>
+              </ul>
+              <RouterLink
+                :to="`/collections/${activeMegaItem.slug}`"
+                class="ect-mt-5 ect-inline-flex ect-w-full ect-items-center ect-justify-center ect-py-2.5 ect-border ect-border-bluestone-800/30 ect-font-body ect-text-[12px] ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-bluestone-800 hover:ect-bg-bluestone-800 hover:ect-text-white ect-transition-colors"
+                @click="activeDropdown = null"
+              >
+                View All {{ activeMegaItem.title }}
+              </RouterLink>
+            </section>
+
+            <!-- Price ranges -->
+            <section class="ect-border-l ect-border-sand/70 ect-pl-8">
+              <h3 class="ect-font-body ect-text-[13px] ect-font-semibold ect-text-charcoal ect-tracking-[0.04em] ect-mb-4">By Price Range</h3>
+              <ul class="ect-list-none ect-m-0 ect-p-0">
+                <li v-for="pr in MEGA_PRICE_RANGES" :key="pr.label">
+                  <RouterLink
+                    :to="{ path: `/collections/${activeMegaItem.slug}`, query: pr.query }"
+                    class="ect-block ect-py-1.5 ect-font-body ect-text-sm ect-text-charcoal/65 hover:ect-text-gold-700 ect-transition-colors"
+                    @click="activeDropdown = null"
+                  >
+                    {{ pr.label }}
+                  </RouterLink>
+                </li>
+              </ul>
+            </section>
+
+            <!-- Metals & stones -->
+            <section class="ect-border-l ect-border-sand/70 ect-pl-8">
+              <h3 class="ect-font-body ect-text-[13px] ect-font-semibold ect-text-charcoal ect-tracking-[0.04em] ect-mb-4">By Metals &amp; Stones</h3>
+              <ul class="ect-list-none ect-m-0 ect-p-0">
+                <li v-for="m in activeMegaMenu.metals" :key="m.label">
+                  <RouterLink
+                    :to="{ path: `/collections/${activeMegaItem.slug}`, query: m.query }"
+                    class="ect-block ect-py-1.5 ect-font-body ect-text-sm ect-text-charcoal/65 hover:ect-text-gold-700 ect-transition-colors"
+                    @click="activeDropdown = null"
+                  >
+                    {{ m.label }} {{ activeMegaItem.title }}
+                  </RouterLink>
+                </li>
+              </ul>
+            </section>
+
+            <!-- Browse by collections -->
+            <section class="ect-border-l ect-border-sand/70 ect-pl-8">
+              <header class="ect-flex ect-items-center ect-justify-between ect-mb-4">
+                <h3 class="ect-font-body ect-text-[13px] ect-font-semibold ect-text-charcoal ect-tracking-[0.04em]">Browse By Collections</h3>
+                <RouterLink to="/collections" class="ect-inline-flex ect-items-center ect-gap-1 ect-font-body ect-text-[12px] ect-font-semibold ect-text-bluestone-600 hover:ect-text-bluestone-800 ect-transition-colors" @click="activeDropdown = null">
+                  View All
+                  <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12l-7.5 7.5M21 12H3"/></svg>
+                </RouterLink>
+              </header>
+              <RouterLink
+                :to="`/collections/${activeMegaItem.slug}`"
+                class="ect-group ect-relative ect-block ect-h-44 ect-overflow-hidden ect-ring-1 ect-ring-charcoal/[0.06]"
+                @click="activeDropdown = null"
+              >
+                <img
+                  v-if="megaTileImage(activeMegaItem.slug)"
+                  :src="megaTileImage(activeMegaItem.slug)"
+                  :alt="activeMegaItem.title"
+                  class="ect-absolute ect-inset-0 ect-w-full ect-h-full ect-object-cover group-hover:ect-scale-105 ect-transition-transform ect-duration-500"
+                />
+                <span class="ect-absolute ect-inset-0 ect-bg-[linear-gradient(180deg,transparent_45%,rgba(13,36,54,0.55)_100%)]" />
+                <span class="ect-absolute ect-bottom-3 ect-left-4 ect-right-4">
+                  <span class="ect-block ect-font-display ect-text-xl ect-font-light ect-text-white ect-leading-tight">{{ activeMegaItem.title }}</span>
+                  <span class="ect-block ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.2em] ect-text-white/75 ect-mt-0.5">The Jewelet Edit</span>
+                </span>
+              </RouterLink>
+            </section>
+          </div>
+        </section>
+      </Transition>
+    </nav>
+
     <!-- Mobile drawer overlay: dimmed backdrop + 90%-width panel. Always
          rendered (never v-if'd away) so the collection images stay fetched
          and decoded — tearing the drawer down made them visibly reload on
@@ -600,7 +711,7 @@ function toggleNotifications() {
             </svg>
           </button>
           <span class="ect-flex ect-items-center ect-gap-2">
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[150px] ect-object-contain" />
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[180px] ect-object-contain" />
           </span>
         </header>
 

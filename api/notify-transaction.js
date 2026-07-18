@@ -4,7 +4,7 @@
  * Env (Vercel / server):
  *   RESEND_API_KEY   — required to send (https://resend.com)
  *   NOTIFY_TO_EMAIL  — inbox that receives order / booking alerts
- *   RESEND_FROM      — optional, default "Kiana Orders <onboarding@resend.dev>"
+ *   RESEND_FROM      — optional, default "Jewelet Orders <onboarding@resend.dev>"
  *
  * Sends: (1) internal alert to NOTIFY_TO_EMAIL, (2) confirmation to customer when email present.
  * If RESEND_API_KEY is unset, returns 200 { sent: false } so checkout is never blocked.
@@ -125,7 +125,7 @@ export default async function handler(req, res) {
 
   const notifyTo = String(process.env.NOTIFY_TO_EMAIL || '').trim()
   const notifyRecipients = parseRecipientList(notifyTo)
-  const from = String(process.env.RESEND_FROM || 'Kiana <onboarding@resend.dev>').trim()
+  const from = String(process.env.RESEND_FROM || 'Jewelet <onboarding@resend.dev>').trim()
 
   try {
     if (kind === 'order') {
@@ -175,7 +175,7 @@ export default async function handler(req, res) {
       const customerHtml = renderEmailShell({
         eyebrow: 'Order Confirmed',
         title: `We received your order ${orderId}`,
-        intro: `Thank you for shopping with Kiana. We've received your order for ${formattedTotal} and our team will begin processing it shortly.`,
+        intro: `Thank you for shopping with Jewelet. We've received your order for ${formattedTotal} and our team will begin processing it shortly.`,
         bodyHtml: `
           <div style="margin:0 0 18px;padding:16px 18px;border-radius:18px;background:#fbf5f3;">
             <p style="margin:0;font:400 14px/1.7 Arial,sans-serif;color:#2f2725;"><strong>Order Number:</strong> ${orderId}<br><strong>Payment:</strong> ${paymentMethod}<br><strong>Total:</strong> ${formattedTotal}</p>

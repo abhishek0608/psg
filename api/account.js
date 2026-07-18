@@ -11,6 +11,20 @@ import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypt
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
 
+const ACCOUNT_USER_SELECT = {
+  id: true,
+  email: true,
+  firstName: true,
+  lastName: true,
+  isInternal: true,
+  isAdmin: true,
+}
+
+const SIGNIN_USER_SELECT = {
+  ...ACCOUNT_USER_SELECT,
+  passwordHash: true,
+}
+
 function parseBody(req) {
   if (typeof req.body !== 'string') return req.body || {}
   try {
@@ -131,13 +145,13 @@ async function sendResetEmail({ to, resetUrl }) {
     console.warn('[account] RESEND_API_KEY not set; skipping reset email.')
     return { ok: false, skipped: true }
   }
-  const from = String(process.env.RESEND_FROM || 'Kiana <onboarding@resend.dev>').trim()
+  const from = String(process.env.RESEND_FROM || 'Jewelet <onboarding@resend.dev>').trim()
   const safeUrl = String(resetUrl).replace(/"/g, '%22')
   const html = `
     <div style="background:#f7efeb;padding:32px 16px;">
       <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #f0ddda;border-radius:24px;overflow:hidden;">
         <div style="padding:32px;">
-          <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:0.18em;text-transform:uppercase;color:#c6536b;">Kiana Jewels</p>
+          <p style="margin:0 0 10px;font:600 11px/1.4 Arial,sans-serif;letter-spacing:0.18em;text-transform:uppercase;color:#c6536b;">Jewelet</p>
           <h1 style="margin:0 0 10px;font:400 28px/1.2 Georgia,'Times New Roman',serif;color:#2f2725;">Reset your password</h1>
           <p style="margin:0 0 22px;font:400 15px/1.7 Arial,sans-serif;color:#655854;">We received a request to reset your password. Click the button below to choose a new one. This link expires in 1 hour.</p>
           <a href="${safeUrl}" style="display:inline-block;padding:14px 28px;background:#c6536b;color:#ffffff;font:600 13px/1 Arial,sans-serif;letter-spacing:0.08em;text-transform:uppercase;border-radius:12px;text-decoration:none;">Reset password</a>
@@ -145,11 +159,11 @@ async function sendResetEmail({ to, resetUrl }) {
         </div>
       </div>
     </div>`
-  const text = `Reset your Kiana password using this link (valid for 1 hour):\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`
+  const text = `Reset your Jewelet password using this link (valid for 1 hour):\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to: [to], subject: 'Reset your Kiana password', html, text }),
+    body: JSON.stringify({ from, to: [to], subject: 'Reset your Jewelet password', html, text }),
   })
   if (!res.ok) {
     const t = await res.text()
@@ -324,6 +338,7 @@ async function handleSignup(res, body) {
       passwordHash: hashPassword(password),
       isInternal: isInternalEmail(email),
     },
+    select: ACCOUNT_USER_SELECT,
   })
   return res.status(200).json({ user: toUserPayload(customer) })
 }
@@ -335,13 +350,17 @@ async function handleSignin(res, body) {
   const password = String(body?.password || '')
   if (!email) return res.status(400).json({ message: 'Email is required.' })
   if (!password) return res.status(400).json({ message: 'Password is required.' })
-  let customer = await prisma.user.findUnique({ where: { email } })
+  let customer = await prisma.user.findUnique({ where: { email }, select: SIGNIN_USER_SELECT })
   if (!customer) return res.status(404).json({ message: 'User not found. Please sign up first.' })
   if (!customer.passwordHash || !verifyPassword(password, customer.passwordHash)) {
     return res.status(401).json({ message: 'Invalid email or password.' })
   }
   if (!customer.isInternal && isInternalEmail(email)) {
-    customer = await prisma.user.update({ where: { id: customer.id }, data: { isInternal: true } })
+    customer = await prisma.user.update({
+      where: { id: customer.id },
+      data: { isInternal: true },
+      select: SIGNIN_USER_SELECT,
+    })
   }
   return res.status(200).json({ user: toUserPayload(customer) })
 }
@@ -355,7 +374,7 @@ async function handleResetRequest(req, res, body) {
   const generic = { message: 'If an account exists for that email, a reset link is on its way.' }
   if (!email) return res.status(400).json({ message: 'Email is required.' })
 
-  const customer = await prisma.user.findUnique({ where: { email } })
+  const customer = await prisma.user.findUnique({ where: { email }, select: { id: true } })
   if (!customer) return res.status(200).json(generic)
 
   const token = randomBytes(32).toString('hex')
@@ -390,6 +409,7 @@ async function handleResetConfirm(res, body) {
       resetTokenHash: hashResetToken(token),
       resetTokenExpiry: { gt: new Date() },
     },
+    select: { id: true },
   })
   if (!customer) {
     return res.status(400).json({ message: 'This reset link is invalid or has expired.' })
@@ -414,7 +434,10 @@ async function handleChangePassword(res, customerId, body) {
   if (newPassword.length < 8)
     return res.status(400).json({ message: 'New password must be at least 8 characters.' })
 
-  const customer = await prisma.user.findUnique({ where: { id: customerId } })
+  const customer = await prisma.user.findUnique({
+    where: { id: customerId },
+    select: { id: true, passwordHash: true },
+  })
   if (!customer) return res.status(404).json({ message: 'User not found.' })
   if (!customer.passwordHash || !verifyPassword(currentPassword, customer.passwordHash)) {
     return res.status(401).json({ message: 'Current password is incorrect.' })
@@ -433,7 +456,10 @@ async function handleChangePassword(res, customerId, body) {
 
 async function handleGetProfile(res, customerId) {
   if (!customerId) return res.status(400).json({ message: 'userId is required.' })
-  const customer = await prisma.user.findUnique({ where: { id: customerId } })
+  const customer = await prisma.user.findUnique({
+    where: { id: customerId },
+    select: ACCOUNT_USER_SELECT,
+  })
   if (!customer) return res.status(404).json({ message: 'User not found.' })
   return res.status(200).json({ user: toUserPayload(customer) })
 }

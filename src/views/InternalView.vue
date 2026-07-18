@@ -1888,7 +1888,7 @@ onBeforeUnmount(() => {
             <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
               <label class="ect-block">
                 <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Eyebrow</span>
-                <input v-model="aboutHeroEyebrow" type="text" placeholder="Kiana Jewels · Jaipur" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                <input v-model="aboutHeroEyebrow" type="text" placeholder="Jewelet · Jaipur" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
               </label>
               <label class="ect-block">
                 <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Headline</span>
@@ -1954,7 +1954,7 @@ onBeforeUnmount(() => {
                 </div>
                 <label class="ect-block">
                   <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Title <span class="ect-text-red-500">*</span></span>
-                  <input v-model="step.title" type="text" placeholder="Kiana Jewels" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                  <input v-model="step.title" type="text" placeholder="Jewelet" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
                 <label class="ect-block">
                   <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Story</span>
@@ -1984,7 +1984,7 @@ onBeforeUnmount(() => {
             <div class="ect-mb-3 ect-flex ect-items-center ect-justify-between">
               <div>
                 <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/45">Founders &amp; team</p>
-                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Portrait cards shown in a "The people behind Kiana" section. The section stays hidden until at least one person is added.</p>
+                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Portrait cards shown in a "The people behind Jewelet" section. The section stays hidden until at least one person is added.</p>
               </div>
               <button
                 type="button"
@@ -2044,7 +2044,7 @@ onBeforeUnmount(() => {
             </div>
 
             <div v-else class="ect-rounded-2xl ect-border ect-border-dashed ect-border-sand ect-bg-cream ect-p-8 ect-text-center">
-              <p class="ect-font-body ect-text-sm ect-text-charcoal/55">No people added yet — the "People behind Kiana" section is hidden on the storefront until you add someone.</p>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal/55">No people added yet — the "People behind Jewelet" section is hidden on the storefront until you add someone.</p>
             </div>
           </div>
         </div>
