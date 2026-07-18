@@ -255,7 +255,7 @@ onMounted(async () => {
     @change="onImageFileChange"
   />
 
-  <main class="ect-min-h-screen ect-bg-cream ect-pt-32 ect-pb-20 ect-px-5">
+  <main class="ect-min-h-screen ect-bg-[#faf7f2] ect-pt-32 ect-pb-20 ect-px-5">
     <section class="ect-max-w-5xl ect-mx-auto">
 
       <!-- Search bar (desktop only — mobile uses the header's search bar) -->
@@ -362,17 +362,20 @@ onMounted(async () => {
       </p>
 
       <!-- Loading skeletons -->
-      <ul v-if="isLoading" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-6 ect-list-none ect-m-0 ect-p-0">
+      <ul v-if="isLoading" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0">
         <li v-for="n in 8" :key="n" class="ect-animate-pulse">
-          <section class="ect-aspect-square ect-rounded-2xl ect-bg-sand ect-mb-3" />
-          <section class="ect-h-4 ect-w-3/4 ect-rounded ect-bg-sand/80 ect-mb-2" />
-          <section class="ect-h-3 ect-w-1/3 ect-rounded ect-bg-sand/60" />
+          <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
+          <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-p-4">
+            <section class="ect-h-3 ect-w-1/3 ect-rounded ect-bg-[#e6ddce] ect-mb-3" />
+            <section class="ect-h-4 ect-w-3/4 ect-rounded ect-bg-[#e6ddce] ect-mb-3" />
+            <section class="ect-h-5 ect-w-1/2 ect-rounded ect-bg-[#e6ddce]" />
+          </section>
         </li>
       </ul>
 
       <!-- Image search results -->
       <template v-else-if="isImageSearch">
-        <ul v-if="imageResults.length" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-6 ect-list-none ect-m-0 ect-p-0">
+        <ul v-if="imageResults.length" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0">
           <li v-for="item in imageResults" :key="item.slug" class="ect-relative ect-h-full">
             <!-- Shown only on near-duplicate photo hits; raw scores stay in the API debug payload -->
             <span
@@ -418,7 +421,7 @@ onMounted(async () => {
 
       <!-- Text search results -->
       <template v-else>
-        <ul v-if="textResults.length" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-6 ect-list-none ect-m-0 ect-p-0">
+        <ul v-if="textResults.length" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0">
           <li v-for="item in textResults" :key="item.slug" class="ect-h-full">
             <ProductCard
               :slug="item.slug"

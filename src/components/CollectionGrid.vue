@@ -251,7 +251,7 @@ watch([activeTab, appliedFilters], () => {
 </script>
 
 <template>
-  <section id="collections" class="ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-16 sm:ect-pb-24" :class="hideHeader ? 'ect-pt-3' : 'ect-pt-16 sm:ect-pt-24'">
+  <section id="collections" class="ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-16 sm:ect-pb-24" :class="hideHeader ? 'ect-pt-5' : 'ect-pt-16 sm:ect-pt-24'">
     <header v-if="!hideHeader" class="ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-2 ect-mb-8">
       <section>
         <p class="ect-inline-flex ect-items-center ect-gap-2.5 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-gold-700 ect-mb-3">
@@ -263,14 +263,14 @@ watch([activeTab, appliedFilters], () => {
     </header>
 
     <!-- Tabs + Filter (single line on mobile: All, New, Best, icon) -->
-    <section class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-mb-6 ect-border-b ect-border-sand ect-min-w-0" :class="sidebar ? 'lg:ect-hidden' : ''">
+    <section class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-mb-7 ect-border-b ect-border-[#e6ddce] ect-min-w-0" :class="sidebar ? 'lg:ect-hidden' : ''">
       <!-- Filter: icon only on mobile -->
       <button
         type="button"
         @click="filterOpen = true"
         aria-label="Filter"
         class="ect-relative ect-shrink-0 ect-flex ect-items-center ect-justify-center ect-w-9 ect-h-9 sm:ect-w-auto sm:ect-h-auto sm:ect-gap-1.5 sm:ect-px-3 sm:ect-py-2 ect-mb-1 ect-rounded-full ect-border ect-transition-colors"
-        :class="activeFilterCount > 0 ? 'ect-border-gold-400 ect-text-gold-700 ect-bg-gold-50' : 'ect-border-sand ect-text-charcoal/60 hover:ect-border-gold-400/60 hover:ect-text-charcoal'"
+        :class="activeFilterCount > 0 ? 'ect-border-[#1f3f37] ect-text-[#1f3f37] ect-bg-white' : 'ect-border-[#d8ccb5] ect-text-charcoal/60 hover:ect-border-[#1f3f37]/60 hover:ect-text-charcoal'"
       >
         <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
@@ -297,7 +297,7 @@ watch([activeTab, appliedFilters], () => {
           role="tab"
           :aria-selected="activeTab === tab.id"
           :aria-label="tab.label"
-          :class="activeTab === tab.id ? 'ect-text-charcoal ect-border-gold-400' : 'ect-text-charcoal/50 hover:ect-text-charcoal ect-border-transparent'"
+          :class="activeTab === tab.id ? 'ect-text-charcoal ect-border-[#1f3f37]' : 'ect-text-charcoal/50 hover:ect-text-charcoal ect-border-transparent'"
           class="ect-font-body ect-text-xs sm:ect-text-sm ect-font-medium ect-px-2 sm:ect-px-4 ect-py-3 ect--mb-px ect-border-b-2 ect-transition-colors ect-whitespace-nowrap"
           @click="switchTab(tab.id)"
         >
@@ -321,12 +321,12 @@ watch([activeTab, appliedFilters], () => {
       <aside v-if="sidebar" class="ect-hidden lg:ect-block lg:ect-w-56 lg:ect-shrink-0 lg:ect-sticky lg:ect-top-28 lg:ect-self-start lg:ect-max-h-[calc(100vh-8rem)] lg:ect-overflow-y-auto lg:ect-pr-2 ect-no-scrollbar">
         <!-- Category -->
         <section v-if="!lockedCategory" class="ect-mb-6">
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Category</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Category</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="cat in CATEGORIES" :key="cat">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
                 <input type="checkbox" class="ect-sr-only" :checked="appliedFilters.categories.includes(cat)" @change="toggleCategory(cat)" />
-                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.categories.includes(cat) ? 'ect-bg-rose-700 ect-border-rose-700' : 'ect-border-charcoal/25 group-hover:ect-border-rose-400'">
+                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.categories.includes(cat) ? 'ect-bg-[#1f3f37] ect-border-[#1f3f37]' : 'ect-border-[#d8ccb5] group-hover:ect-border-[#1f3f37]/60'">
                   <svg v-if="appliedFilters.categories.includes(cat)" class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </span>
                 <span class="ect-font-body ect-text-sm ect-text-charcoal/80 group-hover:ect-text-charcoal ect-transition-colors">{{ cat }}</span>
@@ -334,11 +334,11 @@ watch([activeTab, appliedFilters], () => {
             </li>
           </ul>
         </section>
-        <hr v-if="!lockedCategory" class="ect-border-sand ect-mb-6" />
+        <hr v-if="!lockedCategory" class="ect-border-[#e6ddce] ect-mb-6" />
 
         <!-- Price -->
         <section class="ect-mb-6">
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Price</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Price</h3>
           <div class="jewelet-range">
             <span class="jewelet-range__track"></span>
             <span class="jewelet-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
@@ -350,16 +350,16 @@ watch([activeTab, appliedFilters], () => {
             <span>{{ formatPrice(appliedFilters.priceMax) }}{{ appliedFilters.priceMax >= maxPrice ? '+' : '' }}</span>
           </div>
         </section>
-        <hr class="ect-border-sand ect-mb-6" />
+        <hr class="ect-border-[#e6ddce] ect-mb-6" />
 
         <!-- Material -->
         <section class="ect-mb-6">
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Material</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Material</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="m in materialOptions" :key="m.id">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
                 <input type="checkbox" class="ect-sr-only" :checked="appliedFilters.materials.includes(m.id)" @change="toggleMaterial(m.id)" />
-                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.materials.includes(m.id) ? 'ect-bg-rose-700 ect-border-rose-700' : 'ect-border-charcoal/25 group-hover:ect-border-rose-400'">
+                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.materials.includes(m.id) ? 'ect-bg-[#1f3f37] ect-border-[#1f3f37]' : 'ect-border-[#d8ccb5] group-hover:ect-border-[#1f3f37]/60'">
                   <svg v-if="appliedFilters.materials.includes(m.id)" class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </span>
                 <span class="ect-font-body ect-text-sm ect-text-charcoal/80 group-hover:ect-text-charcoal ect-transition-colors">{{ m.label }}</span>
@@ -367,16 +367,16 @@ watch([activeTab, appliedFilters], () => {
             </li>
           </ul>
         </section>
-        <hr class="ect-border-sand ect-mb-6" />
+        <hr class="ect-border-[#e6ddce] ect-mb-6" />
 
         <!-- Stone Type -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Stone</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Stone</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="stone in STONE_TYPE_OPTIONS" :key="stone.id">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
                 <input type="checkbox" class="ect-sr-only" :checked="appliedFilters.stoneTags.includes(stone.id)" @change="toggleStoneTag(stone.id)" />
-                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.stoneTags.includes(stone.id) ? 'ect-bg-rose-700 ect-border-rose-700' : 'ect-border-charcoal/25 group-hover:ect-border-rose-400'">
+                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.stoneTags.includes(stone.id) ? 'ect-bg-[#1f3f37] ect-border-[#1f3f37]' : 'ect-border-[#d8ccb5] group-hover:ect-border-[#1f3f37]/60'">
                   <svg v-if="appliedFilters.stoneTags.includes(stone.id)" class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </span>
                 <span class="ect-font-body ect-text-sm ect-text-charcoal/80 group-hover:ect-text-charcoal ect-transition-colors">{{ stone.label }}</span>
@@ -384,16 +384,16 @@ watch([activeTab, appliedFilters], () => {
             </li>
           </ul>
         </section>
-        <hr class="ect-border-sand ect-my-6" />
+        <hr class="ect-border-[#e6ddce] ect-my-6" />
 
         <!-- Color -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Color</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Color</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="c in COLORS" :key="c.id">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
                 <input type="checkbox" class="ect-sr-only" :checked="appliedFilters.colors.includes(c.id)" @change="toggleColor(c.id)" />
-                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.colors.includes(c.id) ? 'ect-bg-rose-700 ect-border-rose-700' : 'ect-border-charcoal/25 group-hover:ect-border-rose-400'">
+                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.colors.includes(c.id) ? 'ect-bg-[#1f3f37] ect-border-[#1f3f37]' : 'ect-border-[#d8ccb5] group-hover:ect-border-[#1f3f37]/60'">
                   <svg v-if="appliedFilters.colors.includes(c.id)" class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </span>
                 <span class="ect-w-3.5 ect-h-3.5 ect-rounded-full ect-ring-1 ect-ring-charcoal/15 ect-shrink-0" :style="{ backgroundColor: c.hex }" />
@@ -402,16 +402,16 @@ watch([activeTab, appliedFilters], () => {
             </li>
           </ul>
         </section>
-        <hr class="ect-border-sand ect-my-6" />
+        <hr class="ect-border-[#e6ddce] ect-my-6" />
 
         <!-- Stone Shape -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Stone Shape</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Stone Shape</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="shape in CENTER_SHAPE_OPTIONS" :key="shape">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
                 <input type="checkbox" class="ect-sr-only" :checked="appliedFilters.centerShapes.includes(shape)" @change="toggleCenterShape(shape)" />
-                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.centerShapes.includes(shape) ? 'ect-bg-rose-700 ect-border-rose-700' : 'ect-border-charcoal/25 group-hover:ect-border-rose-400'">
+                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.centerShapes.includes(shape) ? 'ect-bg-[#1f3f37] ect-border-[#1f3f37]' : 'ect-border-[#d8ccb5] group-hover:ect-border-[#1f3f37]/60'">
                   <svg v-if="appliedFilters.centerShapes.includes(shape)" class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </span>
                 <span class="ect-font-body ect-text-sm ect-text-charcoal/80 group-hover:ect-text-charcoal ect-transition-colors">{{ shape }}</span>
@@ -419,16 +419,16 @@ watch([activeTab, appliedFilters], () => {
             </li>
           </ul>
         </section>
-        <hr class="ect-border-sand ect-my-6" />
+        <hr class="ect-border-[#e6ddce] ect-my-6" />
 
         <!-- Stone Size -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700 ect-mb-3.5">Stone Size</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Stone Size</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="size in CENTER_STONE_SIZE_OPTIONS" :key="size">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
                 <input type="checkbox" class="ect-sr-only" :checked="appliedFilters.centerStoneSizes.includes(size)" @change="toggleCenterStoneSize(size)" />
-                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.centerStoneSizes.includes(size) ? 'ect-bg-rose-700 ect-border-rose-700' : 'ect-border-charcoal/25 group-hover:ect-border-rose-400'">
+                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.centerStoneSizes.includes(size) ? 'ect-bg-[#1f3f37] ect-border-[#1f3f37]' : 'ect-border-[#d8ccb5] group-hover:ect-border-[#1f3f37]/60'">
                   <svg v-if="appliedFilters.centerStoneSizes.includes(size)" class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                 </span>
                 <span class="ect-font-body ect-text-sm ect-text-charcoal/80 group-hover:ect-text-charcoal ect-transition-colors">{{ size }}</span>
@@ -442,7 +442,7 @@ watch([activeTab, appliedFilters], () => {
       <div class="ect-flex-1 ect-min-w-0">
 
         <!-- Desktop count + sort bar -->
-        <div v-if="sidebar" class="ect-hidden lg:ect-flex ect-items-center ect-justify-between ect-mb-6">
+        <div v-if="sidebar" class="ect-hidden lg:ect-flex ect-items-center ect-justify-between ect-mb-7">
           <p class="ect-font-body ect-text-sm ect-text-charcoal/55">
             <template v-if="listLoading || productsLoading || !productsLoaded || !firstLoadDone">Loading pieces…</template>
             <template v-else>{{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'piece' : 'pieces' }}</template>
@@ -451,21 +451,21 @@ watch([activeTab, appliedFilters], () => {
             <button
               type="button"
               @click="sortOpen = !sortOpen"
-              class="ect-flex ect-items-center ect-gap-2.5 ect-px-4 ect-py-2.5 ect-rounded-lg ect-border ect-border-sand ect-bg-white ect-font-body ect-text-sm ect-text-charcoal hover:ect-border-gold-400/60 ect-transition-colors"
+              class="ect-flex ect-items-center ect-gap-2.5 ect-px-4 ect-py-2.5 ect-rounded-full ect-border ect-border-[#d8ccb5] ect-bg-white ect-font-body ect-text-sm ect-text-charcoal hover:ect-border-[#1f3f37]/60 ect-transition-colors"
               :aria-expanded="sortOpen"
             >
               <span>Sort: {{ sortLabel }}</span>
               <svg class="ect-w-4 ect-h-4 ect-text-charcoal/40 ect-transition-transform" :class="sortOpen ? 'ect-rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
             </button>
             <span v-if="sortOpen" @click="sortOpen = false" class="ect-fixed ect-inset-0 ect-z-10"></span>
-            <div v-if="sortOpen" class="ect-absolute ect-right-0 ect-top-full ect-mt-2 ect-w-52 ect-z-20 ect-rounded-lg ect-border ect-border-sand ect-bg-white ect-shadow-luxe-sm ect-py-1.5 ect-overflow-hidden">
+            <div v-if="sortOpen" class="ect-absolute ect-right-0 ect-top-full ect-mt-2 ect-w-52 ect-z-20 ect-rounded-lg ect-border ect-border-[#ece4d5] ect-bg-white ect-shadow-luxe-sm ect-py-1.5 ect-overflow-hidden">
               <button
                 v-for="opt in SORT_OPTIONS"
                 :key="opt.id"
                 type="button"
                 @click="selectSort(opt.id)"
                 class="ect-w-full ect-text-left ect-px-4 ect-py-2 ect-font-body ect-text-sm hover:ect-bg-champagne ect-transition-colors"
-                :class="sortBy === opt.id ? 'ect-text-gold-700 ect-font-semibold' : 'ect-text-charcoal/80'"
+                :class="sortBy === opt.id ? 'ect-text-[#1f3f37] ect-font-semibold' : 'ect-text-charcoal/80'"
               >{{ opt.label }}</button>
             </div>
           </div>
@@ -508,16 +508,19 @@ watch([activeTab, appliedFilters], () => {
     </section>
 
     <!-- Product skeleton -->
-    <ul v-if="listLoading || !firstLoadDone" class="ect-grid ect-grid-cols-2 ect-gap-4 sm:ect-gap-6 ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
+    <ul v-if="listLoading || !firstLoadDone" class="ect-grid ect-grid-cols-2 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
       <li v-for="n in 8" :key="`skeleton-${n}`" class="ect-animate-pulse">
-        <section class="ect-aspect-square ect-rounded-2xl ect-bg-champagne ect-mb-3" />
-        <section class="ect-h-4 ect-w-3/4 ect-rounded ect-bg-sand ect-mb-2" />
-        <section class="ect-h-3 ect-w-1/3 ect-rounded ect-bg-sand" />
+        <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
+        <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-p-4">
+          <section class="ect-h-3 ect-w-1/3 ect-rounded ect-bg-[#e6ddce] ect-mb-3" />
+          <section class="ect-h-4 ect-w-3/4 ect-rounded ect-bg-[#e6ddce] ect-mb-3" />
+          <section class="ect-h-5 ect-w-1/2 ect-rounded ect-bg-[#e6ddce]" />
+        </section>
       </li>
     </ul>
 
     <!-- Product grid -->
-    <ul v-else-if="displayedProducts.length" class="ect-grid ect-grid-cols-2 ect-gap-4 sm:ect-gap-6 ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
+    <ul v-else-if="displayedProducts.length" class="ect-grid ect-grid-cols-2 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
       <li v-for="piece in displayedProducts" :key="piece.slug" class="ect-h-full">
         <ProductCard :slug="piece.slug" :title="piece.title" :category="piece.category" :material="piece.material" :price="piece.price" :images="piece.images" :product="piece" />
       </li>
@@ -573,10 +576,10 @@ watch([activeTab, appliedFilters], () => {
 .jewelet-range__track {
   left: 0;
   right: 0;
-  background: #ebe7e2;
+  background: #e6ddce;
 }
 .jewelet-range__fill {
-  background: #a33d4f;
+  background: #1f3f37;
 }
 .jewelet-range input[type='range'] {
   position: absolute;
@@ -597,7 +600,7 @@ watch([activeTab, appliedFilters], () => {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #a33d4f;
+  background: #1f3f37;
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   cursor: pointer;
@@ -608,12 +611,12 @@ watch([activeTab, appliedFilters], () => {
   height: 18px;
   border: 2px solid #fff;
   border-radius: 50%;
-  background: #a33d4f;
+  background: #1f3f37;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 .jewelet-range input[type='range']:focus-visible::-webkit-slider-thumb {
-  outline: 2px solid #a33d4f;
+  outline: 2px solid #1f3f37;
   outline-offset: 2px;
 }
 </style>

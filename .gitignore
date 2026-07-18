@@ -34,3 +34,5 @@ Aivi-Solution-Quotation-PSG.pdf
 
 # Local DB/image migration backups (contain inlined base64 image data)
 backups/
+.vercel
+.env*

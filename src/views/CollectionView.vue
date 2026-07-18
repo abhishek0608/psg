@@ -57,15 +57,15 @@ watch(() => route.fullPath, applyForSlug)
 </script>
 
 <template>
-  <section v-if="collection" class="ect-pt-28">
+  <section v-if="collection" class="ect-min-h-screen ect-bg-[#faf7f2] ect-pt-28">
     <!-- Compact page header (no banner) -->
     <header class="ect-px-6 ect-max-w-7xl ect-mx-auto">
-      <nav class="ect-font-body ect-text-xs ect-text-charcoal/40 ect-mb-1.5" aria-label="Breadcrumb">
+      <nav class="ect-font-body ect-text-xs ect-text-charcoal/45 ect-mb-1.5" aria-label="Breadcrumb">
         <RouterLink to="/" class="hover:ect-text-charcoal ect-transition-colors">Home</RouterLink>
         <span class="ect-mx-1.5">/</span>
         <span class="ect-text-charcoal/70">{{ collection.title }}</span>
       </nav>
-      <h1 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-leading-tight ect-text-charcoal">{{ collection.title }}</h1>
+      <h1 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-medium ect-leading-tight ect-text-charcoal">{{ collection.title }}</h1>
     </header>
 
     <!-- Product grid (header suppressed; this page provides its own) -->
