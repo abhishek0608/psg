@@ -426,7 +426,7 @@ function toggleNotifications() {
             >
               <ul
                 v-if="menuOpen"
-                class="ect-absolute ect-right-0 ect-mt-3 ect-w-52 ect-bg-white ect-rounded-lg ect-shadow-xl ect-shadow-charcoal/[0.08] ect-ring-1 ect-ring-charcoal/[0.05] ect-py-1.5 ect-list-none ect-m-0 ect-p-0 ect-overflow-hidden"
+                class="ect-absolute ect-right-0 ect-z-[70] ect-mt-3 ect-w-52 ect-bg-white ect-rounded-lg ect-shadow-xl ect-shadow-charcoal/[0.08] ect-ring-1 ect-ring-charcoal/[0.05] ect-py-1.5 ect-list-none ect-m-0 ect-p-0 ect-overflow-hidden"
               >
                 <li class="ect-px-4 ect-py-3 ect-border-b ect-border-charcoal/[0.06]">
                   <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-truncate">{{ user?.name }}</p>
