@@ -47,55 +47,6 @@ export function inferSubtypesFromText(content) {
   ]
 }
 
-export const SERVICE_INTENTS = [
-  {
-    id: 'full-pipeline',
-    label: 'Complete product',
-    cta: 'View services',
-    href: '/services#cad',
-    regex:
-      /\b(complete\s+(product|piece|service)|full\s+(product|service|pipeline|manufacturing)|entire\s+(piece|jewellery|jewelry|process)|end[\s-]to[\s-]end(\s+service)?|turnkey(\s+jewellery|\s+jewelry)?|from\s+idea\s+to\s+(finish|delivery|product|piece)|from\s+(scratch|sketch|concept)\s+to\s+(finish|delivery|product|piece|wear)|cad\s*(to|,)\s*(wax|cast)|wax\s*(to|,)\s*cast|cad\s*,\s*wax\s*,\s*cast|all\s+(four\s+)?stages?|whole\s+(process|pipeline|journey)|full\s+service\s+from\s+cad|do\s+(everything|it\s+all)|handle\s+(everything|the\s+whole)|start\s+to\s+finish)\b/i,
-    message:
-      "Yes — we can take you from idea to a finished piece. Our team handles every stage: CAD design, wax prototype, casting in gold or silver, and final finishing with stone setting and hallmarking. Tell me what you have in mind — a reference image, your budget, the occasion — and I'll point you to the right starting step.",
-  },
-  {
-    id: 'cad',
-    label: 'CAD Design',
-    href: '/services?service=cad&book=1#cad',
-    regex:
-      /\b(cad|computer[\s-]*aided|3d\s*(model|design|cad|render(ing)?)|(create|build|prepare|make|need|want|get)\s+(a\s+)?(new\s+)?cad(\s+design|\s+file|\s+model)?|new\s+cad|design\s+(from\s+)?scratch|tech(nical)?\s+drawing|render(ing)?|blueprint)\b/i,
-    message:
-      "Absolutely — we'd start with a CAD design. Send over a reference image (or just a description), your metal preference, and any design notes, and our Jaipur CAD team will turn it into a precise 3D model for your review before we move to wax and casting.",
-  },
-  {
-    id: 'wax',
-    label: 'Wax Prototyping',
-    href: '/services?service=wax&book=1#wax',
-    regex:
-      /\b(wax|waxing|wax\s+model|wax\s+print|prototype|prototyping|3d\s*print(ed)?|model\s*print|printed\s+wax|carve(d)?\s+wax|sample\s+piece|tryout)\b/i,
-    message:
-      "Sure — once we have a CAD file we can print or carve the wax model so you can see and feel the piece before casting. If you don't have a CAD yet, no worries, we'll create that first.",
-  },
-  {
-    id: 'casting',
-    label: 'Casting',
-    href: '/services?service=casting&book=1#casting',
-    regex:
-      /\b(cast(ing)?s?|lost[\s-]*wax|investment\s*cast|metal\s*pour|pour(ing)?\s+(gold|silver)|melt(ed)?\s+(in)?to\s+(gold|silver)|cast\s+in\s+(gold|silver))\b/i,
-    message:
-      "Yes, we cast in gold or silver once the design and wax are approved. Share the metal, purity, estimated weight, and quantity and the team will prep the casting request for you.",
-  },
-  {
-    id: 'final',
-    label: 'Final Product',
-    href: '/services?service=final&book=1#final',
-    regex:
-      /\b(final\s*(product|piece|finish(ing)?)|finished\s+piece|ready[\s-]to[\s-]wear|finishing|polish(ing)?|stone\s*setting|setting\s+stones?|hallmark(ing)?|dispatch|delivery|filing|buffing)\b/i,
-    message:
-      "Happy to help with finishing — that's filing, polishing, stone setting, quality checks, hallmarking, and delivery once your casting is done.",
-  },
-]
-
 const CHAT_PROVIDER_ALIASES = {
   auto: 'auto',
   anthropic: 'anthropic',
@@ -143,23 +94,11 @@ About Jewelet (use these facts naturally — don't dump them in one go):
 - 9 carat BIS-hallmarked gold, conflict-free stones, recycled precious metals.
 - Categories we sell: Rings, Earrings, Mangal Sutra, Necklaces, Bracelets.
 - Materials: yellow gold, white gold, rose gold, oxidised silver.
-- Services we offer (this is important — speak about these confidently):
-  • CAD Design — turning a reference or idea into a precise 3D model.
-  • Wax Prototyping — 3D-printed or hand-carved wax for approval before casting.
-  • Casting — pouring the approved wax into gold or silver.
-  • Final Product — finishing, polishing, stone setting, hallmarking, delivery.
-  • Complete Product (full pipeline) — the entire journey from idea to a finished piece.
 - Free pan-India shipping, lifetime exchange at full gold value, insured delivery.
 - Location: SEZ-2, Sitapura Industrial Area, Jaipur – 302022, Rajasthan. Mon–Sat 10am–8pm, Sunday 11am–6pm.
 - Email: sales@jewelet.example | Phone: +91 92163 99116
 
 How to respond — think like ChatGPT, not a script:
-- Understand the customer's INTENT, not just their literal words. "Do you make custom rings?", "Can you build me a pendant?", "I have a sketch I want made", "How does this work?" are all about our services — answer the underlying question naturally.
-- For service-style questions (anything about making, designing, customising, prototyping, casting, polishing, getting a piece made from a photo / sketch / idea):
-  • Say yes warmly and briefly describe how we'd help.
-  • Mention the relevant service(s) by name in plain language (CAD design, wax prototype, casting, final finishing, or the full pipeline).
-  • Ask one helpful follow-up — a reference photo? metal preference? rough budget? the occasion?
-  • Don't recite a brochure. Two or three sentences is usually right.
 - For product/browse questions: recommend specific pieces from our collection by name with their prices. Speak like a stylist, not a catalogue.
 - For general chat, greetings, store info, policies, occasions, gifting advice — answer warmly and helpfully, and gently nudge toward what we can do for them.
 - For anything completely unrelated to jewellery: lightly steer back ("Ha, a bit outside my lane — but if you're after something in gold or silver, I'm all yours.").
@@ -167,7 +106,7 @@ How to respond — think like ChatGPT, not a script:
 Tone:
 - Conversational and warm. Phrases like "Honestly, you'll love this one", "Great choice!", "What's the occasion, if you don't mind me asking?" work well — use them sparingly, not in every message.
 - Keep replies short. A few sentences. No bullet-point walls unless the customer explicitly asks for a list.
-- Don't use markdown links or placeholder URLs like [here](#). Say "you can browse the Collections page" or "the Services page has more detail".
+- Don't use markdown links or placeholder URLs like [here](#). Say "you can browse the Collections page".
 - Never sound stiff, corporate, or canned. If a similar question came up earlier, phrase your answer differently this time.
 
 Filter line (machine-readable, KEEP this exactly when relevant):
@@ -175,7 +114,7 @@ When the customer is asking about products by category (Rings, Earrings, Mangal 
   if (includeMultiCategoryFilterExample) {
     prompt += ' Example: FILTERS: Earrings, Necklaces.'
   }
-  prompt += ` Omit the FILTERS line for service questions, general chat, or anything that isn't a product browse.`
+  prompt += ` Omit the FILTERS line for general chat or anything that isn't a product browse.`
 
   if (Array.isArray(productSummary) && productSummary.length > 0) {
     const lines = productSummary
@@ -185,38 +124,6 @@ When the customer is asking about products by category (Rings, Earrings, Mangal 
     prompt += '\n\nWhen recommending products, mention specific pieces by name with prices — don\'t just speak in generics. If the user asks for a specific category (e.g. bracelets, rings), only mention pieces from that category. Make recommendations feel personal, not like a catalogue listing.'
   }
   return prompt
-}
-
-export function detectServiceIntent(content) {
-  if (typeof content !== 'string' || !content.trim()) return null
-  const text = content.trim()
-  return SERVICE_INTENTS.find((service) => service.regex.test(text)) || null
-}
-
-export function getServiceIntentById(serviceId) {
-  if (typeof serviceId !== 'string' || !serviceId.trim()) return null
-  return SERVICE_INTENTS.find((service) => service.id === serviceId.trim()) || null
-}
-
-export function buildServiceChatResult(content) {
-  const service = detectServiceIntent(content)
-  if (!service) return null
-  return buildServiceChatResultFromIntent(service)
-}
-
-export function buildServiceChatResultFromIntent(service) {
-  if (!service) return null
-  return {
-    message: service.message,
-    serviceAction: {
-      id: service.id,
-      label: service.label,
-      href: service.href,
-      cta: service.cta || `Book ${service.label}`,
-    },
-    filters: null,
-    results: [],
-  }
 }
 
 function parseFiltersFromMessage(rawMessage) {
@@ -548,9 +455,6 @@ function resolveResponseFilters(productSummary, filters, priceRange = null) {
 }
 
 export function buildChatResult({ rawMessage, lastUserContent, previousMessages, productSummary, intent }) {
-  const serviceResult = buildServiceChatResult(lastUserContent)
-  if (serviceResult) return { ...serviceResult, rawFilters: null }
-
   const { message, filters: modelFilters, rawFilters } = parseFiltersFromMessage(rawMessage)
 
   // For general conversation (greetings, clarifying questions, small talk),

@@ -3,12 +3,8 @@
  * POST /api/chat with body: { messages, debug?: boolean }
  */
 import {
-  buildServiceChatResult,
-  buildServiceChatResultFromIntent,
   buildChatResult,
   buildSystemPrompt,
-  getServiceIntentById,
-  SERVICE_INTENTS,
   isDebugEnabled,
   inferSubtypesFromText,
   VALID_SUBTYPES,
@@ -88,7 +84,6 @@ const CATEGORY_ALIAS_MAP = {
 
 function shouldRunProductSearchFlow(message) {
   if (typeof message !== 'string' || !message.trim()) return false
-  if (buildServiceChatResult(message)) return false
   const text = message.toLowerCase()
   return (
     /\b(show|find|search|browse|recommend|looking|collection|products?|pieces?|options?)\b/.test(text) ||
@@ -156,8 +151,7 @@ function filterByStoneColor(products, content) {
 
 function normalizeIntentPayload(payload) {
   const rawIntent = String(payload?.intent || '').toLowerCase()
-  const intent =
-    rawIntent === 'product_search' || rawIntent === 'service_request' ? rawIntent : 'general'
+  const intent = rawIntent === 'product_search' ? rawIntent : 'general'
   const categories = Array.isArray(payload?.filters?.categories)
     ? payload.filters.categories
         .map((c) => CATEGORY_ALIAS_MAP[String(c).toLowerCase().trim()] || null)
@@ -183,10 +177,6 @@ function normalizeIntentPayload(payload) {
     typeof priceRange?.min === 'number' && Number.isFinite(priceRange.min) ? priceRange.min : null
   const max =
     typeof priceRange?.max === 'number' && Number.isFinite(priceRange.max) ? priceRange.max : null
-  const rawServiceId = String(payload?.serviceRequest?.serviceId || '')
-    .toLowerCase()
-    .trim()
-  const serviceId = SERVICE_INTENTS.some((service) => service.id === rawServiceId) ? rawServiceId : null
   return {
     intent,
     filters: {
@@ -195,11 +185,6 @@ function normalizeIntentPayload(payload) {
       stoneTags: [...new Set(stoneTagsFromModel)],
       subtypes: [...new Set(subtypesFromModel)],
       priceRange: { min, max },
-    },
-    serviceRequest: {
-      serviceId,
-      needsServiceSelection: Boolean(payload?.serviceRequest?.needsServiceSelection),
-      createNewProduct: Boolean(payload?.serviceRequest?.createNewProduct),
     },
   }
 }
@@ -318,14 +303,6 @@ async function searchProductsFromIntent(productSummary, normalizedIntent, userCo
 
 function buildDetectedIntentPayload(normalizedIntent) {
   if (!normalizedIntent) return { type: 'general' }
-  if (normalizedIntent.intent === 'service_request') {
-    return {
-      type: 'service',
-      serviceId: normalizedIntent.serviceRequest?.serviceId || null,
-      needsServiceSelection: Boolean(normalizedIntent.serviceRequest?.needsServiceSelection),
-      createNewProduct: Boolean(normalizedIntent.serviceRequest?.createNewProduct),
-    }
-  }
   if (normalizedIntent.intent === 'product_search') {
     return {
       type: 'product_search',
@@ -333,91 +310,6 @@ function buildDetectedIntentPayload(normalizedIntent) {
     }
   }
   return { type: 'general' }
-}
-
-function buildServiceSelectionResult(normalizedIntent) {
-  const createNewProduct = Boolean(normalizedIntent?.serviceRequest?.createNewProduct)
-  const message = createNewProduct
-    ? "Lovely — we can absolutely make something for you. Where would you like to start? Pick a stage below, or go with Complete product if you'd like us to handle the whole journey from idea to finished piece."
-    : "Happy to help with that. Pick the stage you need and I'll take you straight to the right booking flow."
-
-  const serviceOptions = SERVICE_INTENTS.map((service) => ({
-    id: service.id,
-    label: service.label,
-    href: service.href,
-    cta: service.label,
-  }))
-
-  return {
-    message,
-    serviceAction: null,
-    serviceOptions,
-    filters: null,
-    results: [],
-  }
-}
-
-const CREATION_ACTION_REGEX =
-  /\b(make|create|design(ed|ing)?|build|craft(ed|ing)?|manufacture(d|s|ing)?|customize|customise|tailor(ed|-made)?|commission|produce|develop(ed)?\s+a|order\s+(a|some|my)\b|get\s+(a|me|us)?\s*(new|custom)?\s*(piece|ring|earring|necklace|bracelet|jewellery|jewelry|pendant)\b)\b/
-const CREATION_INTENT_VERB_REGEX = /\b(want|need|looking\s+to|like\s+to|wish\s+to|hoping\s+to|planning\s+to)\b/
-const JEWELLERY_OBJECT_REGEX =
-  /\b(jewellery|jewelry|piece|product|item|design|ring|engagement\s+ring|wedding\s+ring|earring|necklace|bracelet|mangal[\s-]?sutra|pendant|chain|bangle|kada|jhumka|bali|stud(s)?|tops|haar|mala|anguthi|tikka|brooch|nose\s*pin|nath|payal|anklet)\b/
-const CUSTOM_HINT_REGEX =
-  /\b(custom(?:-?ised|-?ized|-?made)?|bespoke|made[\s-]to[\s-]order|made[\s-]to[\s-]measure|one[\s-]of[\s-]a[\s-]kind|unique|personal(?:ised|ized)?|own\s+(design|piece|ring|jewellery|jewelry)|from\s+scratch|from\s+a\s+(sketch|photo|picture|image|drawing|reference)|based\s+on\s+(a\s+)?(sketch|photo|picture|image|drawing|reference))\b/
-const BROWSE_INTENT_REGEX =
-  /\b(show|find|search|browse|recommend|looking\s+for|see|view|display|list|catalog(?:ue)?)\b/
-const QUESTION_OFFER_REGEX =
-  /\b(do|does|can|are|is|will|could|would)\s+(you|u|y'?all|jewelet)\b/
-const CREATE_PRONOUN_OBJECT_REGEX =
-  /\b(make|build|cast|craft|produce|design|print)\s+(it|this|that|one|something|these|them)\b/
-
-function detectCreationServiceIntent(content) {
-  if (typeof content !== 'string' || !content.trim()) return null
-  const text = content.trim().toLowerCase()
-
-  const hasAction = CREATION_ACTION_REGEX.test(text)
-  const hasIntentVerb = CREATION_INTENT_VERB_REGEX.test(text)
-  const hasObject = JEWELLERY_OBJECT_REGEX.test(text)
-  const hasCustomHint = CUSTOM_HINT_REGEX.test(text)
-  const isQuestion = QUESTION_OFFER_REGEX.test(text)
-  const hasPronounCreate = CREATE_PRONOUN_OBJECT_REGEX.test(text)
-  const isPureBrowse = BROWSE_INTENT_REGEX.test(text) && !hasCustomHint && !hasAction
-
-  // Patterns that signal "please make something for me":
-  // A. "do you make / can you build / would you design ..." — offering question.
-  // B. action verb + jewellery noun        ("design a ring", "make jewellery").
-  // C. action verb + custom hint           ("create something custom").
-  // D. custom hint + jewellery noun        ("need a custom bracelet").
-  // E. bespoke / made-to-order / one-of-a-kind standalone phrasing.
-  // F. "want / need / looking to" + custom hint  ("I want a bespoke piece").
-  // G. action verb on a pronoun referring back to a reference ("can you make it/this/one").
-  const matchesCreation =
-    (isQuestion && (hasAction || hasPronounCreate) && (hasObject || hasCustomHint || hasPronounCreate)) ||
-    (hasAction && hasObject) ||
-    (hasAction && hasCustomHint) ||
-    (hasCustomHint && hasObject) ||
-    (hasIntentVerb && hasCustomHint) ||
-    hasPronounCreate ||
-    /\b(bespoke|made[\s-]to[\s-]order|made[\s-]to[\s-]measure|one[\s-]of[\s-]a[\s-]kind)\b/.test(text)
-
-  if (!matchesCreation) return null
-  // Don't hijack pure "show me silver rings under 5000" style browse queries.
-  if (isPureBrowse) return null
-
-  return {
-    intent: 'service_request',
-    filters: {
-      categories: [],
-      materials: [],
-      stoneTags: [],
-      priceRange: { min: null, max: null },
-    },
-    serviceRequest: {
-      serviceId: null,
-      needsServiceSelection: true,
-      createNewProduct: true,
-    },
-  }
 }
 
 function getProviderKeys() {
@@ -601,18 +493,13 @@ Return ONLY valid JSON with no markdown and no extra text.
 
 Schema:
 {
-  "intent": "product_search" | "service_request" | "general",
+  "intent": "product_search" | "general",
   "filters": {
     "categories": string[],
     "materials": string[],
     "subtypes": string[],
     "stoneTags": string[],
     "priceRange": { "min": number | null, "max": number | null }
-  },
-  "serviceRequest": {
-    "serviceId": "cad" | "wax" | "casting" | "final" | "full-pipeline" | null,
-    "needsServiceSelection": boolean,
-    "createNewProduct": boolean
   }
 }
 
@@ -621,26 +508,10 @@ Allowed values:
 - materials: ${VALID_MATERIALS.join(', ')}
 - subtypes: ${VALID_SUBTYPES.join(', ')} (use [] if not specified). Only set a subtype when the user clearly names the form, e.g. "pendant"/"pendant set" → pendant, "solitaire"/"single stone ring" → solitaire, "jhumka"/"jhumki" → jhumka, "studs"/"tops" → stud, "mangalsutra" → mangal-sutra. Map a subtype to its parent category too (e.g. pendant ⇒ Necklaces, solitaire ⇒ Rings, jhumka/stud ⇒ Earrings). Do NOT guess a subtype from vague words like "necklace" or "ring" alone.
 - stoneTags: ${VALID_STONE_TAGS.join(', ')} (use [] if not specified)
-- serviceId: cad, wax, casting, final, full-pipeline
 
-Intent rules — be inclusive, not literal:
+Intent rules:
 1. intent="product_search" when the user wants to BROWSE existing pieces: keywords like show / find / looking / under $X / category + material, etc.
-2. intent="service_request" when the user wants something MADE, designed, customised, prototyped, cast, polished, or finished. This covers ALL natural phrasings, not just exact service names. Examples:
-   - "I want to make a ring" → service_request, createNewProduct=true, needsServiceSelection=true
-   - "Can you design a custom mangalsutra?" → service_request, createNewProduct=true, needsServiceSelection=true
-   - "Do you do bespoke jewellery?" → service_request, createNewProduct=true, needsServiceSelection=true
-   - "Can you make this from a photo?" → service_request, createNewProduct=true, needsServiceSelection=true
-   - "I want a 3D CAD of my design" → service_request, serviceId="cad"
-   - "I have a CAD, can you cast it?" → service_request, serviceId="casting"
-   - "Need wax prototype" → service_request, serviceId="wax"
-   - "Polish and stone setting only" → service_request, serviceId="final"
-   - "Take it from idea to finished piece" → service_request, serviceId="full-pipeline"
-3. intent="general" ONLY for greetings, small talk, store hours/location/policy questions, or other non-product non-service chatter.
-
-Service tie-breakers:
-- If the user names a specific stage (CAD / wax / casting / finishing), set serviceId accordingly.
-- If they describe creation/customisation without picking a stage, set serviceId=null and needsServiceSelection=true so the UI can show them options.
-- Set createNewProduct=true whenever the user wants to make / create / design / customise / order a brand new piece.
+2. intent="general" for greetings, small talk, store hours/location/policy questions, or anything that is not browsing the existing catalogue.
 
 Users may write in English, Hindi, Hinglish, or transliterated text. Normalize loose terms (e.g. "anguthi" → Rings, "panna" → emerald) to the allowed values. Default to intent="general" only when nothing above clearly fits.`
 
@@ -648,42 +519,9 @@ Users may write in English, Hindi, Hinglish, or transliterated text. Normalize l
     let extracted = normalizeIntentPayload(extractJsonObject(extractorRaw) || {})
     extracted = mergeInferredStoneTags(extracted, lastMessage.content)
     extracted = mergeInferredSubtypes(extracted, lastMessage.content)
-    const creationOverride = detectCreationServiceIntent(lastMessage.content)
-    if (creationOverride) extracted = creationOverride
     const detectedIntent = buildDetectedIntentPayload(extracted)
-    const regexServiceResult = buildServiceChatResult(lastMessage.content)
     const isProductIntent =
       extracted?.intent === 'product_search' || shouldRunProductSearchFlow(lastMessage.content)
-
-    if (extracted?.intent === 'service_request') {
-      const service = extracted.serviceRequest?.serviceId
-        ? getServiceIntentById(extracted.serviceRequest.serviceId)
-        : null
-
-      if (service && !extracted.serviceRequest?.needsServiceSelection) {
-        const serviceResult = buildServiceChatResultFromIntent(service)
-        return res.status(200).json({
-          ...serviceResult,
-          detectedIntent,
-          ...(debug && { provider, extractorRaw, extractedIntent: extracted }),
-        })
-      }
-
-      const selectionResult = buildServiceSelectionResult(extracted)
-      return res.status(200).json({
-        ...selectionResult,
-        detectedIntent,
-        ...(debug && { provider, extractorRaw, extractedIntent: extracted }),
-      })
-    }
-
-    if (regexServiceResult) {
-      return res.status(200).json({
-        ...regexServiceResult,
-        detectedIntent: { type: 'service', serviceId: regexServiceResult.serviceAction?.id || null },
-        ...(debug && { provider, extractorRaw, extractedIntent: extracted }),
-      })
-    }
 
     if (isProductIntent && extracted?.intent === 'product_search') {
       const ranked = await searchProductsFromIntent(productSummary, extracted, lastMessage.content)

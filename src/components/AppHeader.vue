@@ -7,7 +7,6 @@ import { useSearch } from '../composables/useSearch'
 import { useCart } from '../composables/useCart'
 import { useWishlist } from '../composables/useWishlist'
 import { useOrders } from '../composables/useOrders'
-import { fetchServiceRequests, type ServiceRequest } from '../composables/useServiceRequests'
 import { COLLECTION_LINKS, type CollectionLink } from '../data/collections'
 import { MEGA_MENUS, MEGA_PRICE_RANGES } from '../data/megaMenu'
 import { useSiteConfig } from '../composables/useSiteConfig'
@@ -28,22 +27,6 @@ const activeDropdown = ref<string | null>(null)
 const mobileActiveAccordion = ref<string | null>(null)
 const searchFocused = ref(false)
 const imageFileInput = ref<HTMLInputElement | null>(null)
-const serviceRequests = ref<ServiceRequest[]>([])
-
-// Service requests are server-backed; only internal users on /internal pages
-// see them in the bell, so skip the API call everywhere else.
-async function loadServiceRequests() {
-  const userId = user.value?.id
-  if (!userId || !isInternalUser.value || !isInternalPath.value) {
-    serviceRequests.value = []
-    return
-  }
-  try {
-    serviceRequests.value = await fetchServiceRequests(userId)
-  } catch {
-    // Notifications are best-effort; keep whatever we showed last.
-  }
-}
 const isInternalPath = computed(
   () => typeof route.path === 'string' && route.path.startsWith('/internal'),
 )
@@ -56,14 +39,7 @@ const internalNotifications = computed(() => {
     meta: `${order.itemCount} items · ${order.formattedTotal}`,
     to: { name: 'internal-order', params: { id: order.id } },
   }))
-  const serviceItems = serviceRequests.value.slice(0, 4).map((request) => ({
-    id: `service-${request.reference}`,
-    type: 'Service',
-    title: request.reference,
-    meta: `${request.customerName} · ${request.serviceTitle || 'Service request'}`,
-    to: { name: 'internal-service', params: { reference: request.reference } },
-  }))
-  return [...serviceItems, ...orderItems].slice(0, 6)
+  return orderItems.slice(0, 6)
 })
 const notificationCount = computed(() => internalNotifications.value.length)
 
@@ -81,11 +57,6 @@ function onImageFileChange(e: Event) {
   ;(e.target as HTMLInputElement).value = ''
 }
 
-interface ServiceItem {
-  id: string
-  label: string
-}
-
 const collectionItems: CollectionLink[] = COLLECTION_LINKS
 
 // Bluestone-style mega menu: the dark category bar opens a full-width panel
@@ -101,13 +72,6 @@ const activeMegaMenu = computed(() =>
 // bundled category photo as fallback.
 const megaTileImage = (slug: string) =>
   collectionImages.value[slug] || MEGA_MENUS[slug]?.fallbackImage || ''
-
-const serviceItems: ServiceItem[] = [
-  { id: 'cad', label: 'CAD' },
-  { id: 'wax', label: 'Wax' },
-  { id: 'casting', label: 'Casting' },
-  { id: 'final', label: 'Complete package (final product)' },
-]
 
 // Mobile menu collection cards: first four in a 2-col grid, necklace as the full-width signature card.
 const gridCollections = collectionItems.filter((c) => c.slug !== 'necklaces')
@@ -138,7 +102,6 @@ watch(() => route.fullPath, () => {
   notificationOpen.value = false
   activeDropdown.value = null
   mobileActiveAccordion.value = null
-  void loadServiceRequests()
 })
 
 // Keep the bar in sync with the URL on /search (back/forward, shared links,
@@ -151,7 +114,6 @@ watch(() => route.query.q, (v) => {
 
 onMounted(() => {
   void ensureSiteConfigLoaded()
-  void loadServiceRequests()
   if (!isLoggedIn.value) return
   refreshCurrentUser().catch(() => {
     // Keep the existing local session if the profile refresh fails.
@@ -399,7 +361,7 @@ function toggleNotifications() {
                     <span class="ect-block ect-font-body ect-text-xs ect-text-charcoal/50 ect-mt-0.5 ect-truncate">{{ item.meta }}</span>
                   </RouterLink>
                 </div>
-                <p v-else class="ect-px-4 ect-py-6 ect-text-center ect-font-body ect-text-sm ect-text-charcoal/45">No order or service notifications yet.</p>
+                <p v-else class="ect-px-4 ect-py-6 ect-text-center ect-font-body ect-text-sm ect-text-charcoal/45">No order notifications yet.</p>
               </section>
             </Transition>
           </section>
@@ -426,7 +388,8 @@ function toggleNotifications() {
             >
               <ul
                 v-if="menuOpen"
-                class="ect-absolute ect-right-0 ect-z-[70] ect-mt-3 ect-w-52 ect-bg-white ect-rounded-lg ect-shadow-xl ect-shadow-charcoal/[0.08] ect-ring-1 ect-ring-charcoal/[0.05] ect-py-1.5 ect-list-none ect-m-0 ect-p-0 ect-overflow-hidden"
+                class="ect-absolute ect-right-0 ect-z-[70] ect-w-56 ect-bg-white ect-rounded-lg ect-shadow-xl ect-shadow-charcoal/[0.08] ect-ring-1 ect-ring-charcoal/[0.05] ect-py-1.5 ect-list-none ect-m-0 ect-p-0 ect-overflow-hidden"
+                :class="isInternalPath ? 'ect-mt-3' : 'ect-mt-[4.75rem]'"
               >
                 <li class="ect-px-4 ect-py-3 ect-border-b ect-border-charcoal/[0.06]">
                   <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-truncate">{{ user?.name }}</p>
@@ -440,7 +403,7 @@ function toggleNotifications() {
                     aria-label="Toggle internal workspace"
                     @click="toggleInternalUi"
                   >
-                    <span>Internal</span>
+                    <span>{{ isInternalPath ? 'Internal workspace' : 'Switch to internal' }}</span>
                     <span
                       class="ect-relative ect-inline-flex ect-h-5 ect-w-9 ect-items-center ect-rounded-full ect-transition-colors"
                       :class="isInternalPath ? 'ect-bg-gold-500' : 'ect-bg-charcoal/25'"
@@ -530,7 +493,7 @@ function toggleNotifications() {
                     <span class="ect-block ect-font-body ect-text-xs ect-text-charcoal/50 ect-mt-0.5 ect-truncate">{{ item.meta }}</span>
                   </RouterLink>
                 </div>
-                <p v-else class="ect-px-4 ect-py-6 ect-text-center ect-font-body ect-text-sm ect-text-charcoal/45">No order or service notifications yet.</p>
+                <p v-else class="ect-px-4 ect-py-6 ect-text-center ect-font-body ect-text-sm ect-text-charcoal/45">No order notifications yet.</p>
               </section>
             </Transition>
           </section>
@@ -564,20 +527,13 @@ function toggleNotifications() {
           </RouterLink>
         </li>
 
-        <li class="ect-relative ect-ml-auto" @mouseenter="activeDropdown = 'services'">
-          <button class="ect-flex ect-items-center ect-gap-1 ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-transition-colors" :class="activeDropdown === 'services' ? 'ect-bg-white ect-text-bluestone-800' : 'ect-text-cream/85 hover:ect-text-white'">
-            Services
-            <svg class="ect-w-3 ect-h-3 ect-transition-transform ect-duration-200" :class="activeDropdown === 'services' ? 'ect-rotate-180' : ''" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
-          </button>
-          <Transition enter-active-class="ect-transition ect-duration-200 ect-ease-out" enter-from-class="ect-opacity-0 ect-translate-y-1" enter-to-class="ect-opacity-100 ect-translate-y-0" leave-active-class="ect-transition ect-duration-150 ect-ease-in" leave-from-class="ect-opacity-100 ect-translate-y-0" leave-to-class="ect-opacity-0 ect-translate-y-1">
-            <ul v-if="activeDropdown === 'services'" class="ect-absolute ect-top-full ect-right-0 ect-w-72 ect-bg-white ect-shadow-2xl ect-shadow-charcoal/[0.15] ect-ring-1 ect-ring-charcoal/[0.06] ect-p-2 ect-list-none ect-m-0 ect-z-10">
-              <li v-for="svc in serviceItems" :key="svc.id">
-                <RouterLink :to="{ name: 'services', hash: '#' + svc.id }" class="ect-block ect-px-3 ect-py-2.5 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal/80 hover:ect-bg-champagne/40 hover:ect-text-charcoal ect-transition-colors" @click="activeDropdown = null">
-                  {{ svc.label }}
-                </RouterLink>
-              </li>
-            </ul>
-          </Transition>
+        <li class="ect-ml-auto" @mouseenter="activeDropdown = null">
+          <RouterLink
+            to="/video-consultation"
+            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-text-gold-300 hover:ect-text-white ect-transition-colors"
+          >
+            Video Consultation
+          </RouterLink>
         </li>
         <li @mouseenter="activeDropdown = null">
           <RouterLink
@@ -816,19 +772,19 @@ function toggleNotifications() {
           <!-- Link rows -->
           <nav v-if="!isInternalPath" class="ect-border-t ect-border-charcoal/[0.08]">
             <RouterLink
-              :to="{ name: 'services' }"
-              @click="mobileNavOpen = false"
-              class="ect-flex ect-items-center ect-justify-between ect-py-4 ect-border-b ect-border-charcoal/[0.08] ect-font-body ect-text-[15px] ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
-            >
-              <span>Video Consultation</span>
-              <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-            </RouterLink>
-            <RouterLink
               to="/chat"
               @click="mobileNavOpen = false"
               class="ect-flex ect-items-center ect-justify-between ect-py-4 ect-border-b ect-border-charcoal/[0.08] ect-font-body ect-text-[15px] ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
             >
               <span>Chat with Expert</span>
+              <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+            </RouterLink>
+            <RouterLink
+              to="/video-consultation"
+              @click="mobileNavOpen = false"
+              class="ect-flex ect-items-center ect-justify-between ect-py-4 ect-border-b ect-border-charcoal/[0.08] ect-font-body ect-text-[15px] ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
+            >
+              <span>Book Video Consultation</span>
               <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </RouterLink>
             <RouterLink
@@ -865,7 +821,7 @@ function toggleNotifications() {
               aria-label="Toggle internal workspace"
               @click="toggleInternalUi"
             >
-              <span>Internal</span>
+              <span>{{ isInternalPath ? 'Internal workspace' : 'Switch to internal' }}</span>
               <span
                 class="ect-relative ect-inline-flex ect-h-5 ect-w-9 ect-items-center ect-rounded-full ect-transition-colors"
                 :class="isInternalPath ? 'ect-bg-gold-500' : 'ect-bg-charcoal/25'"

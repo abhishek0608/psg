@@ -16,12 +16,6 @@ export interface ChatMessage {
     href: string
     cta?: string
   }
-  actionOptions?: Array<{
-    id?: string
-    label: string
-    href: string
-    cta?: string
-  }>
 }
 
 export type ImageIntent = 'search' | 'pricing'
@@ -43,10 +37,7 @@ export interface ProductSummaryItem {
 }
 
 export interface DetectedIntent {
-  type: 'general' | 'product_search' | 'service'
-  serviceId?: string | null
-  needsServiceSelection?: boolean
-  createNewProduct?: boolean
+  type: 'general' | 'product_search'
   filters?: {
     categories?: string[]
     materials?: string[]
@@ -262,44 +253,18 @@ export function useChat(options: UseChatOptions = {}) {
       }
       suggestedFilters.value = data.filters ?? null
       lastDetectedIntent.value = data.detectedIntent ?? null
-      const serviceAction = data.serviceAction
-      const serviceOptions = Array.isArray(data.serviceOptions) ? data.serviceOptions : null
-      const isServiceFlow =
-        Boolean(serviceAction) ||
-        Boolean(serviceOptions?.length) ||
-        data.detectedIntent?.type === 'service'
-      const results = isServiceFlow
-        ? null
-        : Array.isArray(data.results)
+      const results = Array.isArray(data.results)
         ? data.results
         : Array.isArray(data.searchResults)
           ? data.searchResults
           : null
       suggestedProducts.value = results
-      const assistantMessage = isServiceFlow
-        ? data.message || ''
-        : results
+      const assistantMessage = results
         ? buildResultCountMessage(results, data.filters)
         : data.message || ''
       messages.value.push({
         role: 'assistant',
         content: assistantMessage,
-        action: serviceAction
-          ? {
-              id: serviceAction.id ? String(serviceAction.id) : undefined,
-              label: String(serviceAction.label || 'Service'),
-              href: String(serviceAction.href || '/services'),
-              cta: serviceAction.cta ? String(serviceAction.cta) : undefined,
-            }
-          : undefined,
-        actionOptions: serviceOptions
-          ? serviceOptions.map((option: any) => ({
-              id: option?.id ? String(option.id) : undefined,
-              label: String(option?.label || 'Service'),
-              href: String(option?.href || '/services'),
-              cta: option?.cta ? String(option.cta) : undefined,
-            }))
-          : undefined,
       })
     } catch (e) {
       messages.value.push({

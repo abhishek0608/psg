@@ -7,7 +7,7 @@ import { getCatalogProducts } from '../server/api/products-source.js'
 // Keep in sync with COLLECTION_LINKS in src/data/collections.ts.
 const COLLECTION_SLUGS = ['rings', 'earrings', 'pendants', 'bracelets', 'necklaces']
 
-const STATIC_PATHS = ['/', '/collections', '/about', '/services']
+const STATIC_PATHS = ['/', '/collections', '/about']
 
 // Crawlable pages that shouldn't be indexed: account, transactional and
 // internal-tooling routes. Mirrored by the noindex meta set in src/router.

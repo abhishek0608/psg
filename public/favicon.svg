@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 84" role="img" aria-labelledby="title">
+  <title id="title">JewelET</title>
+  <defs>
+    <linearGradient id="navy" x1="42" y1="4" x2="42" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#16466c"/>
+      <stop offset="1" stop-color="#0d2436"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="30" y1="14" x2="54" y2="36" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8d979"/>
+      <stop offset=".55" stop-color="#e9bd3f"/>
+      <stop offset="1" stop-color="#c99237"/>
+    </linearGradient>
+  </defs>
+  <circle cx="42" cy="42" r="40" fill="url(#navy)"/>
+  <circle cx="42" cy="42" r="34" fill="none" stroke="#e9bd3f" stroke-opacity=".7" stroke-width="1.5"/>
+  <g fill="none" stroke="url(#gold)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M36.2 15.5h11.6l3.9 4.8L42 31.5l-9.7-11.2 3.9-4.8Z"/>
+    <path d="m36.2 15.5 5.8 4.8 5.8-4.8M32.3 20.3h19.4M42 20.5v10.6"/>
+  </g>
+  <text x="42" y="67" fill="#f7fbfd" font-family="Didot, 'Bodoni MT', Georgia, serif" font-size="34" text-anchor="middle">J</text>
+</svg>

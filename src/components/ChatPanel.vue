@@ -1,35 +1,23 @@
 <script setup lang="ts">
 import { ref, nextTick, watch, onMounted, onBeforeUnmount, inject } from 'vue'
 import { useChat } from '../composables/useChat'
-import { useServiceBooking } from '../composables/useServiceBooking'
 
 const listRef = ref<HTMLElement | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const pendingImageFile = ref<File | null>(null)
 const imageIntentPickerOpen = ref(false)
-const servicePickerOpen = ref(false)
 const isAtBottom = ref(true)
 
 const injectedChat = inject<ReturnType<typeof useChat>>('chat')
 const { messages, input, loading, processingText, error, setListEl, send, sendImage, scrollToBottom } =
   injectedChat ?? useChat()
-const { openBookingByServiceId } = useServiceBooking()
-
-type StarterPrompt = { text: string; opensServicePicker?: boolean }
+type StarterPrompt = { text: string }
 
 const starterPrompts: StarterPrompt[] = [
   { text: 'Show me rings under $1,500' },
   { text: 'Gold earrings for a wedding' },
   { text: 'Minimal silver necklaces' },
   { text: 'Shipping & returns?' },
-  { text: 'Help me book CAD, wax, or casting', opensServicePicker: true },
-]
-
-const serviceBookChips: { id: string; label: string }[] = [
-  { id: 'cad', label: 'CAD' },
-  { id: 'wax', label: 'Wax' },
-  { id: 'casting', label: 'Cast' },
-  { id: 'full-pipeline', label: 'Complete piece' },
 ]
 
 onMounted(() => {
@@ -43,7 +31,6 @@ onBeforeUnmount(() => {
 })
 
 watch(() => messages.value.length, () => {
-  if (messages.value.length) servicePickerOpen.value = false
   nextTick(() => scrollToBottom())
 })
 
@@ -61,20 +48,7 @@ async function sendSuggestion(text: string) {
 }
 
 function onStarterPrompt(p: StarterPrompt) {
-  if (p.opensServicePicker) {
-    servicePickerOpen.value = true
-    return
-  }
   sendSuggestion(p.text)
-}
-
-function pickBookService(id: string) {
-  openBookingByServiceId(id)
-  servicePickerOpen.value = false
-}
-
-function closeServicePicker() {
-  servicePickerOpen.value = false
 }
 
 function openImagePicker() {
@@ -222,39 +196,6 @@ function cancelImageIntent() {
             {{ p.text }}
           </button>
         </section>
-        <Transition
-          enter-active-class="ect-transition ect-duration-200 ect-ease-out"
-          enter-from-class="ect-opacity-0 ect-translate-y-1"
-          enter-to-class="ect-opacity-100 ect-translate-y-0"
-          leave-active-class="ect-transition ect-duration-150 ect-ease-in"
-          leave-from-class="ect-opacity-100"
-          leave-to-class="ect-opacity-0"
-        >
-          <section v-if="servicePickerOpen" class="ect-mt-5 ect-rounded-2xl ect-border ect-border-sand ect-bg-cream ect-p-4">
-            <p class="ect-font-body ect-text-sm ect-font-medium ect-text-charcoal ect-mb-3">Which service do you want to book?</p>
-            <div class="ect-flex ect-flex-wrap ect-gap-2">
-              <button
-                v-for="chip in serviceBookChips"
-                :key="chip.id"
-                type="button"
-                class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-3 ect-py-1.5 ect-rounded-full ect-border ect-border-charcoal/15 ect-bg-white ect-font-body ect-text-[11px] ect-font-medium ect-text-charcoal/80 hover:ect-border-gold-400 hover:ect-bg-champagne/40 hover:ect-text-gold-900 ect-transition-all ect-duration-200 active:ect-scale-95"
-                @click="pickBookService(chip.id)"
-              >
-                <svg class="ect-w-3 ect-h-3 ect-text-gold-600/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 9v7.5" />
-                </svg>
-                {{ chip.label }}
-              </button>
-            </div>
-            <button
-              type="button"
-              class="ect-mt-3 ect-w-full ect-py-2 ect-rounded-xl ect-border ect-border-charcoal/12 ect-font-body ect-text-xs ect-text-charcoal/50 hover:ect-border-charcoal/25 hover:ect-text-charcoal ect-transition-colors"
-              @click="closeServicePicker"
-            >
-              Cancel
-            </button>
-          </section>
-        </Transition>
       </li>
 
       <!-- Messages -->
@@ -288,19 +229,8 @@ function cancelImageIntent() {
               class="ect-block ect-w-full ect-max-w-[200px] ect-rounded-xl ect-mb-2 ect-border ect-border-white/20"
             />
             {{ msg.content }}
-            <button
-              v-if="msg.role === 'assistant' && msg.action?.href && msg.action?.id"
-              type="button"
-              class="ect-mt-3 ect-inline-flex ect-items-center ect-gap-1.5 ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-text-cream hover:ect-bg-noir ect-transition-colors"
-              @click="msg.action?.id && openBookingByServiceId(msg.action.id)"
-            >
-              {{ msg.action.cta || msg.action.label }}
-              <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-              </svg>
-            </button>
             <RouterLink
-              v-else-if="msg.role === 'assistant' && msg.action?.href"
+              v-if="msg.role === 'assistant' && msg.action?.href"
               :to="msg.action.href"
               class="ect-mt-3 ect-inline-flex ect-items-center ect-gap-1.5 ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-text-cream hover:ect-bg-noir ect-transition-colors"
             >
@@ -309,28 +239,6 @@ function cancelImageIntent() {
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
             </RouterLink>
-            <div
-              v-if="msg.role === 'assistant' && msg.actionOptions?.length"
-              class="ect-mt-3 ect-flex ect-flex-wrap ect-gap-2"
-            >
-              <button
-                v-for="option in msg.actionOptions.filter((item) => item.id)"
-                :key="`${option.id || option.href}-${option.label}`"
-                type="button"
-                class="ect-inline-flex ect-items-center ect-gap-1.5 ect-rounded-full ect-border ect-border-gold-400/60 ect-bg-champagne/50 ect-px-3 ect-py-1.5 ect-font-body ect-text-[11px] ect-font-semibold ect-text-gold-800 hover:ect-border-gold-500 hover:ect-bg-champagne ect-transition-colors"
-                @click="option.id && openBookingByServiceId(option.id)"
-              >
-                {{ option.cta || option.label }}
-              </button>
-              <RouterLink
-                v-for="option in msg.actionOptions.filter((item) => !item.id && item.href)"
-                :key="`${option.href}-${option.label}`"
-                :to="option.href"
-                class="ect-inline-flex ect-items-center ect-gap-1.5 ect-rounded-full ect-border ect-border-gold-400/60 ect-bg-champagne/50 ect-px-3 ect-py-1.5 ect-font-body ect-text-[11px] ect-font-semibold ect-text-gold-800 hover:ect-border-gold-500 hover:ect-bg-champagne ect-transition-colors"
-              >
-                {{ option.cta || option.label }}
-              </RouterLink>
-            </div>
           </span>
         </li>
       </TransitionGroup>

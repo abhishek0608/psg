@@ -9,10 +9,6 @@ const CHUNK_RELOAD_FLAG = 'bluestone:chunk-reload-attempted'
 const router = createRouter({
   history: createWebHistory(),
   scrollBehavior(to) {
-    // Services page scrolls to #sections itself after paint (avoids races with lazy route + sticky layout).
-    if (to.path === '/services' && to.hash) {
-      return false
-    }
     if (to.hash) {
       return { el: to.hash, behavior: 'smooth' }
     }
@@ -30,7 +26,7 @@ const router = createRouter({
     { path: '/checkout', name: 'checkout', component: () => import('../views/CheckoutView.vue'), meta: { title: 'Checkout', noindex: true } },
     { path: '/order-confirmation', name: 'order-confirmation', component: () => import('../views/OrderConfirmationView.vue'), meta: { title: 'Order Confirmation', noindex: true } },
     { path: '/about', name: 'about', component: () => import('../views/AboutView.vue'), meta: { title: 'About Us', description: 'Jewelet trust promise for certified jewellery, lifetime exchange, free shipping and assisted buying.' } },
-    { path: '/services', name: 'services', component: () => import('../views/ServicesView.vue'), meta: { title: 'Services', description: 'Jewellery services including video consultation, custom design, repair, resizing and polishing.' } },
+    { path: '/video-consultation', name: 'video-consultation', component: () => import('../views/VideoConsultationView.vue'), meta: { title: 'Book a Video Consultation', description: 'Book a private online appointment with a Jewelet jewellery expert.' } },
     { path: '/contact', redirect: '/about' },
     { path: '/careers', redirect: '/about' },
     { path: '/search', name: 'search', component: () => import('../views/SearchView.vue'), meta: { title: 'Search', noindex: true } },
@@ -39,7 +35,6 @@ const router = createRouter({
     { path: '/internal/orders/:id', name: 'internal-order', component: () => import('../views/InternalOrderDetailView.vue') },
     { path: '/internal/quotes/:id', name: 'internal-quote', component: () => import('../views/InternalQuoteDetailView.vue') },
     { path: '/internal/users/:id', name: 'internal-user', component: () => import('../views/InternalUserDetailView.vue') },
-    { path: '/internal/services/:reference', name: 'internal-service', component: () => import('../views/InternalServiceDetailView.vue') },
     { path: '/internal/products/import', name: 'internal-product-import', component: () => import('../views/InternalProductImportView.vue') },
     { path: '/internal/products/:slug', name: 'internal-product', component: InternalProductDetailView },
     { path: '/login', name: 'login', component: () => import('../views/LoginView.vue'), meta: { title: 'Log In', noindex: true } },

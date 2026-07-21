@@ -216,77 +216,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ sent: tasks.length > 0 })
     }
 
-    if (kind === 'service') {
-      const reference = esc(body.reference)
-      const serviceTitle = esc(body.serviceTitle)
-      const serviceNo = esc(body.serviceNo)
-      const customerEmail = String(body.customerEmail || '').trim()
-      const customerName = esc(body.customerName)
-      const customerPhone = esc(body.customerPhone)
-      const rowItems = Array.isArray(body.rows) ? body.rows : []
-      const detailsTable = renderDataTable(
-        ['Field', 'Value'],
-        rowItems.map((row) => [esc(row.label), esc(row.value)])
-      )
-
-      const internalHtml = renderEmailShell({
-        eyebrow: 'Service Booking',
-        title: `Request ${reference}`,
-        intro: `A new ${serviceTitle} request has been submitted.`,
-        bodyHtml: `
-          <div style="margin:0 0 18px;padding:16px 18px;border-radius:18px;background:#fbf5f3;">
-            <p style="margin:0;font:400 14px/1.7 Arial,sans-serif;color:#2f2725;"><strong>Reference:</strong> ${reference}<br><strong>Service:</strong> ${serviceNo} ${serviceTitle}<br><strong>Customer:</strong> ${customerName}<br><strong>Email:</strong> ${esc(customerEmail)}${customerPhone ? `<br><strong>Phone:</strong> ${customerPhone}` : ''}</p>
-          </div>
-          ${detailsTable}
-        `,
-      })
-      const internalText = `Service booking ${reference}\nService: ${body.serviceNo || ''} ${body.serviceTitle || ''}\nCustomer: ${body.customerName || ''} | ${customerEmail}${body.customerPhone ? ` | ${body.customerPhone}` : ''}`
-
-      const customerHtml = renderEmailShell({
-        eyebrow: 'Booking Confirmed',
-        title: `We received your request ${reference}`,
-        intro: `Thank you for booking ${serviceTitle}. Our team will review your request and contact you shortly to confirm the next steps.`,
-        bodyHtml: `
-          <div style="margin:0 0 18px;padding:16px 18px;border-radius:18px;background:#fbf5f3;">
-            <p style="margin:0;font:400 14px/1.7 Arial,sans-serif;color:#2f2725;"><strong>Reference:</strong> ${reference}<br><strong>Service:</strong> ${serviceNo} ${serviceTitle}</p>
-          </div>
-          ${detailsTable}
-        `,
-        footer: 'Keep this reference handy if you need to speak with our team about your booking.',
-      })
-      const customerText = `Hi ${body.customerName || ''},\n\nWe received your service request ${body.reference || ''} for ${body.serviceTitle || ''}. Our team will contact you shortly.\n`
-
-      const tasks = []
-      if (notifyRecipients.length) {
-        tasks.push(
-          sendResend({
-            from,
-            to: notifyRecipients,
-            subject: `Service booking ${reference}`,
-            html: internalHtml,
-            text: internalText,
-            replyTo: isValidEmail(customerEmail) ? customerEmail : undefined,
-          })
-        )
-      }
-
-      if (isValidEmail(customerEmail)) {
-        tasks.push(
-          sendResend({
-            from,
-            to: customerEmail,
-            subject: `We received your request ${reference}`,
-            html: customerHtml,
-            text: customerText,
-          })
-        )
-      }
-
-      await Promise.all(tasks)
-      return res.status(200).json({ sent: tasks.length > 0 })
-    }
-
-    return res.status(400).json({ message: 'Invalid kind. Use "order" or "service".' })
+    return res.status(400).json({ message: 'Invalid kind. Use "order" or "quote".' })
   } catch (err) {
     console.error('[notify-transaction]', err)
     return res.status(500).json({ message: err.message || 'Failed to send email' })

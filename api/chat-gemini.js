@@ -6,7 +6,6 @@
  */
 import {
   buildChatResult,
-  buildServiceChatResult,
   buildSystemPrompt,
   isDebugEnabled,
   inferSubtypesFromText,
@@ -52,7 +51,6 @@ const CATEGORY_ALIAS_MAP = {
 
 function shouldRunProductSearchFlow(message) {
   if (typeof message !== 'string' || !message.trim()) return false
-  if (buildServiceChatResult(message)) return false
   const text = message.toLowerCase()
   return (
     /\b(show|find|search|browse|recommend|looking|collection|products?|pieces?|options?)\b/.test(text) ||
@@ -212,14 +210,6 @@ export default async function handler(req, res) {
   const lastMessage = messages[messages.length - 1]
   if (lastMessage?.role !== 'user' || typeof lastMessage?.content !== 'string') {
     return res.status(400).json({ message: 'Last message must be from user with content.' })
-  }
-
-  const serviceResult = buildServiceChatResult(lastMessage.content)
-  if (serviceResult) {
-    return res.status(200).json({
-      ...serviceResult,
-      ...(debug && { detectedIntent: { type: 'service', service: serviceResult.serviceAction } }),
-    })
   }
 
   const token = process.env.HF_TOKEN || process.env.HUGGINGFACE_HF_TOKEN

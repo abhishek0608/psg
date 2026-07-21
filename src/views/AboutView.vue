@@ -11,43 +11,43 @@ const message = ref('')
 const submitted = ref(false)
 
 const values = [
-  { n: '01', title: 'Precision', desc: 'Advanced CAD technology and state-of-the-art machinery for flawless execution in every piece.' },
-  { n: '02', title: 'Craftsmanship', desc: 'A skilled workforce with years of expertise, finishing every creation to the highest standard.' },
-  { n: '03', title: 'Sustainability', desc: 'A secure, efficient and sustainable manufacturing environment in the Jaipur SEZ.' },
+  { n: '01', title: 'Craftsmanship', desc: 'Thoughtful proportions, refined settings and careful finishing bring character to every piece.' },
+  { n: '02', title: 'Considered design', desc: 'We balance contemporary expression with an enduring sense of elegance, creating jewellery made to live beyond a season.' },
+  { n: '03', title: 'Personal service', desc: 'From the first conversation to the final detail, we make choosing jewellery feel warm, clear and personal.' },
 ]
 
 // Bundled defaults, shown until real photos/copy are configured in the
 // internal workspace (Internal → About page).
 const defaultJourney = [
   {
-    year: '2004',
-    place: 'Mumbai',
-    title: 'Grace Jewels',
-    desc: 'Our journey begins in Mumbai with Grace Jewels — a workshop built on the belief that fine jewellery should be as precise as it is poetic. Here we learn the disciplines that still guide every piece we make.',
+    year: '',
+    place: 'Bangkok, Thailand',
+    title: 'Inspired by the city',
+    desc: 'PSG is shaped by Bangkok — a city where deep jewellery traditions meet bold, contemporary style. That contrast inspires pieces with presence, personality and a distinctly modern spirit.',
     imageUrl: '/pendant-1.jpg',
   },
   {
-    year: '2010',
-    place: 'New York',
-    title: 'Osiyan Inc',
-    desc: 'Expansion to New York with Osiyan Inc brings us face to face with the world’s most demanding retailers and brands — refining our craft, our standards, and our understanding of the evolving customer.',
+    year: '',
+    place: 'Our craft',
+    title: 'Details make the difference',
+    desc: 'Every design begins with balance: the relationship between stone and setting, light and form, beauty and wearability. Each detail is considered so the finished piece feels effortless.',
     imageUrl: '/earring-1.jpg',
   },
   {
-    year: '2024',
-    place: 'Jaipur',
-    title: 'Jewelet',
-    desc: 'Jewelet Private Limited is established in the Sitapura SEZ, Jaipur — a state-of-the-art facility dedicated to semi-mount, fine, lab-grown diamond and colored stone jewellery for clients worldwide.',
+    year: '',
+    place: 'The PSG experience',
+    title: 'Jewellery that feels personal',
+    desc: 'We believe the most meaningful jewellery reflects the person wearing it. Our approach pairs attentive service with thoughtful design to help every client find a piece that feels entirely their own.',
     imageUrl: '/necklace-1.jpg',
   },
 ]
 
-const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'Jewelet · Jaipur')
-const heroHeadline = computed(() => aboutContent.value.heroHeadline || 'Brilliance by Design')
+const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'PSG · Bangkok')
+const heroHeadline = computed(() => aboutContent.value.heroHeadline || 'Jewellery with a Sense of Self')
 const heroSubheadline = computed(
   () =>
     aboutContent.value.heroSubheadline ||
-    'Reinventing fine jewellery with precision, craftsmanship and stories told in every stone.',
+    'Designed in Bangkok with a love for expressive details, enduring beauty and the stories we carry with us.',
 )
 
 // Configured milestones (with the team's own group/founder photos) replace the
@@ -62,18 +62,18 @@ const journey = computed(() => {
 const team = computed(() => aboutContent.value.team.filter((member) => member.active))
 
 const openings = [
-  { title: 'Master Jeweller', type: 'Full-time', location: 'Jaipur', desc: 'Join our atelier team to craft exquisite fine jewellery using traditional and modern techniques.' },
-  { title: 'Design Associate', type: 'Full-time', location: 'Jaipur', desc: 'Collaborate with our creative director to develop collections that push the boundaries of contemporary jewellery.' },
+  { title: 'Master Jeweller', type: 'Full-time', location: 'Bangkok', desc: 'Join our atelier team to craft expressive fine jewellery using traditional and modern techniques.' },
+  { title: 'Design Associate', type: 'Full-time', location: 'Bangkok', desc: 'Collaborate with our creative team to develop collections that bring a fresh perspective to contemporary jewellery.' },
   { title: 'E-Commerce Manager', type: 'Full-time', location: 'Remote', desc: 'Lead our online presence, optimise the digital shopping experience, and drive growth across all channels.' },
-  { title: 'Brand Stylist', type: 'Part-time', location: 'Jaipur', desc: 'Style and art-direct photoshoots for campaigns, social media, and editorial features.' },
+  { title: 'Brand Stylist', type: 'Part-time', location: 'Bangkok', desc: 'Style and art-direct photoshoots for campaigns, social media, and editorial features.' },
 ]
 
 // Animated counters (count up when scrolled into view, like the reference site)
-const stats = [
-  { target: 15, suffix: '+', label: 'Years of craft' },
-  { target: 500, suffix: '+', label: 'Unique designs' },
-  { target: 10, suffix: 'k+', label: 'Happy customers' },
-  { target: null, text: 'BIS', label: 'Hallmarked gold' },
+const stats: Array<{ target: number | null; suffix?: string; text?: string; label: string }> = [
+  { target: null, text: 'BKK', label: 'Bangkok based' },
+  { target: null, text: 'PSG', label: 'Distinctly ours' },
+  { target: null, text: 'Fine', label: 'Made with care' },
+  { target: null, text: 'You', label: 'Always personal' },
 ] as const
 
 const counts = ref(stats.map(() => 0))
@@ -212,16 +212,16 @@ onBeforeUnmount(() => {
       <section class="ect-max-w-3xl ect-mx-auto ect-px-6 ect-py-24 sm:ect-py-32 ect-text-center">
         <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-mb-8">Who we are</p>
         <p class="ect-font-display ect-font-light ect-text-2xl sm:ect-text-[2rem] ect-leading-display-relaxed ect-text-charcoal">
-          We are a modern jewellery manufacturing house specializing in semi-mount, fine, lab-grown diamond
-          and colored stone jewellery. With advanced technology, skilled craftsmanship and deep industry
-          expertise, we transform creative ideas into exceptional collections for clients and brands worldwide.
+          PSG is a Bangkok jewellery house creating expressive pieces for modern lives. Rooted in a city known
+          for its vibrant design culture and jewellery craft, we bring together thoughtful details, refined
+          workmanship and a personal approach to help every wearer tell their own story.
         </p>
         <span class="ect-inline-block ect-w-12 ect-h-px ect-bg-gold-400 ect-mt-10" />
       </section>
 
       <!-- Journey — alternating editorial rows -->
       <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-8">
-        <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-16">Our journey</p>
+        <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-16">The PSG approach</p>
 
         <article
           v-for="(step, i) in journey"
@@ -268,11 +268,11 @@ onBeforeUnmount(() => {
       <section ref="statsEl" class="ect-bg-noir ect-text-cream ect-py-20 sm:ect-py-24 ect-px-6 ect-relative ect-overflow-hidden">
         <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_60%_80%_at_50%_100%,rgba(201,162,39,0.1),transparent)]" />
         <div class="ect-relative ect-max-w-5xl ect-mx-auto">
-          <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-300 ect-text-center ect-mb-14">A collective of creators</p>
+          <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-300 ect-text-center ect-mb-14">Made in our own language</p>
           <ul class="ect-grid ect-grid-cols-2 sm:ect-grid-cols-4 ect-gap-y-12 ect-list-none ect-m-0 ect-p-0">
             <li v-for="(s, i) in stats" :key="s.label" class="ect-text-center">
               <p class="ect-font-display ect-font-light ect-text-5xl sm:ect-text-6xl ect-mb-3">
-                <template v-if="s.target !== null">{{ counts[i] }}{{ s.suffix }}</template>
+                <template v-if="s.target !== null">{{ counts[i] }}{{ 'suffix' in s ? s.suffix : '' }}</template>
                 <template v-else>{{ s.text }}</template>
               </p>
               <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-cream/40">{{ s.label }}</p>
@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
       <!-- Founders & team — portraits, only when configured in the internal workspace -->
       <section v-if="team.length" class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pt-24 sm:ect-pt-28">
         <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-4">Our story</p>
-        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">The people behind Jewelet</h2>
+        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">The people behind PSG</h2>
         <ul class="ect-grid ect-grid-cols-2 sm:ect-grid-cols-3 lg:ect-grid-cols-4 ect-gap-x-6 ect-gap-y-12 ect-justify-center ect-list-none ect-m-0 ect-p-0">
           <li v-for="(member, i) in team" :key="`${member.name}-${i}`" class="ect-text-center">
             <figure class="ect-relative ect-overflow-hidden ect-aspect-[3/4] ect-bg-cream ect-m-0 ect-mb-5">
@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
       <!-- Values — numbered editorial columns -->
       <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-py-24 sm:ect-py-28">
         <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-4">What we stand for</p>
-        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">Keeping the wearer at the heart</h2>
+        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">Designed around the wearer</h2>
         <ul class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-3 ect-gap-10 sm:ect-gap-12 ect-list-none ect-m-0 ect-p-0">
           <li v-for="v in values" :key="v.title" class="ect-border-t ect-border-charcoal/15 ect-pt-8">
             <p class="ect-font-body ect-text-[11px] ect-tracking-[0.22em] ect-text-gold-700 ect-mb-5">{{ v.n }}</p>
@@ -323,16 +323,16 @@ onBeforeUnmount(() => {
         <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_70%_70%_at_50%_0%,rgba(201,162,39,0.12),transparent)]" />
         <div class="ect-relative ect-max-w-2xl ect-mx-auto">
           <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-300 ect-mb-6">Our process</p>
-          <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-5xl ect-leading-display ect-mb-7">From insight to heirloom.</h2>
+          <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-5xl ect-leading-display ect-mb-7">From inspiration to something personal.</h2>
           <p class="ect-font-body ect-text-sm sm:ect-text-base ect-text-cream/55 ect-leading-body-relaxed ect-mb-10">
-            As an insight-led design house, everything we do — from ideation to creation — centres on today's
-            ever-evolving customer. Turning their essence into precious jewellery is what we do best.
+            Every PSG piece begins with an idea, refined through proportion, material and detail. The result is
+            jewellery designed not simply to be admired, but to become part of how you express yourself.
           </p>
           <RouterLink
-            to="/services"
+            to="/collections"
             class="ect-inline-flex ect-items-center ect-gap-2.5 ect-px-8 ect-py-4 ect-bg-cream ect-text-charcoal ect-font-body ect-text-[12px] ect-font-semibold ect-uppercase ect-tracking-[0.18em] hover:ect-bg-champagne ect-transition-colors"
           >
-            Discover our services
+            Explore our collections
             <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
           </RouterLink>
         </div>
@@ -350,7 +350,7 @@ onBeforeUnmount(() => {
             </span>
             <div>
               <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Visit us</p>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">SEZ-2, Sitapura Industrial Area<br />Jaipur, Rajasthan 302022, India</p>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">Bangkok, Thailand<br />Visits by appointment</p>
             </div>
           </li>
           <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
@@ -359,7 +359,7 @@ onBeforeUnmount(() => {
             </span>
             <div>
               <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Email</p>
-              <a href="mailto:sales@jewelet.example" class="ect-font-body ect-text-sm ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors">sales@jewelet.example</a>
+              <a href="mailto:hello@psg.example" class="ect-font-body ect-text-sm ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors">hello@psg.example</a>
             </div>
           </li>
           <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
@@ -368,7 +368,7 @@ onBeforeUnmount(() => {
             </span>
             <div>
               <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Phone</p>
-              <a href="tel:+919216399116" class="ect-font-body ect-text-sm ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors">+91 92163 99116</a>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal">Available on request</p>
             </div>
           </li>
           <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
@@ -377,7 +377,7 @@ onBeforeUnmount(() => {
             </span>
             <div>
               <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Hours</p>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">Mon – Sat: 10am – 8pm<br />Sunday: 11am – 6pm</p>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">Appointments are arranged<br />in advance</p>
             </div>
           </li>
         </ul>
@@ -438,7 +438,7 @@ onBeforeUnmount(() => {
               </div>
               <p class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-leading-relaxed">{{ job.desc }}</p>
             </div>
-            <a href="mailto:careers@jewelet.example"
+            <a href="mailto:careers@psg.example"
               class="ect-shrink-0 ect-inline-flex ect-items-center ect-gap-2 ect-px-5 ect-py-2.5 ect-rounded-xl ect-border ect-border-charcoal/15 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal hover:ect-bg-charcoal hover:ect-text-cream hover:ect-border-charcoal ect-transition-all ect-duration-200">
               Apply
               <svg class="ect-w-3.5 ect-h-3.5 group-hover:ect-translate-x-0.5 ect-transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
@@ -453,7 +453,7 @@ onBeforeUnmount(() => {
           <h3 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-mb-2">Don't see your role?</h3>
           <p class="ect-font-body ect-text-sm ect-text-cream/50 ect-max-w-sm">We're always open to meeting talented people. Send us your CV and tell us how you'd contribute.</p>
         </div>
-        <a href="mailto:careers@jewelet.example"
+        <a href="mailto:careers@psg.example"
           class="ect-shrink-0 ect-inline-flex ect-items-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-xl ect-bg-cream ect-text-charcoal ect-font-body ect-text-sm ect-font-semibold hover:ect-bg-cream/90 ect-transition-colors">
           Get in touch
           <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>

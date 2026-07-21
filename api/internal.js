@@ -20,11 +20,7 @@ import {
   syncStoneSizesInUse,
 } from '../server/api/stone-size-source.js'
 import { createPresignedHomepageUpload, isUploadConfigured } from '../server/api/s3-upload.js'
-import {
-  SERVICE_REQUEST_STATUSES,
-  createServiceRequestRecord,
-  toServiceRequestPayload,
-} from '../server/api/service-requests.js'
+import { VIDEO_CALL_STATUSES, toVideoCallPayload } from '../server/api/video-call-bookings.js'
 
 // This file is a single Vercel serverless function that fans out to the
 // internal-admin resources by `?resource=` (product, homepage-slides,
@@ -1797,60 +1793,29 @@ async function handleUploadImageResource(req, res, body) {
 }
 
 // ---------------------------------------------------------------------------
-// Service requests (resource=services)
+// Video-call bookings
 // ---------------------------------------------------------------------------
 
-// Workspace view of craft-service bookings. GET lists (or returns one by
-// ?reference=), PUT moves the status along new → reviewing → quoted, POST logs
-// a request keyed in by the team (phone / showroom).
-async function handleServicesResource(req, res, body) {
+async function handleVideoCallsResource(req, res, body) {
   const userId = String(req?.query?.userId || body?.userId || '').trim()
   const internalUser = await assertInternalUser(userId)
   if (!internalUser) return res.status(403).json({ message: 'Internal access required.' })
-
-  try {
-    if (req.method === 'GET') {
-      const reference = String(req?.query?.reference || '').trim()
-      if (reference) {
-        const request = await prisma.serviceRequest.findUnique({ where: { reference } })
-        if (!request) return res.status(404).json({ message: 'Service request not found.' })
-        return res.status(200).json({ request: toServiceRequestPayload(request) })
-      }
-      const requests = await prisma.serviceRequest.findMany({
-        take: 200,
-        orderBy: { createdAt: 'desc' },
-      })
-      return res.status(200).json({ requests: requests.map(toServiceRequestPayload) })
-    }
-
-    if (req.method === 'POST') {
-      const result = await createServiceRequestRecord({ body, createdById: internalUser.id })
-      if (result.error) return res.status(400).json({ message: result.error })
-      return res.status(200).json({ request: toServiceRequestPayload(result.request) })
-    }
-
-    if (req.method === 'PUT') {
-      const reference = String(body?.reference || '').trim()
-      const status = String(body?.status || '').trim().toUpperCase()
-      if (!reference) return res.status(400).json({ message: 'reference is required.' })
-      if (!SERVICE_REQUEST_STATUSES.includes(status)) {
-        return res.status(400).json({ message: 'Invalid status.' })
-      }
-      const existing = await prisma.serviceRequest.findUnique({ where: { reference } })
-      if (!existing) return res.status(404).json({ message: 'Service request not found.' })
-      const request = await prisma.serviceRequest.update({
-        where: { reference },
-        data: { status, updatedById: internalUser.id },
-      })
-      return res.status(200).json({ request: toServiceRequestPayload(request) })
-    }
-
-    res.setHeader('Allow', 'GET,POST,PUT,OPTIONS')
-    return res.status(405).json({ message: 'Method not allowed' })
-  } catch (err) {
-    console.error('Internal services resource failed:', err)
-    return res.status(500).json({ message: 'Service request operation failed.' })
+  if (req.method === 'GET') {
+    const bookings = await prisma.videoCallBooking.findMany({ take: 300, orderBy: { scheduledAt: 'desc' } })
+    return res.status(200).json({ bookings: bookings.map(toVideoCallPayload) })
   }
+  if (req.method === 'PUT') {
+    const reference = String(body?.reference || '').trim()
+    const status = String(body?.status || '').trim().toUpperCase()
+    if (!reference) return res.status(400).json({ message: 'reference is required.' })
+    if (!VIDEO_CALL_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid status.' })
+    const existing = await prisma.videoCallBooking.findUnique({ where: { reference } })
+    if (!existing) return res.status(404).json({ message: 'Video-call booking not found.' })
+    const booking = await prisma.videoCallBooking.update({ where: { reference }, data: { status } })
+    return res.status(200).json({ booking: toVideoCallPayload(booking) })
+  }
+  res.setHeader('Allow', 'GET,PUT,OPTIONS')
+  return res.status(405).json({ message: 'Method not allowed' })
 }
 
 // ---------------------------------------------------------------------------
@@ -1875,6 +1840,6 @@ export default async function handler(req, res) {
   if (resource === 'site-config') return handleSiteConfigResource(req, res, body)
   if (resource === 'stone-sizes') return handleStoneSizesResource(req, res, body)
   if (resource === 'upload-image') return handleUploadImageResource(req, res, body)
-  if (resource === 'services') return handleServicesResource(req, res, body)
+  if (resource === 'video-calls') return handleVideoCallsResource(req, res, body)
   return handleDashboardResource(req, res, body)
 }

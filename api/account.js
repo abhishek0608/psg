@@ -2,11 +2,7 @@ import { prisma } from '../server/api/db.js'
 import { toApiProduct } from '../server/api/product-presenter.js'
 import { getCatalogProducts } from '../server/api/products-source.js'
 import { applyCors, handlePreflight } from '../server/api/cors.js'
-import { createPresignedServiceUpload, isUploadConfigured } from '../server/api/s3-upload.js'
-import {
-  createServiceRequestRecord,
-  toServiceRequestPayload,
-} from '../server/api/service-requests.js'
+import { createVideoCallBooking, getBookedVideoCallSlots, toVideoCallPayload } from '../server/api/video-call-bookings.js'
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto'
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
@@ -594,40 +590,6 @@ async function handlePostWishlist(res, customerId, body) {
   return res.status(200).json({ products })
 }
 
-// ---------------------------------------------------------------------------
-// Service requests (mode=service-request / mode=service-upload)
-// ---------------------------------------------------------------------------
-
-async function handlePostServiceRequest(res, body) {
-  const result = await createServiceRequestRecord({ body })
-  if (result.error) return res.status(400).json({ message: result.error })
-  return res.status(200).json({ request: toServiceRequestPayload(result.request) })
-}
-
-// Presigned PUT for booking attachments. Public by design (bookings don't
-// require sign-in); the helper validates type/extension and generated keys
-// never leak filenames. 501 tells the client to fall back to filename-only.
-async function handlePostServiceUpload(res, body) {
-  if (!isUploadConfigured()) {
-    return res.status(501).json({ message: 'File uploads are not configured.' })
-  }
-  const kind = body?.kind === 'cad' ? 'cad' : 'image'
-  try {
-    const result = await createPresignedServiceUpload({
-      kind,
-      contentType: String(body?.contentType || '').trim(),
-      fileName: String(body?.fileName || '').trim(),
-    })
-    return res.status(200).json(result)
-  } catch (error) {
-    if (error?.code === 'UNSUPPORTED_TYPE') {
-      return res.status(400).json({ message: error.message })
-    }
-    console.error('[account service-upload] presign failed:', error)
-    return res.status(500).json({ message: 'Unable to start the upload.' })
-  }
-}
-
 export default async function handler(req, res) {
   const preflight = handlePreflight(req, res)
   if (preflight) return preflight
@@ -639,6 +601,7 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
+      if (mode === 'video-call-slots') return res.status(200).json({ booked: await getBookedVideoCallSlots() })
       if (mode === 'profile') return await handleGetProfile(res, userId)
       if (mode === 'cart') return await handleGetCart(res, userId)
       if (mode === 'wishlist') return await handleGetWishlist(res, userId)
@@ -646,6 +609,11 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
+      if (mode === 'video-call-booking') {
+        const result = await createVideoCallBooking(body)
+        if (result.error) return res.status(400).json({ message: result.error })
+        return res.status(200).json({ booking: toVideoCallPayload(result.booking) })
+      }
       if (mode === 'signup') return await handleSignup(res, body)
       if (mode === 'signin') return await handleSignin(res, body)
       if (mode === 'reset-request') return await handleResetRequest(req, res, body)
@@ -653,8 +621,6 @@ export default async function handler(req, res) {
       if (mode === 'change-password') return await handleChangePassword(res, userId, body)
       if (mode === 'cart') return await handlePostCart(res, userId, body)
       if (mode === 'wishlist') return await handlePostWishlist(res, userId, body)
-      if (mode === 'service-request') return await handlePostServiceRequest(res, body)
-      if (mode === 'service-upload') return await handlePostServiceUpload(res, body)
       return res.status(400).json({ message: 'Invalid mode for POST.' })
     }
 

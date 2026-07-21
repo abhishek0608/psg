@@ -18,17 +18,6 @@ export type OrderEmailPayload = {
   items: OrderEmailItem[]
 }
 
-export type ServiceEmailPayload = {
-  kind: 'service'
-  reference: string
-  serviceTitle: string
-  serviceNo: string
-  customerName: string
-  customerEmail: string
-  customerPhone?: string
-  rows: { label: string; value: string }[]
-}
-
 export type QuoteEmailPayload = {
   kind: 'quote'
   quoteId: string
@@ -44,7 +33,7 @@ export type QuoteEmailPayload = {
   items: (OrderEmailItem & { customization?: Record<string, string> | null })[]
 }
 
-export async function notifyTransaction(payload: OrderEmailPayload | ServiceEmailPayload | QuoteEmailPayload): Promise<void> {
+export async function notifyTransaction(payload: OrderEmailPayload | QuoteEmailPayload): Promise<void> {
   try {
     const res = await fetch(`${API_BASE}/api/notify-transaction`, {
       method: 'POST',
