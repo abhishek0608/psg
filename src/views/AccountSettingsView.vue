@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
+import { COUNTRY_OPTIONS, countryDisplayName, useSavedAddresses, type SavedAddressEntry } from '../composables/useSavedAddresses'
 
 const router = useRouter()
 const { user, isLoggedIn, changePassword } = useAuth()
+const { addresses, save: saveAddress, remove: removeAddress } = useSavedAddresses()
 
 if (!isLoggedIn.value) router.replace('/login')
 
-type SectionId = 'password'
+type SectionId = 'password' | 'addresses'
 
 const sections: { id: SectionId; label: string; description: string }[] = [
   { id: 'password', label: 'Change password', description: 'Update your account password' },
+  { id: 'addresses', label: 'Manage addresses', description: 'Add or update delivery addresses' },
 ]
 const activeSection = ref<SectionId>('password')
 
@@ -21,6 +24,53 @@ const confirm = ref('')
 const isLoading = ref(false)
 const error = ref('')
 const message = ref('')
+const addressSearch = ref('')
+const editingAddressId = ref<string | null>(null)
+const showAddressForm = ref(false)
+const blankAddress = (): Omit<SavedAddressEntry, 'id'> => ({
+  label: '',
+  name: user.value?.name ?? '',
+  email: user.value?.email ?? '',
+  phone: '',
+  address: '',
+  city: '',
+  state: '',
+  country: 'IN',
+  pincode: '',
+})
+const addressForm = ref(blankAddress())
+const filteredAddresses = computed(() => {
+  const needle = addressSearch.value.trim().toLocaleLowerCase()
+  if (!needle) return addresses.value
+  return addresses.value.filter((address) =>
+    [address.label, address.name, address.address, address.city, address.state, address.pincode, countryDisplayName(address.country)]
+      .join(' ')
+      .toLocaleLowerCase()
+      .includes(needle),
+  )
+})
+
+function openNewAddress() {
+  editingAddressId.value = null
+  addressForm.value = blankAddress()
+  showAddressForm.value = true
+}
+
+function editAddress(address: SavedAddressEntry) {
+  editingAddressId.value = address.id
+  addressForm.value = { ...address }
+  showAddressForm.value = true
+}
+
+function closeAddressForm() {
+  showAddressForm.value = false
+  editingAddressId.value = null
+}
+
+function submitAddress() {
+  saveAddress({ ...addressForm.value, id: editingAddressId.value ?? undefined })
+  closeAddressForm()
+}
 
 async function handleSubmit() {
   error.value = ''
@@ -74,7 +124,8 @@ async function handleSubmit() {
               class="ect-w-full ect-text-left ect-px-3 ect-py-2.5 ect-rounded-xl ect-font-body ect-text-sm ect-transition-colors"
               :class="activeSection === section.id ? 'ect-bg-champagne/60 ect-text-charcoal ect-font-semibold' : 'ect-text-charcoal/70 hover:ect-bg-cream hover:ect-text-charcoal'"
             >
-              {{ section.label }}
+              <span class="ect-block">{{ section.label }}</span>
+              <span class="ect-block ect-mt-0.5 ect-text-[11px] ect-font-normal ect-text-charcoal/45">{{ section.description }}</span>
             </button>
           </nav>
         </aside>
@@ -156,6 +207,64 @@ async function handleSubmit() {
               </button>
               <p v-if="message" class="ect-font-body ect-text-sm ect-text-green-600">{{ message }}</p>
               <p v-if="error" class="ect-font-body ect-text-sm ect-text-red-600">{{ error }}</p>
+            </form>
+          </div>
+
+          <div v-else-if="activeSection === 'addresses'" class="ect-px-6 ect-py-8 sm:ect-px-10 sm:ect-py-10">
+            <header class="ect-mb-7">
+              <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal ect-tracking-wide ect-mb-1">Manage addresses</h2>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal/60">Choose, update, or add a saved delivery address</p>
+            </header>
+
+            <section class="ect-border ect-border-sand ect-rounded-2xl ect-bg-cream/35 ect-overflow-hidden">
+              <div class="ect-p-4 ect-border-b ect-border-sand ect-bg-white/80">
+                <label class="ect-relative ect-block">
+                  <span class="ect-sr-only">Search saved addresses</span>
+                  <input v-model="addressSearch" type="search" placeholder="Search locations" class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-white ect-py-3 ect-pl-4 ect-pr-11 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/40 focus:ect-border-gold-400 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/20" />
+                  <svg class="ect-absolute ect-right-4 ect-top-1/2 ect-h-4 ect-w-4 -ect-translate-y-1/2 ect-text-charcoal/35" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
+                </label>
+              </div>
+
+              <div v-if="filteredAddresses.length" class="ect-max-h-[28rem] ect-space-y-3 ect-overflow-y-auto ect-p-4">
+                <article v-for="address in filteredAddresses" :key="address.id" class="ect-flex ect-items-start ect-gap-4 ect-rounded-xl ect-border ect-border-sand ect-bg-white ect-p-4 ect-shadow-sm">
+                  <span class="ect-mt-0.5 ect-flex ect-h-9 ect-w-9 ect-shrink-0 ect-items-center ect-justify-center ect-rounded-full ect-bg-champagne/60 ect-text-gold-700">
+                    <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+                  </span>
+                  <div class="ect-min-w-0 ect-flex-1">
+                    <h3 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ address.label }}</h3>
+                    <p class="ect-mt-1 ect-font-body ect-text-sm ect-leading-relaxed ect-text-charcoal/65">{{ address.address }}, {{ address.city }}, {{ address.state }}, {{ countryDisplayName(address.country) }} {{ address.pincode }}</p>
+                    <p class="ect-mt-1 ect-font-body ect-text-xs ect-text-charcoal/45">{{ address.name }} · {{ address.phone }}</p>
+                  </div>
+                  <div class="ect-flex ect-shrink-0 ect-items-center ect-gap-2">
+                    <button type="button" class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-gold-700 hover:ect-text-gold-800" @click="editAddress(address)">Edit</button>
+                    <button type="button" class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-red-500 hover:ect-text-red-600" @click="removeAddress(address.id)">Delete</button>
+                  </div>
+                </article>
+              </div>
+              <div v-else class="ect-px-6 ect-py-12 ect-text-center">
+                <p class="ect-font-body ect-text-sm ect-text-charcoal/55">{{ addresses.length ? 'No addresses match your search.' : 'No saved addresses yet.' }}</p>
+              </div>
+            </section>
+
+            <button type="button" class="ect-mt-5 ect-rounded-xl ect-bg-charcoal ect-px-6 ect-py-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-white hover:ect-bg-noir ect-transition-colors" @click="openNewAddress">Add new address</button>
+
+            <form v-if="showAddressForm" class="ect-mt-6 ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-p-5 sm:ect-p-6" @submit.prevent="submitAddress">
+              <div class="ect-mb-5 ect-flex ect-items-center ect-justify-between">
+                <h3 class="ect-font-display ect-text-xl ect-font-light ect-text-charcoal">{{ editingAddressId ? 'Edit address' : 'Add new address' }}</h3>
+                <button type="button" class="ect-font-body ect-text-xs ect-text-charcoal/50 hover:ect-text-charcoal" @click="closeAddressForm">Cancel</button>
+              </div>
+              <div class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Address label *</span><input v-model="addressForm.label" required placeholder="Home, Office…" class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Full name *</span><input v-model="addressForm.name" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Email *</span><input v-model="addressForm.email" required type="email" class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Phone *</span><input v-model="addressForm.phone" required type="tel" class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+                <label class="ect-block sm:ect-col-span-2"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Street address *</span><input v-model="addressForm.address" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">City *</span><input v-model="addressForm.city" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">State / Province *</span><input v-model="addressForm.state" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Country *</span><select v-model="addressForm.country" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none"><option v-for="country in COUNTRY_OPTIONS" :key="country.code" :value="country.code">{{ country.name }}</option></select></label>
+                <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Postal code *</span><input v-model="addressForm.pincode" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+              </div>
+              <button type="submit" class="ect-mt-5 ect-rounded-xl ect-bg-gold-600 ect-px-6 ect-py-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-white hover:ect-bg-gold-700 ect-transition-colors">{{ editingAddressId ? 'Save changes' : 'Save address' }}</button>
             </form>
           </div>
         </div>
