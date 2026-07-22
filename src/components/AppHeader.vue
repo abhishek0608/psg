@@ -154,7 +154,7 @@ function toggleNotifications() {
     </section>
 
     <!-- Main nav -->
-    <nav class="ect-bg-white/95 ect-backdrop-blur-xl lg:ect-border-b lg:ect-border-sand">
+    <nav class="ect-relative ect-z-20 ect-bg-white/95 ect-backdrop-blur-xl lg:ect-border-b lg:ect-border-sand">
       <section class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-center ect-justify-between ect-h-16">
         <!-- Left: mobile hamburger + logo (mobile) / logo only (desktop) -->
         <section class="ect-flex ect-items-center ect-gap-3 ect-shrink-0">
@@ -340,7 +340,7 @@ function toggleNotifications() {
             >
               <ul
                 v-if="menuOpen"
-                class="ect-absolute ect-right-0 ect-z-[70] ect-w-56 ect-bg-white ect-rounded-lg ect-shadow-xl ect-shadow-charcoal/[0.08] ect-ring-1 ect-ring-charcoal/[0.05] ect-py-1.5 ect-list-none ect-m-0 ect-p-0 ect-overflow-hidden"
+                class="ect-absolute ect-top-full ect-right-0 ect-z-[70] ect-w-56 ect-bg-white ect-rounded-lg ect-shadow-xl ect-shadow-charcoal/[0.08] ect-ring-1 ect-ring-charcoal/[0.05] ect-py-1.5 ect-list-none ect-m-0 ect-p-0 ect-overflow-hidden"
                 :class="isInternalPath ? 'ect-mt-3' : 'ect-mt-[4.75rem]'"
               >
                 <li class="ect-px-4 ect-py-3 ect-border-b ect-border-charcoal/[0.06]">
@@ -456,7 +456,7 @@ function toggleNotifications() {
     <!-- Desktop category bar + Bluestone-style mega menu -->
     <nav
       v-if="!isInternalPath"
-      class="ect-hidden lg:ect-block ect-relative ect-bg-bluestone-800"
+      class="ect-hidden lg:ect-block ect-relative ect-z-10 ect-bg-bluestone-800"
       @mouseleave="activeDropdown = null"
     >
       <ul class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-stretch ect-list-none ect-m-0 ect-p-0">
