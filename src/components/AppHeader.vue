@@ -16,7 +16,7 @@ const route = useRoute()
 const { collectionImages, ensureSiteConfigLoaded, logoSrc } = useSiteConfig()
 const brandName = 'Jewelet'
 const { user, isLoggedIn, isInternalUser, refreshCurrentUser, logout } = useAuth()
-const { query, searchByImage, submitTextSearch } = useSearch()
+const { query, submitTextSearch } = useSearch()
 const { totalItems } = useCart()
 const { count: wishlistCount } = useWishlist()
 const { orders } = useOrders()
@@ -26,7 +26,6 @@ const mobileNavOpen = ref(false)
 const activeDropdown = ref<string | null>(null)
 const mobileActiveAccordion = ref<string | null>(null)
 const searchFocused = ref(false)
-const imageFileInput = ref<HTMLInputElement | null>(null)
 const isInternalPath = computed(
   () => typeof route.path === 'string' && route.path.startsWith('/internal'),
 )
@@ -42,20 +41,6 @@ const internalNotifications = computed(() => {
   return orderItems.slice(0, 6)
 })
 const notificationCount = computed(() => internalNotifications.value.length)
-
-function openImagePicker() {
-  imageFileInput.value?.click()
-}
-
-function onImageFileChange(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  mobileNavOpen.value = false
-  query.value = ''
-  router.push({ path: '/search' })
-  searchByImage(file)
-  ;(e.target as HTMLInputElement).value = ''
-}
 
 const collectionItems: CollectionLink[] = COLLECTION_LINKS
 
@@ -158,15 +143,6 @@ function toggleNotifications() {
 </script>
 
 <template>
-  <!-- Hidden file input for image search (shared by desktop + mobile camera buttons) -->
-  <input
-    ref="imageFileInput"
-    type="file"
-    accept="image/*"
-    class="ect-hidden"
-    @change="onImageFileChange"
-  />
-
   <header class="ect-fixed ect-top-0 ect-left-0 ect-right-0 ect-z-50">
     <!-- Announcement bar (mobile only — on desktop the dark category bar
          below the logo row takes its place, matching the Bluestone layout) -->
@@ -231,18 +207,6 @@ function toggleNotifications() {
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <button
-            type="button"
-            title="Search by image"
-            aria-label="Search by image"
-            class="ect-mr-1 ect-p-1.5 ect-rounded-full ect-text-charcoal/35 hover:ect-text-gold-700 hover:ect-bg-gold-100/60 ect-transition-colors ect-shrink-0"
-            @click="openImagePicker"
-          >
-            <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-            </svg>
-          </button>
         </form>
 
         <!-- Desktop: internal workspace link (category links live in the dark bar below) -->
@@ -279,18 +243,6 @@ function toggleNotifications() {
               @focus="searchFocused = true"
               @blur="searchFocused = false"
             />
-            <button
-              type="button"
-              title="Search by image"
-              aria-label="Search by image"
-              class="ect-mr-1.5 ect-p-1.5 ect-rounded-full ect-text-charcoal/30 hover:ect-text-gold-700 hover:ect-bg-champagne ect-transition-colors ect-shrink-0"
-              @click="openImagePicker"
-            >
-              <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-              </svg>
-            </button>
           </form>
 
           <!-- Video call -->
@@ -687,18 +639,6 @@ function toggleNotifications() {
               placeholder="Search for jewellery…"
               class="ect-flex-1 ect-px-3 ect-py-2.5 ect-bg-transparent ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none"
             />
-            <button
-              type="button"
-              title="Search by image"
-              aria-label="Search by image"
-              class="ect-mr-1.5 ect-p-2 ect-rounded-full ect-text-charcoal/35 hover:ect-text-gold-700 hover:ect-bg-gold-100/60 ect-transition-colors ect-shrink-0"
-              @click="openImagePicker"
-            >
-              <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-              </svg>
-            </button>
           </form>
 
           <RouterLink
@@ -763,14 +703,6 @@ function toggleNotifications() {
 
           <!-- Link rows -->
           <nav v-if="!isInternalPath" class="ect-border-t ect-border-charcoal/[0.08]">
-            <RouterLink
-              to="/chat"
-              @click="mobileNavOpen = false"
-              class="ect-flex ect-items-center ect-justify-between ect-py-4 ect-border-b ect-border-charcoal/[0.08] ect-font-body ect-text-[15px] ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
-            >
-              <span>Chat with Expert</span>
-              <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-            </RouterLink>
             <RouterLink
               to="/video-consultation"
               @click="mobileNavOpen = false"

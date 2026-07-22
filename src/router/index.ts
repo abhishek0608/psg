@@ -30,7 +30,7 @@ const router = createRouter({
     { path: '/contact', redirect: '/about' },
     { path: '/careers', redirect: '/about' },
     { path: '/search', name: 'search', component: () => import('../views/SearchView.vue'), meta: { title: 'Search', noindex: true } },
-    { path: '/chat', name: 'chat', component: () => import('../views/ChatView.vue'), meta: { title: 'Chat', noindex: true } },
+    { path: '/chat', redirect: '/' },
     { path: '/internal', name: 'internal', component: () => import('../views/InternalView.vue') },
     { path: '/internal/orders/:id', name: 'internal-order', component: () => import('../views/InternalOrderDetailView.vue') },
     { path: '/internal/quotes/:id', name: 'internal-quote', component: () => import('../views/InternalQuoteDetailView.vue') },
