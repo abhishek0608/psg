@@ -294,7 +294,7 @@ function toggleNotifications() {
           </form>
 
           <!-- Video call -->
-          <RouterLink v-if="!isInternalPath" to="/chat" class="ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Video call">
+          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Video consultation">
             <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
             </svg>
@@ -528,14 +528,6 @@ function toggleNotifications() {
         </li>
 
         <li class="ect-ml-auto" @mouseenter="activeDropdown = null">
-          <RouterLink
-            to="/video-consultation"
-            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-text-gold-300 hover:ect-text-white ect-transition-colors"
-          >
-            Video Consultation
-          </RouterLink>
-        </li>
-        <li @mouseenter="activeDropdown = null">
           <RouterLink
             to="/about"
             class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.14em] ect-text-cream/85 hover:ect-text-white ect-transition-colors"
