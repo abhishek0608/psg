@@ -1,13 +1,11 @@
 import { ref } from 'vue'
 import type { Product } from '../data/products'
-import { products as fallbackProducts } from '../data/products'
 import { API_BASE } from '../config-api'
 
 const products = ref<Product[]>([])
 const loading = ref(false)
 const loaded = ref(false)
 const error = ref<string | null>(null)
-const usingFallback = ref(false)
 
 const CACHE_KEY = 'bluestone:catalog-products:v1'
 const CACHE_TTL_MS = 5 * 60 * 1000
@@ -40,7 +38,6 @@ export function invalidateProductsCache() {
   products.value = []
   loaded.value = false
   error.value = null
-  usingFallback.value = false
   if (typeof window === 'undefined') return
   try {
     window.localStorage.removeItem(CACHE_KEY)
@@ -67,21 +64,12 @@ export async function ensureProductsLoaded() {
       throw new Error(data?.message || 'Unable to load products.')
     }
     const incoming = Array.isArray(data?.products) ? data.products : []
-    if (!incoming.length) {
-      error.value = 'No live products returned; showing the bundled catalog.'
-      products.value = fallbackProducts
-      usingFallback.value = true
-      loaded.value = true
-      return
-    }
     products.value = incoming as Product[]
-    usingFallback.value = false
-    writeCachedProducts(products.value)
+    if (products.value.length) writeCachedProducts(products.value)
     loaded.value = true
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Unable to load products.'
-    products.value = fallbackProducts
-    usingFallback.value = true
+    products.value = []
     loaded.value = true
   } finally {
     loading.value = false
@@ -89,5 +77,5 @@ export async function ensureProductsLoaded() {
 }
 
 export function useProductsApi() {
-  return { products, loading, loaded, error, usingFallback, ensureProductsLoaded, invalidateProductsCache }
+  return { products, loading, loaded, error, ensureProductsLoaded, invalidateProductsCache }
 }

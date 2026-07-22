@@ -169,17 +169,19 @@ export function toApiProduct(dbProduct, preferredVariant = null) {
     priceValue,
     description: dbProduct.description || '',
     aiDescription: dbProduct.aiDescription || '',
-    details: [],
+    details: Array.isArray(dbProduct.details) ? dbProduct.details : [],
     styleTags: Array.isArray(dbProduct.styleTags) ? dbProduct.styleTags : inferStyleTags(dbProduct),
     stoneTags: Array.isArray(dbProduct.stoneTags) ? dbProduct.stoneTags : inferStoneTags(dbProduct),
-    breakup: {
+    breakup: dbProduct.priceBreakup && typeof dbProduct.priceBreakup === 'object'
+      ? dbProduct.priceBreakup
+      : {
       goldWeight: '—',
       goldValue: '—',
       stoneWeight: '—',
       stoneValue: '—',
       labour: price || '—',
       total: price || '—',
-    },
+      },
     images,
     isNewArrival: Boolean(dbProduct.isNewArrival),
     isBestSeller: Boolean(dbProduct.isBestSeller),

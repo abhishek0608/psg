@@ -78,6 +78,19 @@ function clearCartCache() {
   }
 }
 
+function customizationSignature(customization?: ProductCustomization | null) {
+  if (!customization) return ''
+  return JSON.stringify(
+    Object.entries(customization)
+      .filter(([, value]) => value !== undefined && value !== null && value !== '')
+      .sort(([a], [b]) => a.localeCompare(b)),
+  )
+}
+
+function createGuestCartItemId() {
+  return `guest_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+}
+
 clearLegacyCartStorage()
 const cached = loadCachedCart()
 const items = reactive<CartItem[]>(cached.items)
@@ -160,7 +173,27 @@ export function useCart() {
   }
 
   async function addToCart(product: Product, qty = 1, customization?: ProductCustomization) {
-    if (!user.value?.id) throw new Error('Please sign in to add items to cart.')
+    if (!user.value?.id) {
+      const quantity = Math.max(1, Math.floor(Number(qty) || 1))
+      const signature = customizationSignature(customization)
+      const existing = items.find(
+        (item) =>
+          item.product.slug === product.slug &&
+          customizationSignature(item.customization) === signature,
+      )
+      if (existing) existing.qty += quantity
+      else {
+        items.push({
+          id: createGuestCartItemId(),
+          product,
+          qty: quantity,
+          customization: customization || null,
+        })
+      }
+      cartId.value = null
+      saveCartCache(null, items)
+      return
+    }
     if (!cartId.value) {
       await syncFromServer()
     }
@@ -175,8 +208,15 @@ export function useCart() {
   }
 
   async function removeFromCart(cartItemId: string, slug?: string) {
-    if (!user.value?.id) throw new Error('Please sign in to update cart.')
     if (!cartItemId && !slug) throw new Error('Missing cart item reference.')
+    if (!user.value?.id) {
+      const index = items.findIndex((item) =>
+        cartItemId ? item.id === cartItemId : item.product.slug === slug,
+      )
+      if (index >= 0) items.splice(index, 1)
+      saveCartCache(null, items)
+      return
+    }
     await mutateServerCart({
       action: 'remove',
       cartId: cartId.value,
@@ -186,9 +226,14 @@ export function useCart() {
   }
 
   async function updateQty(cartItemId: string, qty: number, slug?: string) {
-    if (!user.value?.id) throw new Error('Please sign in to update cart.')
     if (qty <= 0) {
       await removeFromCart(cartItemId, slug)
+    } else if (!user.value?.id) {
+      const item = items.find((entry) =>
+        cartItemId ? entry.id === cartItemId : entry.product.slug === slug,
+      )
+      if (item) item.qty = Math.max(1, Math.floor(Number(qty) || 1))
+      saveCartCache(null, items)
     } else {
       await mutateServerCart({
         action: 'set',
@@ -214,12 +259,17 @@ export function useCart() {
     cartSyncBound = true
     watch(
       () => user.value?.id || null,
-      async (userId) => {
+      async (userId, previousUserId) => {
         if (!userId) {
-          items.splice(0, items.length)
           cartId.value = null
           loading.value = false
-          clearCartCache()
+          // Keep an anonymous shopper's local cart across reloads. When a
+          // signed-in customer explicitly logs out, clear their server-backed
+          // cart snapshot so it is not exposed as a guest cart.
+          if (previousUserId) {
+            items.splice(0, items.length)
+            clearCartCache()
+          }
           return
         }
         try {

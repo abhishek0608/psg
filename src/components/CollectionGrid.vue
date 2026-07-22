@@ -23,7 +23,7 @@ interface Filters {
 
 defineProps<{ hideHeader?: boolean; sidebar?: boolean }>()
 
-const { products, ensureProductsLoaded, loading: productsLoading, loaded: productsLoaded, usingFallback } = useProductsApi()
+const { products, ensureProductsLoaded, loading: productsLoading, loaded: productsLoaded } = useProductsApi()
 const maxPrice = computed(() => {
   const values = products.value.map((p) => p.priceValue).filter((v) => typeof v === 'number')
   return values.length ? Math.max(...values) : 0
@@ -219,7 +219,7 @@ async function loadFilteredProducts() {
     if (sizes?.length) {
       list = list.filter((p: any) => sizes.some((s) => Array.isArray(p.customizationOptions?.centerStoneSizes) && p.customizationOptions.centerStoneSizes.includes(s)))
     }
-    filteredProducts.value = list.length || !usingFallback.value ? list : applyClientFilters()
+    filteredProducts.value = list
   } catch (err) {
     console.error('Filter API error:', err)
     filteredProducts.value = applyClientFilters()

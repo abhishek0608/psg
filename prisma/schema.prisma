@@ -47,6 +47,8 @@ model Product {
   color        String
   description  String?
   aiDescription String?
+  details      String[]         @default([])
+  priceBreakup Json?
   productAttributes Json?
   styleTags    String[]         @default([])
   stoneTags    String[]         @default([])

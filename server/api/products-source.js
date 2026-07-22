@@ -62,6 +62,8 @@ async function fetchCatalogProductsFromDb() {
       color: true,
       description: true,
       aiDescription: true,
+      details: true,
+      priceBreakup: true,
       productAttributes: true,
       styleTags: true,
       stoneTags: true,
