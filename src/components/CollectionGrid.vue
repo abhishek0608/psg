@@ -23,7 +23,7 @@ interface Filters {
 
 defineProps<{ hideHeader?: boolean; sidebar?: boolean }>()
 
-const { products, ensureProductsLoaded, loading: productsLoading, loaded: productsLoaded } = useProductsApi()
+const { products, ensureProductsLoaded, loading: productsLoading, loaded: productsLoaded, error: productsError, invalidateProductsCache } = useProductsApi()
 const maxPrice = computed(() => {
   const values = products.value.map((p) => p.priceValue).filter((v) => typeof v === 'number')
   return values.length ? Math.max(...values) : 0
@@ -41,6 +41,9 @@ const filteredProducts = ref<any[]>([])
 const listLoading = ref(false)
 const firstLoadDone = ref(false)
 const readyForFilterFetch = ref(false)
+// Set only when the grid genuinely has nothing to show *because* a request
+// failed — an empty result from a healthy request is not an error.
+const listError = ref<string | null>(null)
 
 function applyPreset(p: NonNullable<typeof preset.value>) {
   const f: Filters = { categories: [], materials: [], colors: [], priceMin: 0, priceMax: maxPrice.value, stoneTags: [], subtypes: [], centerShapes: [], centerStoneSizes: [] }
@@ -191,6 +194,7 @@ function applyClientFilters() {
 
 async function loadFilteredProducts() {
   listLoading.value = true
+  listError.value = null
   try {
     const res = await fetch(`${API_BASE}/api/products-filter`, {
       method: 'POST',
@@ -222,12 +226,37 @@ async function loadFilteredProducts() {
     filteredProducts.value = list
   } catch (err) {
     console.error('Filter API error:', err)
-    filteredProducts.value = applyClientFilters()
+    // The already-loaded catalog can usually cover a filter-endpoint outage, so
+    // fall back to client-side filtering first and only report a failure when
+    // that leaves the shopper with nothing — otherwise the outage is invisible
+    // and harmless, which is the desired behaviour.
+    const fallback = applyClientFilters()
+    filteredProducts.value = fallback
+    if (!fallback.length) {
+      listError.value = err instanceof Error ? err.message : 'Failed to load products.'
+    }
   } finally {
     listLoading.value = false
     firstLoadDone.value = true
   }
 }
+
+function retryLoad() {
+  invalidateProductsCache()
+  void (async () => {
+    await ensureProductsLoaded()
+    await loadFilteredProducts()
+  })()
+}
+
+// A failed catalog fetch strands the grid just as surely as a failed filter
+// fetch; surface whichever one actually left the page empty.
+const gridError = computed(() => listError.value || (productsError.value && !filteredProducts.value.length ? productsError.value : null))
+
+// Distinguishes "your filters excluded everything" from "the catalogue came
+// back empty", which previously both rendered as a filter problem — complete
+// with a Clear-all-filters button that could not possibly help.
+const isEmptyCatalog = computed(() => !gridError.value && !displayedProducts.value.length && activeFilterCount.value === 0)
 
 const activeFilterCount = computed(() => {
   const f = appliedFilters.value
@@ -285,7 +314,8 @@ watch([activeTab, appliedFilters], () => {
           Loading pieces...
         </template>
         <template v-else>
-          {{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'piece' : 'pieces' }} found
+          <template v-if="gridError">Unavailable</template>
+          <template v-else>{{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'piece' : 'pieces' }} found</template>
         </template>
       </p>
 
@@ -445,6 +475,7 @@ watch([activeTab, appliedFilters], () => {
         <div v-if="sidebar" class="ect-hidden lg:ect-flex ect-items-center ect-justify-between ect-mb-7">
           <p class="ect-font-body ect-text-sm ect-text-charcoal/55">
             <template v-if="listLoading || productsLoading || !productsLoaded || !firstLoadDone">Loading pieces…</template>
+            <template v-else-if="gridError">Unavailable</template>
             <template v-else>{{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'piece' : 'pieces' }}</template>
           </p>
           <div class="ect-relative">
@@ -525,6 +556,45 @@ watch([activeTab, appliedFilters], () => {
         <ProductCard :slug="piece.slug" :title="piece.title" :category="piece.category" :material="piece.material" :price="piece.price" :images="piece.images" :product="piece" />
       </li>
     </ul>
+
+    <!-- Load failure: the grid is empty because a request failed, not because
+         the filters excluded everything. Offering "clear filters" here would
+         be a dead end, so offer a retry and show what actually went wrong. -->
+    <section v-else-if="gridError" class="ect-flex ect-flex-col ect-items-center ect-py-24 ect-text-center">
+      <span class="ect-w-16 ect-h-16 ect-rounded-full ect-bg-champagne ect-flex ect-items-center ect-justify-center ect-mb-4">
+        <svg class="ect-w-7 ect-h-7 ect-text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008M10.34 3.94l-7.9 13.67A1.5 1.5 0 003.74 20h16.52a1.5 1.5 0 001.3-2.39l-7.9-13.67a1.5 1.5 0 00-2.6 0z" />
+        </svg>
+      </span>
+      <p class="ect-font-display ect-text-lg ect-font-light ect-text-charcoal ect-mb-1">We couldn't load the collection</p>
+      <p class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-mb-1">Something went wrong on our side — your filters are fine.</p>
+      <p class="ect-font-body ect-text-xs ect-text-charcoal/40 ect-mb-5">{{ gridError }}</p>
+      <button
+        type="button"
+        @click="retryLoad"
+        class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-5 ect-py-2.5 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold hover:ect-bg-noir ect-transition-colors"
+      >
+        Try again
+      </button>
+    </section>
+
+    <!-- Catalogue genuinely returned nothing and no filter is narrowing it -->
+    <section v-else-if="isEmptyCatalog" class="ect-flex ect-flex-col ect-items-center ect-py-24 ect-text-center">
+      <span class="ect-w-16 ect-h-16 ect-rounded-full ect-bg-champagne ect-flex ect-items-center ect-justify-center ect-mb-4">
+        <svg class="ect-w-7 ect-h-7 ect-text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
+        </svg>
+      </span>
+      <p class="ect-font-display ect-text-lg ect-font-light ect-text-charcoal ect-mb-1">No pieces available right now</p>
+      <p class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-mb-5">Our collection is being updated — please check back shortly.</p>
+      <button
+        type="button"
+        @click="retryLoad"
+        class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-5 ect-py-2.5 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold hover:ect-bg-noir ect-transition-colors"
+      >
+        Refresh
+      </button>
+    </section>
 
     <!-- Empty state -->
     <section v-else class="ect-flex ect-flex-col ect-items-center ect-py-24 ect-text-center">
