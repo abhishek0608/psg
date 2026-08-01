@@ -1,6 +1,7 @@
 import { reactive, computed } from 'vue'
 import type { CartItem, ProductCustomization } from './useCart'
 import { getNextReferenceNumber } from './useReferenceNumbers'
+import { formatInr } from '../utils/currency'
 
 const ORDERS_STORAGE_KEY = 'jewelet-demo-orders'
 
@@ -75,7 +76,7 @@ export function useOrders() {
       createdAt: new Date().toISOString(),
       items,
       total,
-      formattedTotal: '$' + total.toLocaleString('en-US'),
+      formattedTotal: formatInr(total),
       paymentMethod,
       status: 'placed',
       itemCount,

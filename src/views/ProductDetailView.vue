@@ -202,7 +202,7 @@ const reviewSummary = computed(() => {
   return `${product.value.rating.toFixed(1)} · ${product.value.reviewCount} reviews`
 })
 
-// A "$0" price reads as a bug; unpriced pieces are quoted individually instead.
+// A "₹0" price reads as a bug; unpriced pieces are quoted individually instead.
 const hasRetailPrice = computed(() => {
   const numeric = Number(String(product.value?.price || '').replace(/[^0-9.]/g, ''))
   return Number.isFinite(numeric) && numeric > 0

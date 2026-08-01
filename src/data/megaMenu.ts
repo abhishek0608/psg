@@ -29,11 +29,11 @@ export interface MegaCollectionMenu {
 }
 
 export const MEGA_PRICE_RANGES: MegaQueryLink[] = [
-  { label: 'Below $600', query: { priceMax: '600' } },
-  { label: '$600 – $800', query: { priceMin: '600', priceMax: '800' } },
-  { label: '$800 – $1,000', query: { priceMin: '800', priceMax: '1000' } },
-  { label: '$1,000 – $1,200', query: { priceMin: '1000', priceMax: '1200' } },
-  { label: '$1,200 & above', query: { priceMin: '1200' } },
+  { label: 'Below ₹25,000', query: { priceMax: '25000' } },
+  { label: '₹25,000 – ₹50,000', query: { priceMin: '25000', priceMax: '50000' } },
+  { label: '₹50,000 – ₹1,00,000', query: { priceMin: '50000', priceMax: '100000' } },
+  { label: '₹1,00,000 – ₹2,00,000', query: { priceMin: '100000', priceMax: '200000' } },
+  { label: '₹2,00,000 & above', query: { priceMin: '200000' } },
 ]
 
 export const MEGA_MENUS: Record<string, MegaCollectionMenu> = {

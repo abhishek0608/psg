@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { CATEGORIES, CENTER_SHAPE_OPTIONS, CENTER_STONE_SIZE_OPTIONS, COLORS, STONE_TYPE_OPTIONS, type Category, type Material, type Color } from '../data/products'
+import { formatInr } from '../utils/currency'
 
 interface Filters {
   categories: Category[]
@@ -201,7 +202,7 @@ onMounted(() => document.addEventListener('keydown', onKeydown))
 onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 
 function formatPrice(val: number) {
-  return '$' + val.toLocaleString('en-US')
+  return formatInr(val)
 }
 </script>
 
@@ -360,8 +361,8 @@ function formatPrice(val: number) {
                 <div class="jewelet-range">
                   <span class="jewelet-range__track"></span>
                   <span class="jewelet-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
-                  <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="local.priceMin" @input="onPriceMinChange" aria-label="Minimum price" />
-                  <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="local.priceMax" @input="onPriceMaxChange" aria-label="Maximum price" />
+                  <input type="range" :min="0" :max="maxPrice" step="1000" v-model.number="local.priceMin" @input="onPriceMinChange" aria-label="Minimum price" />
+                  <input type="range" :min="0" :max="maxPrice" step="1000" v-model.number="local.priceMax" @input="onPriceMaxChange" aria-label="Maximum price" />
                 </div>
               </section>
             </section>

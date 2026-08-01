@@ -55,7 +55,6 @@ export function setPageMeta(options: { title?: string; description?: string; noi
 export function setProductJsonLd(product: Product) {
   clearProductJsonLd()
 
-  const currency = product.price?.includes('₹') ? 'INR' : 'USD'
   const data: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -73,7 +72,7 @@ export function setProductJsonLd(product: Product) {
     data.offers = {
       '@type': 'Offer',
       price: product.priceValue,
-      priceCurrency: currency,
+      priceCurrency: 'INR',
       availability: 'https://schema.org/InStock',
       url: `${window.location.origin}/product/${product.slug}`,
     }

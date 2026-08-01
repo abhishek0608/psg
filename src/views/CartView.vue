@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { useCart, type CartItem, isCustomizedCartItem, isPriceOnRequestCartItem } from '../composables/useCart'
 import VolumeDiscountInfo from '../components/VolumeDiscountInfo.vue'
+import { formatInr } from '../utils/currency'
 
 const {
   items,
@@ -53,7 +54,7 @@ function isItemCustomized(item: CartItem) {
 }
 
 // Customized items take the "Quote" label; this covers the rest of the
-// unpriced pieces so no line ever reads "$0".
+// unpriced pieces so no line ever reads "₹0".
 function isItemPriceOnRequest(item: CartItem) {
   return !isItemCustomized(item) && isPriceOnRequestCartItem(item)
 }
@@ -70,7 +71,7 @@ const quoteNote = computed(() => {
 
 function itemSubtotal(item: CartItem) {
   if (isItemCustomized(item)) return null
-  return '$' + (item.product.priceValue * item.qty).toLocaleString('en-US')
+  return formatInr(item.product.priceValue * item.qty)
 }
 
 function customizationEntries(item: CartItem) {
@@ -365,7 +366,7 @@ function customizationEntries(item: CartItem) {
                   </span>
                   <section>
                     <p class="ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal">Free Insured Shipping</p>
-                    <p class="ect-font-body ect-text-[11px] ect-text-charcoal/50">On all orders above $5,000</p>
+                    <p class="ect-font-body ect-text-[11px] ect-text-charcoal/50">On all orders above ₹25,000</p>
                   </section>
                 </li>
                 <li class="ect-flex ect-items-center ect-gap-3">

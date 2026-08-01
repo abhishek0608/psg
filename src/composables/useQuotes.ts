@@ -1,6 +1,7 @@
 import { reactive, computed } from 'vue'
 import type { CartItem, ProductCustomization } from './useCart'
 import { getNextReferenceNumber } from './useReferenceNumbers'
+import { formatInr } from '../utils/currency'
 
 const QUOTES_STORAGE_KEY = 'jewelet-demo-quotes'
 
@@ -95,7 +96,7 @@ export function useQuotes() {
       createdAt: new Date().toISOString(),
       items,
       total,
-      formattedTotal: '$' + total.toLocaleString('en-US'),
+      formattedTotal: formatInr(total),
       status: 'pending',
       itemCount,
       customerName: customer.name,
@@ -130,7 +131,7 @@ export function useQuotes() {
     const items: QuoteItem[] = manualItems.map((item, index) => ({
       slug: `manual-${index}`,
       title: item.title,
-      price: '$' + item.price.toLocaleString('en-US'),
+      price: formatInr(item.price),
       priceValue: item.price,
       qty: item.qty,
     }))
@@ -141,7 +142,7 @@ export function useQuotes() {
       createdAt: new Date().toISOString(),
       items,
       total,
-      formattedTotal: '$' + total.toLocaleString('en-US'),
+      formattedTotal: formatInr(total),
       status: 'pending',
       itemCount,
       customerName: customer.name,
