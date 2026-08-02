@@ -21,7 +21,7 @@ function goBack() {
   if (router.options.history.state.back) router.back()
   else router.push('/#collections')
 }
-const { addToCart } = useCart()
+const { addToCart, items: cartItems } = useCart()
 const {
   add: addToVideoCall,
   has: inVideoCallList,
@@ -33,7 +33,6 @@ const { products, ensureProductsLoaded, loading } = useProductsApi()
 
 const product = computed(() => products.value.find((p) => p.slug === String(route.params.slug || '')))
 const addedImages = ref<string[]>([])
-const added = ref(false)
 const addingToCart = ref(false)
 const activeImage = ref(0)
 const thumbsRef = ref<HTMLElement | null>(null)
@@ -332,16 +331,18 @@ watch(activeImage, async (index) => {
   activeThumb?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
 })
 
+// Whether this piece is already sitting in the cart, so returning to the page
+// says so instead of offering it as if it were never added.
+const added = computed(() =>
+  product.value ? cartItems.some((item) => item.product.slug === product.value!.slug) : false,
+)
+
 async function handleAddToCart() {
   if (!product.value || addingToCart.value) return
 
   addingToCart.value = true
   try {
     await addToCart(product.value, 1)
-    added.value = true
-    setTimeout(() => {
-      added.value = false
-    }, 2000)
   } catch (err) {
     console.error('Add to cart failed:', err)
   } finally {
@@ -574,7 +575,14 @@ function handleAddToVideoCall() {
               class="ect-flex-1 ect-inline-flex ect-items-center ect-justify-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-full ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-shadow-sm ect-transition-colors"
               :class="addingToCart ? 'ect-bg-rose-300 ect-cursor-wait' : added ? 'ect-bg-rose-700' : 'ect-bg-rose-600 hover:ect-bg-rose-700'"
             >
-              <svg v-if="!addingToCart && !added" class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg v-if="addingToCart" class="ect-w-4 ect-h-4 ect-animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="ect-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3.5" />
+                <path class="ect-opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z" />
+              </svg>
+              <svg v-else-if="added" class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              <svg v-else class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272" />
               </svg>
               <span v-if="addingToCart">Adding…</span>
@@ -598,12 +606,15 @@ function handleAddToVideoCall() {
                 :disabled="addedToVideoCall || (videoCallListFull && !addedToVideoCall)"
                 class="ect-flex-1 ect-inline-flex ect-items-center ect-justify-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-full ect-border ect-font-body ect-text-sm ect-font-semibold ect-transition-colors disabled:ect-cursor-default"
                 :class="addedToVideoCall
-                  ? 'ect-border-emerald-200 ect-bg-emerald-50 ect-text-emerald-700'
+                  ? 'ect-border-[#1f3f37] ect-bg-[#1f3f37] ect-text-[#f4ecd9] ect-shadow-sm'
                   : videoCallListFull
                   ? 'ect-border-sand ect-bg-white ect-text-charcoal/35'
                   : 'ect-border-charcoal/15 ect-bg-white ect-text-charcoal hover:ect-border-gold-400 hover:ect-text-gold-700'"
               >
-                <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <svg v-if="addedToVideoCall" class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                <svg v-else class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h8.25a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H4.5A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
                 </svg>
                 <span>{{ addedToVideoCall ? 'Added to video call' : 'Add to Video Call' }}</span>
