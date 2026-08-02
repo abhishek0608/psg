@@ -606,13 +606,13 @@ function handleAddToVideoCall() {
                 :disabled="addedToVideoCall || (videoCallListFull && !addedToVideoCall)"
                 class="ect-flex-1 ect-inline-flex ect-items-center ect-justify-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-full ect-border ect-font-body ect-text-sm ect-font-semibold ect-transition-colors disabled:ect-cursor-default"
                 :class="addedToVideoCall
-                  ? 'ect-border-[#1f3f37] ect-bg-[#1f3f37] ect-text-[#f4ecd9] ect-shadow-sm'
+                  ? 'ect-border-emerald-600 ect-bg-emerald-600 ect-text-white ect-shadow-sm'
                   : videoCallListFull
                   ? 'ect-border-sand ect-bg-white ect-text-charcoal/35'
                   : 'ect-border-charcoal/15 ect-bg-white ect-text-charcoal hover:ect-border-gold-400 hover:ect-text-gold-700'"
               >
-                <svg v-if="addedToVideoCall" class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                <svg v-if="addedToVideoCall" class="ect-w-[18px] ect-h-[18px]" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06z" />
                 </svg>
                 <svg v-else class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h8.25a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H4.5A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />

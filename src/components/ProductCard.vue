@@ -148,12 +148,15 @@ const productTag = computed(() => {
           type="button"
           @click="handleVideoCall"
           :disabled="videoCallDisabled"
-          class="ect-absolute ect-top-[52px] ect-right-2.5 ect-w-[34px] ect-h-[34px] ect-rounded-full ect-backdrop-blur-sm ect-flex ect-items-center ect-justify-center ect-shadow-sm ect-transition-all ect-duration-200 hover:ect-scale-105 disabled:ect-opacity-40 disabled:hover:ect-scale-100 disabled:ect-cursor-not-allowed"
-          :class="onVideoCall ? 'ect-bg-[#1f3f37] ect-ring-2 ect-ring-white/70' : 'ect-bg-white/90'"
+          class="ect-absolute ect-top-[52px] ect-right-2.5 ect-w-[34px] ect-h-[34px] ect-rounded-full ect-bg-white/90 ect-backdrop-blur-sm ect-flex ect-items-center ect-justify-center ect-shadow-sm ect-transition-all ect-duration-200 hover:ect-scale-105 disabled:ect-opacity-40 disabled:hover:ect-scale-100 disabled:ect-cursor-not-allowed"
           :aria-label="onVideoCall ? 'Remove from video call' : videoCallDisabled ? 'Video call list is full' : 'Add to video call'"
           :title="onVideoCall ? 'Remove from video call' : videoCallDisabled ? 'Video call list is full' : 'Add to video call'"
         >
-          <svg class="ect-w-4 ect-h-4 ect-transition-colors" :class="onVideoCall ? 'ect-text-[#f4ecd9]' : 'ect-text-charcoal/55'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <!-- Solid + coloured once shortlisted, the way the heart fills in. -->
+          <svg v-if="onVideoCall" class="ect-w-[18px] ect-h-[18px] ect-text-emerald-600 ect-transition-colors" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06z" />
+          </svg>
+          <svg v-else class="ect-w-4 ect-h-4 ect-text-charcoal/55 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h8.25a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H4.5A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
           </svg>
         </button>
