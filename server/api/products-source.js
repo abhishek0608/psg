@@ -1,5 +1,5 @@
 import { prisma } from './db.js'
-import { toApiProduct } from './product-presenter.js'
+import { toApiProduct, withStorefrontPricesOnly } from './product-presenter.js'
 import { isS3Configured, listAllProductImagesBySlug, folderMatchesSlug } from './s3-images.js'
 
 export { toApiProduct }
@@ -113,7 +113,8 @@ async function fetchCatalogProductsFromDb() {
     orderBy: { createdAt: 'desc' },
   })
 
-  const products = Array.isArray(dbProducts) ? dbProducts.map(toApiProduct) : []
+  // Unpriced pieces never reach the storefront — see withStorefrontPricesOnly.
+  const products = withStorefrontPricesOnly(Array.isArray(dbProducts) ? dbProducts.map(toApiProduct) : [])
   return mergeS3Images(products)
 }
 

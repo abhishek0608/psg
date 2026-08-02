@@ -1,6 +1,7 @@
 import { prisma } from '../server/api/db.js'
 import { normalizeFilterCriteria } from '../server/api/product-filter.js'
 import { toApiProduct, getCatalogProducts } from '../server/api/products-source.js'
+import { withStorefrontPricesOnly } from '../server/api/product-presenter.js'
 import { applyCors, handlePreflight } from '../server/api/cors.js'
 
 const DB_CATEGORY_MAP = {
@@ -103,7 +104,9 @@ export default async function handler(req, res) {
       },
       orderBy: { createdAt: 'desc' },
     })
-    const products = Array.isArray(dbProducts) ? dbProducts.map(toApiProduct) : []
+    // This route queries the DB directly, so it needs the same unpriced
+    // guard the cached catalog applies.
+    const products = withStorefrontPricesOnly(Array.isArray(dbProducts) ? dbProducts.map(toApiProduct) : [])
 
     // The filter query reads images straight from the DB, so products whose
     // images live only in S3 (e.g. mass-uploaded ones) come back with none.
