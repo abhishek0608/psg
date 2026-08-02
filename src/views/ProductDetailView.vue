@@ -5,21 +5,11 @@ import ProductCard from '../components/ProductCard.vue'
 import StarRating from '../components/StarRating.vue'
 import VolumeDiscountInfo from '../components/VolumeDiscountInfo.vue'
 import ImageWatermark from '../components/ImageWatermark.vue'
-import { useCart, type ProductCustomization } from '../composables/useCart'
+import { useCart } from '../composables/useCart'
 import { useProductsApi } from '../composables/useProductsApi'
-import { useSiteConfig } from '../composables/useSiteConfig'
 import { setPageMeta, setProductJsonLd } from '../composables/useSeo'
 import { SITE_SETTINGS } from '../config/site-settings'
-import { BANGLE_SIZE_OPTIONS, CENTER_SHAPE_OPTIONS, CENTER_STONE_SIZE_OPTIONS, CENTER_STONE_TYPE_OPTIONS, COLORS, DIAMOND_QUALITY_OPTIONS, getProductReviews, METAL_PURITY_OPTIONS, NECKLACE_SIZE_OPTIONS, RING_SIZE_OPTIONS, type Color, type Product, type ProductCustomizationOptions } from '../data/products'
-
-const DIAMOND_QUALITIES = DIAMOND_QUALITY_OPTIONS
-const METAL_OPTIONS = METAL_PURITY_OPTIONS
-const CENTER_SHAPES = CENTER_SHAPE_OPTIONS
-const CENTER_STONE_SIZES = CENTER_STONE_SIZE_OPTIONS
-const STONE_TYPES = CENTER_STONE_TYPE_OPTIONS
-const RING_SIZES = RING_SIZE_OPTIONS
-const BANGLE_SIZES = BANGLE_SIZE_OPTIONS
-const NECKLACE_SIZES = NECKLACE_SIZE_OPTIONS
+import { COLORS, getProductReviews, type Color, type Product, type ProductCustomizationOptions } from '../data/products'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,7 +22,6 @@ function goBack() {
 }
 const { addToCart } = useCart()
 const { products, ensureProductsLoaded, loading } = useProductsApi()
-const { stoneSizes, ensureSiteConfigLoaded } = useSiteConfig()
 
 const product = computed(() => products.value.find((p) => p.slug === String(route.params.slug || '')))
 const addedImages = ref<string[]>([])
@@ -93,19 +82,6 @@ function moveZoom(event: MouseEvent) {
   }
 }
 
-const selectedDiamondQuality = ref('')
-const selectedColor = ref<(typeof COLORS)[number]['id']>('yellow')
-const selectedMetal = ref('')
-const selectedCenterShape = ref('')
-const selectedCenterStoneSize = ref('')
-const isCustomCenterStoneSizeMode = ref(false)
-const selectedStoneType = ref('')
-const isCustomStoneTypeMode = ref(false)
-const selectedRingSize = ref('')
-const selectedBangleSize = ref('')
-const selectedNecklaceSize = ref('')
-const additionalRemarks = ref('')
-
 // Decode the metal color an image represents from its filename. Uploads follow
 // a "... <COLOR> (n)" convention where COLOR is a standalone R / W / Y letter
 // (Rose / White / Yellow gold), e.g. "snapshot R (1).png". Returns null when no
@@ -128,15 +104,16 @@ const allImages = computed(() => {
 // predate the convention show every image regardless of the selected color.
 const hasColorTaggedImages = computed(() => allImages.value.some((img) => imageColor(img)))
 
-// Gallery filtered to the selected metal color. Color-tagged shots for the
-// chosen color are shown alongside any untagged (generic) images; if the chosen
-// color has no dedicated shots, fall back to showing everything.
+// Gallery filtered to the metal color this piece is actually crafted in.
+// Color-tagged shots for that color are shown alongside any untagged (generic)
+// images; if the piece's color has no dedicated shots, fall back to everything.
 const galleryImages = computed(() => {
   const all = allImages.value
   if (!hasColorTaggedImages.value) return all
+  const productColor = product.value?.color
   const matching = all.filter((img) => {
     const color = imageColor(img)
-    return color === null || color === selectedColor.value
+    return color === null || color === productColor
   })
   return matching.length ? matching : all
 })
@@ -174,18 +151,14 @@ const relatedProducts = computed<Product[]>(() => {
     .map(({ item }) => item)
 })
 
-const colorOptions = computed(() => {
-  const currentColor = product.value?.color
-  const baseOptions = product.value?.material === 'silver'
-    ? COLORS.filter((option) => ['white', 'oxidised'].includes(option.id))
-    : COLORS.filter((option) => option.id !== 'oxidised')
-
-  if (currentColor && !baseOptions.some((option) => option.id === currentColor)) {
-    const currentOption = COLORS.find((option) => option.id === currentColor)
-    return currentOption ? [...baseOptions, currentOption] : baseOptions
-  }
-
-  return baseOptions
+// The metal this piece is crafted in, e.g. "Yellow Gold" — a stated spec now
+// that the finish is fixed per product rather than chosen by the customer.
+const metalLabel = computed(() => {
+  const item = product.value
+  if (!item) return ''
+  const named = COLORS.find((option) => option.id === item.color)?.label
+  if (named) return named
+  return item.material === 'silver' ? 'Silver' : 'Gold'
 })
 
 const productBadges = computed(() => {
@@ -230,26 +203,31 @@ const technicalDetailRows = computed<Array<{ label: string; value: string }>>(()
 })
 
 const productDetailRows = computed<Array<{ label: string; value: string }>>(() => {
+  // The specification sheet a buyer expects: how this piece is actually made.
   // Unset attributes are omitted entirely — a wall of "None" rows reads as
   // missing data, not as a considered spec sheet.
   const rows: Array<{ label: string; value: string }> = [
+    { label: 'Metal', value: metalLabel.value },
+    { label: 'Metal Purity', value: productSpec('metalPurities') },
+    { label: 'Diamond Quality', value: productSpec('diamondQualities') },
+    { label: 'Stone Type', value: productSpec('stoneTypes') },
+    { label: 'Center Shape', value: productSpec('centerShapes') },
+    { label: 'Center Stone Size', value: productSpec('centerStoneSizes') },
     ...technicalDetailRows.value,
-    { label: 'Diamond Quality', value: selectedDiamondQuality.value },
-    { label: 'Metal Purity', value: selectedMetal.value },
+    { label: 'Ring Size', value: productSpec('ringSizes') },
+    { label: 'Bangle Size', value: productSpec('bangleSizes') },
+    { label: 'Necklace Size', value: productSpec('necklaceSizes') },
   ]
 
-  if (supportsCenterStoneCustomization.value) {
-    rows.push(
-      { label: 'Center Shape', value: selectedCenterShape.value },
-      { label: 'Center Stone Size', value: selectedCenterStoneSize.value },
-    )
-  }
-
-  if (isRingProduct.value) rows.push({ label: 'Ring Size', value: selectedRingSize.value })
-  if (isBangleProduct.value) rows.push({ label: 'Bangle Size', value: selectedBangleSize.value })
-  if (isNecklaceProduct.value) rows.push({ label: 'Necklace Size', value: selectedNecklaceSize.value })
-
-  return rows.filter((row) => Boolean(row.value))
+  // Descriptions sometimes repeat a catalogue spec in prose; keep the first
+  // occurrence of each label so the sheet never lists the same thing twice.
+  const seen = new Set<string>()
+  return rows.filter((row) => {
+    const key = row.label.trim().toLowerCase()
+    if (!row.value || seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 })
 
 const hasMeaningfulValue = (value?: string) => Boolean(value) && value !== '—'
@@ -279,179 +257,13 @@ function shouldShowWeightDisclaimer(label: string) {
   return WEIGHT_DETAIL_LABELS.has(label.trim().toLowerCase())
 }
 
-const isRingProduct = computed(
-  () => product.value?.category === 'Rings' || !!(productCustomizationOptions.value.ringSizes?.length),
-)
-
-const isBangleProduct = computed(() => {
-  if (productCustomizationOptions.value.bangleSizes?.length) return true
-  const item = product.value
-  if (!item || item.category !== 'Bracelets') return false
-  const fingerprint = [item.title, item.subtype, ...(item.details || [])].join(' ').toLowerCase()
-  return /\b(bangle|kada|cuff)\b/.test(fingerprint)
-})
-
-const isNecklaceProduct = computed(() => {
-  if (productCustomizationOptions.value.necklaceSizes?.length) return true
-  const category = product.value?.category
-  return category === 'Necklaces' || category === 'Mangal Sutra'
-})
-
-const supportsCenterStoneCustomization = computed(
-  () => !isBangleProduct.value || !!(productCustomizationOptions.value.centerShapes?.length),
-)
-
-const productCustomizationOptions = computed<ProductCustomizationOptions>(() => product.value?.customizationOptions || {})
-
-const availableDiamondQualities = computed((): string[] => [...DIAMOND_QUALITIES])
-const availableMetalPurities = computed((): string[] => [...METAL_OPTIONS])
-const availableCenterShapes = computed((): string[] => [...CENTER_SHAPES])
-// Stone sizes (dimensions) come from the live registry of sizes in use; fall
-// back to the bundled defaults only if the registry hasn't loaded / is empty.
-const availableCenterStoneSizes = computed((): string[] => {
-  const fromRegistry = stoneSizes.value.map((s) => s.value)
-  return fromRegistry.length ? fromRegistry : [...CENTER_STONE_SIZES]
-})
-// Stone types offered for this product; fall back to the bundled defaults when
-// the product doesn't define its own list.
-const availableStoneTypes = computed((): string[] => {
-  const fromProduct = productCustomizationOptions.value.stoneTypes || []
-  return fromProduct.length ? fromProduct : [...STONE_TYPES]
-})
-const availableRingSizes = computed((): string[] => [...RING_SIZES])
-const availableBangleSizes = computed((): string[] => [...BANGLE_SIZES])
-const availableNecklaceSizes = computed((): string[] => [...NECKLACE_SIZES])
-
-const allowCustomCenterStoneSize = computed(
-  () => productCustomizationOptions.value.allowCustomCenterStoneSize !== false,
-)
-
-const showCustomCenterStoneSizeInput = computed(() =>
-  allowCustomCenterStoneSize.value && isCustomCenterStoneSizeMode.value,
-)
-
-const allowCustomStoneType = computed(
-  () => productCustomizationOptions.value.allowCustomStoneType !== false,
-)
-
-const showCustomStoneTypeInput = computed(() =>
-  allowCustomStoneType.value && isCustomStoneTypeMode.value,
-)
-
-function getSwatchStyle(colorId: (typeof COLORS)[number]['id']) {
-  if (colorId === 'yellow') {
-    return {
-      background: 'linear-gradient(135deg, #f4d15f 0%, #d3a22b 55%, #fde89a 100%)',
-      borderColor: '#d3b15d',
-    }
-  }
-
-  if (colorId === 'rose') {
-    return {
-      background: 'linear-gradient(135deg, #efb1bc 0%, #c87b88 55%, #f8d7de 100%)',
-      borderColor: '#cf96a0',
-    }
-  }
-
-  if (colorId === 'white') {
-    return {
-      background: 'linear-gradient(135deg, #e5e0d8 0%, #b5ada2 50%, #f7f4ef 100%)',
-      borderColor: '#b9b0a4',
-    }
-  }
-
-  return {
-    background: 'linear-gradient(135deg, #979797 0%, #5f5f5f 55%, #cbcbcb 100%)',
-    borderColor: '#7b7b7b',
-  }
-}
-
-function deriveDefaultMetal() {
-  return productCustomizationOptions.value.metalPurities?.[0] || ''
-}
-
-function deriveDefaultDiamondQuality() {
-  return productCustomizationOptions.value.diamondQualities?.[0] || ''
-}
-
-function firstProductOption(key: keyof ProductCustomizationOptions): string {
-  const arr = productCustomizationOptions.value[key]
-  if (Array.isArray(arr) && arr.length) return String(arr[0]).trim()
+// Catalogue values are stored as lists (the admin tools still record every
+// variant a piece has been made in); the storefront states the first one as
+// this piece's spec.
+function productSpec(key: keyof ProductCustomizationOptions): string {
+  const values = product.value?.customizationOptions?.[key]
+  if (Array.isArray(values) && values.length) return String(values[0]).trim()
   return ''
-}
-
-function resetSelections(item?: Product) {
-  selectedDiamondQuality.value = deriveDefaultDiamondQuality()
-  selectedColor.value = item?.color || 'yellow'
-  selectedMetal.value = deriveDefaultMetal()
-  selectedCenterShape.value = firstProductOption('centerShapes')
-  selectedCenterStoneSize.value = firstProductOption('centerStoneSizes')
-  isCustomCenterStoneSizeMode.value = false
-  selectedStoneType.value = firstProductOption('stoneTypes')
-  isCustomStoneTypeMode.value = false
-  selectedRingSize.value = firstProductOption('ringSizes')
-  selectedBangleSize.value = firstProductOption('bangleSizes')
-  selectedNecklaceSize.value = firstProductOption('necklaceSizes')
-  additionalRemarks.value = ''
-}
-
-const isCustomized = computed(() => {
-  if (selectedDiamondQuality.value !== deriveDefaultDiamondQuality()) return true
-  if (selectedMetal.value !== deriveDefaultMetal()) return true
-  if (selectedCenterShape.value !== firstProductOption('centerShapes')) return true
-  if (selectedCenterStoneSize.value !== firstProductOption('centerStoneSizes')) return true
-  if (selectedStoneType.value !== firstProductOption('stoneTypes')) return true
-  if (selectedRingSize.value !== firstProductOption('ringSizes')) return true
-  if (selectedBangleSize.value !== firstProductOption('bangleSizes')) return true
-  if (selectedNecklaceSize.value !== firstProductOption('necklaceSizes')) return true
-  if (additionalRemarks.value.trim()) return true
-  return false
-})
-
-function buildCustomizationPayload(): ProductCustomization {
-  if (!isCustomized.value) {
-    return { isCustomized: false }
-  }
-
-  return {
-    isCustomized: true,
-    diamondQuality: selectedDiamondQuality.value,
-    metalColor: colorOptions.value.find((option) => option.id === selectedColor.value)?.label || selectedColor.value,
-    metalPurity: selectedMetal.value,
-    ...(supportsCenterStoneCustomization.value ? {
-      centerShape: selectedCenterShape.value,
-      centerStoneSize: selectedCenterStoneSize.value,
-      stoneType: selectedStoneType.value,
-    } : {}),
-    ...(isRingProduct.value ? { ringSize: selectedRingSize.value } : {}),
-    ...(isBangleProduct.value ? { bangleSize: selectedBangleSize.value } : {}),
-    ...(isNecklaceProduct.value ? { necklaceSize: selectedNecklaceSize.value } : {}),
-    ...(additionalRemarks.value.trim() ? { additionalRemarks: additionalRemarks.value.trim() } : {}),
-  }
-}
-
-function handleCenterStoneSizePresetChange(event: Event) {
-  const target = event.target as HTMLSelectElement | null
-  const value = target?.value?.trim()
-  if (value === '__custom__') {
-    isCustomCenterStoneSizeMode.value = true
-    selectedCenterStoneSize.value = ''
-  } else {
-    isCustomCenterStoneSizeMode.value = false
-    selectedCenterStoneSize.value = value || ''
-  }
-}
-
-function handleStoneTypePresetChange(event: Event) {
-  const target = event.target as HTMLSelectElement | null
-  const value = target?.value?.trim()
-  if (value === '__custom__') {
-    isCustomStoneTypeMode.value = true
-    selectedStoneType.value = ''
-  } else {
-    isCustomStoneTypeMode.value = false
-    selectedStoneType.value = value || ''
-  }
 }
 
 function setActiveImage(index: number) {
@@ -485,14 +297,12 @@ function scrollThumbs(direction: 'prev' | 'next') {
 }
 
 onMounted(async () => {
-  void ensureSiteConfigLoaded()
   await ensureProductsLoaded()
 })
 
 watch(product, (item) => {
   activeImage.value = 0
   addedImages.value = []
-  resetSelections(item)
   if (item) {
     setPageMeta({ title: item.title, description: item.description })
     setProductJsonLd(item)
@@ -507,11 +317,6 @@ watch(galleryImages, (images) => {
   if (activeImage.value >= images.length) activeImage.value = images.length - 1
 })
 
-// Selecting a metal color re-filters the gallery; jump back to its first shot.
-watch(selectedColor, () => {
-  activeImage.value = 0
-})
-
 watch(activeImage, async (index) => {
   await nextTick()
   const container = thumbsRef.value
@@ -524,7 +329,7 @@ async function handleAddToCart() {
 
   addingToCart.value = true
   try {
-    await addToCart(product.value, 1, buildCustomizationPayload())
+    await addToCart(product.value, 1)
     added.value = true
     setTimeout(() => {
       added.value = false
@@ -673,13 +478,8 @@ async function handleAddToCart() {
           </h1>
 
           <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-x-4 ect-gap-y-2 ect-mb-5">
-            <template v-if="isCustomized">
-              <p class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium">Price varies with customization — a quote will be prepared for you.</p>
-            </template>
-            <template v-else>
-              <p v-if="hasRetailPrice" class="ect-font-display ect-text-2xl ect-text-charcoal">{{ product.price }}</p>
-              <p v-else class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium">Price on request</p>
-            </template>
+            <p v-if="hasRetailPrice" class="ect-font-display ect-text-2xl ect-text-charcoal">{{ product.price }}</p>
+            <p v-else class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium">Price on request</p>
             <div v-if="reviewSummary" class="ect-inline-flex ect-items-center ect-gap-2 ect-text-charcoal/55">
               <StarRating :rating="product.rating || 0" size="sm" />
               <span class="ect-font-body ect-text-sm">{{ reviewSummary }}</span>
@@ -704,14 +504,14 @@ async function handleAddToCart() {
           </p>
 
           <section
-            v-if="productDetailRows.length || technicalDetailRows.length"
+            v-if="productDetailRows.length"
             class="ect-mb-8 ect-bg-white ect-rounded-2xl ect-border ect-border-sand ect-shadow-card ect-p-5 sm:ect-p-6"
           >
             <header class="ect-mb-5">
-              <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Product details</h2>
+              <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Specifications</h2>
             </header>
 
-            <dl v-if="productDetailRows.length" class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-x-6 ect-gap-y-3">
+            <dl class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-x-6 ect-gap-y-3">
               <div v-for="row in productDetailRows" :key="row.label" class="ect-flex ect-flex-col ect-gap-0.5">
                 <dt class="ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/45">
                   <span class="ect-inline-flex ect-items-center ect-gap-1">
@@ -739,252 +539,6 @@ async function handleAddToCart() {
               </div>
             </dl>
 
-            <section class="ect-mt-5">
-              <p class="ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/45 ect-mb-2">Metal Color</p>
-              <div class="ect-flex ect-flex-wrap ect-gap-2.5">
-                <button
-                  v-for="option in colorOptions"
-                  :key="option.id"
-                  type="button"
-                  @click="selectedColor = option.id"
-                  class="ect-flex ect-items-center ect-gap-2 ect-rounded-full ect-border ect-px-3 ect-py-1.5 ect-transition-all focus:ect-outline-none"
-                  :class="selectedColor === option.id ? 'ect-border-gold-400 ect-bg-gold-50' : 'ect-border-sand ect-bg-white hover:ect-border-gold-300 hover:ect-bg-gold-50/40'"
-                  :aria-label="option.label"
-                >
-                  <span
-                    class="ect-w-5 ect-h-5 ect-rounded-full ect-border ect-shrink-0"
-                    :style="getSwatchStyle(option.id)"
-                  />
-                  <span class="ect-font-body ect-text-xs ect-text-charcoal/75">{{ option.label }}</span>
-                </button>
-              </div>
-            </section>
-
-          </section>
-
-          <section class="customization-panel ect-rounded-2xl ect-border ect-border-sand ect-shadow-card ect-p-5 sm:ect-p-6">
-            <header class="ect-mb-6">
-              <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Customize this piece</h2>
-              <p class="ect-mt-2 ect-max-w-xl ect-font-body ect-text-sm ect-leading-7 ect-text-charcoal/50">
-                Fine-tune the finish, stone details, and sizing before adding this piece to your cart.
-              </p>
-            </header>
-
-            <div class="ect-grid ect-grid-cols-1 md:ect-grid-cols-2 ect-gap-x-4 ect-gap-y-6">
-              <section class="ect-space-y-2">
-                <label for="diamond-quality" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Diamond Quality
-                </label>
-                <div class="ect-relative">
-                  <select
-                    id="diamond-quality"
-                    v-model="selectedDiamondQuality"
-                    class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                  >
-                    <option value="">None</option>
-                    <option v-for="quality in availableDiamondQualities" :key="quality" :value="quality">{{ quality }}</option>
-                  </select>
-                  <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                    <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                </div>
-              </section>
-
-              <section class="ect-space-y-2">
-                <label for="metal-choice" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Metal Purity
-                </label>
-                <div class="ect-relative">
-                  <select
-                    id="metal-choice"
-                    v-model="selectedMetal"
-                    class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                  >
-                    <option value="">None</option>
-                    <option v-for="metal in availableMetalPurities" :key="metal" :value="metal">{{ metal }}</option>
-                  </select>
-                  <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                    <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                </div>
-              </section>
-
-              <section v-if="supportsCenterStoneCustomization" class="ect-space-y-2">
-                <label for="stone-type" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Stone Type
-                </label>
-                <div class="ect-grid ect-gap-2">
-                  <div class="ect-relative">
-                    <select
-                      id="stone-type"
-                      :value="availableStoneTypes.includes(selectedStoneType) && !isCustomStoneTypeMode ? selectedStoneType : (isCustomStoneTypeMode ? '__custom__' : '')"
-                      @change="handleStoneTypePresetChange"
-                      class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                    >
-                      <option value="">None</option>
-                      <option v-for="type in availableStoneTypes" :key="type" :value="type">{{ type }}</option>
-                      <option v-if="allowCustomStoneType" value="__custom__">Custom type…</option>
-                    </select>
-                    <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                      <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                      </svg>
-                    </span>
-                  </div>
-                  <input
-                    v-if="showCustomStoneTypeInput"
-                    v-model="selectedStoneType"
-                    type="text"
-                    placeholder="Type a custom stone, e.g. Tanzanite"
-                    class="customization-control ect-w-full ect-rounded-xl ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all"
-                  />
-                  <p v-if="showCustomStoneTypeInput" class="ect-font-body ect-text-xs ect-leading-5 ect-text-charcoal/40">
-                    Enter the exact stone you want.
-                  </p>
-                </div>
-              </section>
-
-              <section v-if="supportsCenterStoneCustomization" class="ect-space-y-2">
-                <label for="center-shape" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Center Shape
-                </label>
-                <div class="ect-relative">
-                  <select
-                    id="center-shape"
-                    v-model="selectedCenterShape"
-                    class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                  >
-                    <option value="">None</option>
-                    <option v-for="shape in availableCenterShapes" :key="shape" :value="shape">{{ shape }}</option>
-                  </select>
-                  <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                    <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                </div>
-              </section>
-
-              <section v-if="supportsCenterStoneCustomization" class="ect-space-y-2">
-                <label for="center-stone-size" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Center Stone Size
-                </label>
-                <div class="ect-grid ect-gap-2">
-                  <div class="ect-relative">
-                    <select
-                      id="center-stone-size"
-                      :value="availableCenterStoneSizes.includes(selectedCenterStoneSize) && !isCustomCenterStoneSizeMode ? selectedCenterStoneSize : (isCustomCenterStoneSizeMode ? '__custom__' : '')"
-                      @change="handleCenterStoneSizePresetChange"
-                      class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                    >
-                      <option value="">None</option>
-                      <option v-for="size in availableCenterStoneSizes" :key="size" :value="size">{{ size }}</option>
-                      <option v-if="allowCustomCenterStoneSize" value="__custom__">Custom size…</option>
-                    </select>
-                    <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                      <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                      </svg>
-                    </span>
-                  </div>
-                  <input
-                    v-if="showCustomCenterStoneSizeInput"
-                    v-model="selectedCenterStoneSize"
-                    type="text"
-                    inputmode="decimal"
-                    placeholder="Type a custom size, e.g. 6 mm or 9×7 mm"
-                    class="customization-control ect-w-full ect-rounded-xl ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all"
-                  />
-                  <p v-if="showCustomCenterStoneSizeInput" class="ect-font-body ect-text-xs ect-leading-5 ect-text-charcoal/40">
-                    Enter the exact size you want.
-                  </p>
-                </div>
-              </section>
-
-              <section v-if="isRingProduct" class="ect-space-y-2">
-                <label for="ring-size" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Ring Size
-                </label>
-                <div class="ect-relative">
-                  <select
-                    id="ring-size"
-                    v-model="selectedRingSize"
-                    class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                  >
-                    <option value="">None</option>
-                    <option v-for="size in availableRingSizes" :key="size" :value="size">{{ size }}</option>
-                  </select>
-                  <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                    <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                </div>
-              </section>
-
-              <section v-if="isBangleProduct" class="ect-space-y-2">
-                <label for="bangle-size" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Bangle Size
-                </label>
-                <div class="ect-relative">
-                  <select
-                    id="bangle-size"
-                    v-model="selectedBangleSize"
-                    class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                  >
-                    <option value="">None</option>
-                    <option v-for="size in availableBangleSizes" :key="size" :value="size">{{ size }}</option>
-                  </select>
-                  <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                    <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                </div>
-              </section>
-
-              <section v-if="isNecklaceProduct" class="ect-space-y-2">
-                <label for="necklace-size" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Necklace Size
-                </label>
-                <div class="ect-relative">
-                  <select
-                    id="necklace-size"
-                    v-model="selectedNecklaceSize"
-                    class="customization-control ect-w-full ect-appearance-none ect-cursor-pointer ect-rounded-xl ect-px-4 ect-py-3.5 ect-pr-12 ect-font-body ect-text-sm ect-font-medium ect-text-charcoal focus:ect-outline-none ect-transition-all"
-                  >
-                    <option value="">None</option>
-                    <option v-for="size in availableNecklaceSizes" :key="size" :value="size">{{ size }}</option>
-                  </select>
-                  <span class="customization-chevron ect-pointer-events-none ect-absolute ect-right-2.5 ect-top-1/2 -ect-translate-y-1/2 ect-flex ect-items-center ect-justify-center ect-w-7 ect-h-7 ect-rounded-lg">
-                    <svg class="ect-w-3.5 ect-h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 011.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-                    </svg>
-                  </span>
-                </div>
-              </section>
-
-              <section class="md:ect-col-span-2 ect-space-y-2">
-                <label for="remarks" class="ect-block ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/48">
-                  Additional Remarks
-                  <span class="ect-font-normal ect-normal-case ect-tracking-normal ect-text-charcoal/40">(optional)</span>
-                </label>
-                <p class="ect-font-body ect-text-xs ect-leading-5 ect-text-charcoal/45">
-                  Add engraving notes, special sizing guidance, or anything our team should know.
-                </p>
-                <textarea
-                  id="remarks"
-                  v-model="additionalRemarks"
-                  rows="3"
-                  placeholder="Engraving, sizing, stone preferences, or special instructions"
-                  class="customization-control ect-w-full ect-resize-none ect-rounded-xl ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all"
-                ></textarea>
-              </section>
-            </div>
           </section>
 
           <VolumeDiscountInfo class="ect-mt-5" label="Volume discount available" />
@@ -1040,7 +594,7 @@ async function handleAddToCart() {
           </ul>
         </section>
 
-        <section v-if="showBreakup && !isCustomized" class="ect-bg-white ect-rounded-2xl ect-border ect-border-sand ect-shadow-card ect-p-5 sm:ect-p-6">
+        <section v-if="showBreakup" class="ect-bg-white ect-rounded-2xl ect-border ect-border-sand ect-shadow-card ect-p-5 sm:ect-p-6">
           <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50 ect-mb-4">Price Breakup</h2>
           <dl class="ect-space-y-2.5">
             <div v-for="row in breakupRows" :key="row.label" class="ect-flex ect-items-center ect-justify-between ect-gap-4">
@@ -1169,46 +723,6 @@ async function handleAddToCart() {
 }
 
 .product-detail-thumbs::-webkit-scrollbar {
-  display: none;
-}
-
-.customization-panel {
-  background:
-    radial-gradient(circle at top right, rgba(241, 233, 218, 0.7), transparent 28%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.985), rgba(252, 251, 249, 0.97));
-}
-
-.customization-control {
-  border: 1px solid rgba(235, 231, 226, 1);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: none;
-}
-
-.customization-control:hover {
-  border-color: rgba(201, 162, 39, 0.55);
-  background: rgba(255, 255, 255, 1);
-}
-
-.customization-control:focus {
-  border-color: rgba(201, 162, 39, 0.85);
-  box-shadow:
-    0 0 0 3px rgba(201, 162, 39, 0.16);
-}
-
-.customization-chevron {
-  background: rgba(241, 233, 218, 1);
-  color: rgb(138 107 25 / 0.85);
-}
-
-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  background-image: none;
-  background-repeat: no-repeat;
-}
-
-select::-ms-expand {
   display: none;
 }
 
