@@ -10,7 +10,7 @@ import {
   updateProductImageEmbeddings,
   updateProductImageEmbeddingsSafe,
 } from '../server/api/image-embedding.js'
-import { pickVariantForPricing } from '../server/api/product-presenter.js'
+import { pickVariantForPricing, pickPriceFromPriceBook } from '../server/api/product-presenter.js'
 import { isS3Configured, listProductImagesBySlug } from '../server/api/s3-images.js'
 import { getAllHomepageSlides } from '../server/api/homepage-slides-source.js'
 import { getSiteConfig, saveSiteConfig } from '../server/api/site-config-source.js'
@@ -291,7 +291,30 @@ async function handleProductsListResource(req, res, body) {
     if (status === 'active') where.active = true
     else if (status === 'hidden') where.active = false
 
-    const [rows, total] = await Promise.all([
+    // "Priced" mirrors the storefront rule: an active variant above zero, or a
+    // live B2C price-book row above zero. Everything else is hidden from
+    // customers, so the console reports how many those are.
+    const now = new Date()
+    const PRICED = {
+      OR: [
+        { variants: { some: { active: true, listPricePaise: { gt: 0 } } } },
+        {
+          priceBookMap: {
+            some: {
+              pricePaise: { gt: 0 },
+              minQty: { lte: 1 },
+              priceBook: { active: true, channel: 'B2C' },
+              AND: [
+                { OR: [{ validFrom: null }, { validFrom: { lte: now } }] },
+                { OR: [{ validTo: null }, { validTo: { gte: now } }] },
+              ],
+            },
+          },
+        },
+      ],
+    }
+
+    const [rows, total, unpricedTotal] = await Promise.all([
       prisma.product.findMany({
         where,
         skip,
@@ -313,14 +336,34 @@ async function handleProductsListResource(req, res, body) {
             where: { active: true },
             select: { id: true, listPricePaise: true, currency: true },
           },
+          priceBookMap: {
+            where: {
+              minQty: { lte: 1 },
+              priceBook: { active: true, channel: 'B2C' },
+            },
+            select: {
+              minQty: true,
+              pricePaise: true,
+              validFrom: true,
+              validTo: true,
+              priceBook: { select: { active: true, channel: true } },
+            },
+            orderBy: [{ minQty: 'asc' }, { validFrom: 'desc' }],
+          },
         },
       }),
       prisma.product.count({ where }),
+      prisma.product.count({ where: { AND: [where, { NOT: PRICED }] } }),
     ])
 
     const actorMap = await resolveActorMap(rows.flatMap((p) => [p.createdById, p.updatedById]))
     const products = rows.map((product) => {
       const variant = pickVariantForPricing(product.variants)
+      // Same precedence the storefront uses: a live B2C price-book row wins
+      // over the variant list price.
+      const priceBookPrice = pickPriceFromPriceBook(product)
+      const effectivePrice =
+        priceBookPrice != null && priceBookPrice > 0 ? priceBookPrice : variant?.listPricePaise ?? 0
       return {
         id: product.id,
         slug: product.slug,
@@ -330,7 +373,10 @@ async function handleProductsListResource(req, res, body) {
         material: product.material,
         active: product.active,
         pricePaise: variant?.listPricePaise ?? null,
-        price: variant ? formatMoney(variant.listPricePaise, variant.currency || 'INR') : null,
+        price: effectivePrice > 0 ? formatMoney(effectivePrice, variant?.currency || 'INR') : null,
+        // Unpriced pieces are withheld from the storefront, so the console is
+        // the only place they can be found and fixed.
+        hiddenForNoPrice: effectivePrice <= 0,
         createdBy: actorName(actorMap, product.createdById),
         createdAt: product.createdAt,
         modifiedBy: actorName(actorMap, product.updatedById),
@@ -339,7 +385,7 @@ async function handleProductsListResource(req, res, body) {
       }
     })
 
-    return res.status(200).json({ products, total, hasMore: skip + rows.length < total })
+    return res.status(200).json({ products, total, unpricedTotal, hasMore: skip + rows.length < total })
   } catch (err) {
     console.error('Internal products list failed:', err)
     return res.status(500).json({ message: 'Unable to load products.' })

@@ -57,6 +57,8 @@ interface InternalProduct extends AuditFields {
   category: string
   material: string
   active: boolean
+  price: string | null
+  hiddenForNoPrice?: boolean
   updatedAt: string
 }
 
@@ -308,6 +310,7 @@ const productStatusOptions = [
   { value: 'hidden', label: 'Hidden products' },
 ]
 const productTotal = ref(0)
+const productUnpricedTotal = ref(0)
 const productHasMore = ref(false)
 const productListLoading = ref(false)
 const productLoadingMore = ref(false)
@@ -331,6 +334,7 @@ async function loadProducts(reset = true) {
     if (!res.ok) throw new Error(data.message || 'Unable to load products.')
     products.value = reset ? data.products : [...products.value, ...data.products]
     productTotal.value = data.total ?? products.value.length
+    productUnpricedTotal.value = data.unpricedTotal ?? 0
     productHasMore.value = Boolean(data.hasMore)
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Unable to load products.'
@@ -352,7 +356,9 @@ function onProductStatusChange() {
 const skeletonRows = Array.from({ length: 5 }, (_, index) => index)
 const orderSkeletonWidths = ['ect-w-32', 'ect-w-40', 'ect-w-10', 'ect-w-20', 'ect-w-20', 'ect-w-28']
 const userSkeletonWidths = ['ect-w-32', 'ect-w-44', 'ect-w-20', 'ect-w-24', 'ect-w-10', 'ect-w-28']
-const productSkeletonWidths = ['ect-w-44', 'ect-w-24', 'ect-w-24', 'ect-w-16', 'ect-w-28']
+// One width per column (Product, Category, Material, Price, Status, Created,
+// Modified) — distinct values so they double as v-for keys.
+const productSkeletonWidths = ['ect-w-44', 'ect-w-24', 'ect-w-20', 'ect-w-16', 'ect-w-14', 'ect-w-28', 'ect-w-32']
 
 const displayOrders = computed<InternalOrder[]>(() => {
   if (orders.value.length) return orders.value
@@ -2369,7 +2375,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <table class="ect-w-full ect-min-w-[920px] ect-border-collapse">
-            <thead class="ect-bg-cream"><tr><th v-for="h in ['Product', 'Category', 'Material', 'Status', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ h }}</th></tr></thead>
+            <thead class="ect-bg-cream"><tr><th v-for="h in ['Product', 'Category', 'Material', 'Price', 'Status', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ h }}</th></tr></thead>
             <tbody>
               <template v-if="productListLoading">
                 <tr v-for="index in skeletonRows" :key="index" class="ect-border-t ect-border-sand">
@@ -2389,17 +2395,34 @@ onBeforeUnmount(() => {
                 </td>
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm">{{ row.category }}</td>
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm">{{ row.material }}</td>
+                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm">
+                  <span v-if="!row.hiddenForNoPrice" class="ect-text-charcoal">{{ row.price }}</span>
+                  <RouterLink
+                    v-else
+                    :to="`/internal/products/${row.slug}`"
+                    class="ect-inline-flex ect-items-center ect-rounded-full ect-bg-red-50 ect-px-2.5 ect-py-1 ect-text-xs ect-font-semibold ect-text-red-700 hover:ect-bg-red-100"
+                    title="No price set — this product is hidden from the storefront"
+                  >
+                    No price · hidden
+                  </RouterLink>
+                </td>
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm">{{ row.active ? 'Active' : 'Hidden' }}</td>
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/55">{{ formatDate(row.createdAt) }}<span class="ect-block ect-text-xs ect-text-charcoal/40">by {{ row.createdBy || '—' }}</span></td>
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/55">{{ row.modifiedAt ? formatDate(row.modifiedAt) : formatDate(row.updatedAt) }}<span v-if="row.modifiedBy" class="ect-block ect-text-xs ect-text-charcoal/40">by {{ row.modifiedBy }}</span></td>
               </tr>
               <tr v-if="!productListLoading && !products.length" class="ect-border-t ect-border-sand">
-                <td colspan="6" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-charcoal/45">No products found.</td>
+                <td colspan="7" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-charcoal/45">No products found.</td>
               </tr>
             </tbody>
           </table>
           <div v-if="!productListLoading && products.length" class="ect-flex ect-flex-col ect-items-center ect-gap-3 ect-border-t ect-border-sand ect-px-4 ect-py-4">
-            <p class="ect-font-body ect-text-xs ect-text-charcoal/45">Showing {{ products.length }} of {{ productTotal }}</p>
+            <p class="ect-font-body ect-text-xs ect-text-charcoal/45">
+              Showing {{ products.length }} of {{ productTotal }}
+              <span v-if="productUnpricedTotal" class="ect-text-red-700 ect-font-semibold">
+                · {{ productUnpricedTotal }} without a price, hidden from the storefront
+              </span>
+              <span v-else class="ect-text-charcoal/45">· every product has a price</span>
+            </p>
             <button
               v-if="productHasMore"
               type="button"

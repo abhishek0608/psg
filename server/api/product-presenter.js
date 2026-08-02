@@ -55,7 +55,7 @@ function inferStyleTags(dbProduct) {
   return tags
 }
 
-function pickPriceFromPriceBook(dbProduct) {
+export function pickPriceFromPriceBook(dbProduct) {
   const items = Array.isArray(dbProduct?.priceBookMap) ? dbProduct.priceBookMap : []
   if (!items.length) return null
   const now = new Date()
@@ -127,6 +127,22 @@ function normalizeProductAttributes(input) {
 
   const hasValues = normalized.grossWeight || normalized.diamondCarats || normalized.diamondQuantity
   return hasValues ? normalized : undefined
+}
+
+/**
+ * A piece only reaches the storefront once it carries a real price. Products
+ * priced at 0 (or with no priced variant at all) are usually half-finished
+ * uploads, and showing them as "Price on request" reads as a broken listing —
+ * they stay in the catalog and in the internal console, just not in front of
+ * customers, and reappear the moment a price is set.
+ */
+export function hasStorefrontPrice(product) {
+  return typeof product?.priceValue === 'number' && Number.isFinite(product.priceValue) && product.priceValue > 0
+}
+
+/** Drops unpriced pieces from a customer-facing product list. */
+export function withStorefrontPricesOnly(products) {
+  return Array.isArray(products) ? products.filter(hasStorefrontPrice) : []
 }
 
 /** Prefer a variant with a real list price; catalog query sorts by listPricePaise asc so a ₹0 stub would otherwise win. */
