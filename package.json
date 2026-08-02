@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "prisma generate",
     "dev": "vite",
-    "build": "prisma generate && vue-tsc -b && vite build",
+    "build": "prisma generate && vue-tsc -b && vite build && node scripts/migrate-on-deploy.mjs",
     "preview": "vite preview",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

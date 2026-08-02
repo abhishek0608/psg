@@ -1,6 +1,8 @@
-function formatUsd(value) {
+// Catalog prices are stored as whole rupees (the `Paise` column names are
+// historical), so they are rendered with Indian digit grouping: ₹2,05,000.
+function formatInr(value) {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return ''
-  return `$${value.toLocaleString('en-US')}`
+  return `₹${value.toLocaleString('en-IN')}`
 }
 
 function inferSubtype(dbProduct) {
@@ -127,7 +129,7 @@ function normalizeProductAttributes(input) {
   return hasValues ? normalized : undefined
 }
 
-/** Prefer a variant with a real list price; catalog query sorts by listPricePaise asc so a $0 stub would otherwise win. */
+/** Prefer a variant with a real list price; catalog query sorts by listPricePaise asc so a ₹0 stub would otherwise win. */
 export function pickVariantForPricing(activeVariants, preferredVariant) {
   if (preferredVariant) return preferredVariant
   if (!Array.isArray(activeVariants) || !activeVariants.length) return null
@@ -149,7 +151,7 @@ export function toApiProduct(dbProduct, preferredVariant = null) {
   const priceBookPrice = pickPriceFromPriceBook(dbProduct)
   const priceValue =
     priceBookPrice != null && priceBookPrice > 0 ? priceBookPrice : variantPrice
-  const price = formatUsd(priceValue)
+  const price = formatInr(priceValue)
   const images = Array.isArray(dbProduct?.images)
     ? dbProduct.images
         .filter((img) => img?.active !== false && typeof img?.url === 'string' && img.url.trim())

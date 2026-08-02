@@ -172,7 +172,7 @@ model ProductVariant {
   title          String?
   attributes     Json?
   listPricePaise Int
-  currency       String      @default("USD")
+  currency       String      @default("INR")
   active         Boolean     @default(true)
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
@@ -198,7 +198,7 @@ model PriceBook {
   id        String          @id @default(cuid())
   name      String
   channel   SalesChannel
-  currency  String          @default("USD")
+  currency  String          @default("INR")
   active    Boolean         @default(true)
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
@@ -338,7 +338,7 @@ model Order {
   discountPaise     Int             @default(0)
   shippingPaise     Int             @default(0)
   totalPaise        Int
-  currency          String          @default("USD")
+  currency          String          @default("INR")
   notes             String?
   createdById       String?
   updatedById       String?
@@ -374,7 +374,7 @@ model Payment {
   method      PaymentMethod
   status      PaymentStatus @default(PENDING)
   amountPaise Int
-  currency    String        @default("USD")
+  currency    String        @default("INR")
   paidAt      DateTime?
   createdAt   DateTime      @default(now())
   order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -398,7 +398,7 @@ model Quote {
   companyId     String
   status        String         @default("draft")
   validUntil    DateTime?
-  currency      String         @default("USD")
+  currency      String         @default("INR")
   subtotalPaise Int            @default(0)
   discountPaise Int            @default(0)
   totalPaise    Int            @default(0)

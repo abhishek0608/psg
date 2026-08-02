@@ -3,9 +3,10 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import ProductCard from './ProductCard.vue'
 import { useProductsApi } from '../composables/useProductsApi'
+import { formatInr } from '../utils/currency'
 
 const LIMIT = 8
-const UNDER_PRICE = 800
+const UNDER_PRICE = 75000
 
 const { products, ensureProductsLoaded, loading, loaded } = useProductsApi()
 
@@ -13,8 +14,9 @@ onMounted(() => {
   void ensureProductsLoaded()
 })
 
-// Quick filter chips (Aurelle design). "Under $X" cuts across categories.
-const FILTERS = ['All', 'Rings', 'Earrings', 'Necklaces', 'Bracelets', `Under $${UNDER_PRICE}`] as const
+// Quick filter chips (Aurelle design). "Under ₹X" cuts across categories.
+const UNDER_PRICE_LABEL = `Under ${formatInr(UNDER_PRICE)}`
+const FILTERS = ['All', 'Rings', 'Earrings', 'Necklaces', 'Bracelets', UNDER_PRICE_LABEL] as const
 const activeFilter = ref<string>('All')
 
 // Curated teaser within the active filter: lead with best sellers, then new
@@ -22,7 +24,7 @@ const activeFilter = ref<string>('All')
 // catalogue lives at /collections.
 const featured = computed(() => {
   let pool = products.value
-  if (activeFilter.value === `Under $${UNDER_PRICE}`) {
+  if (activeFilter.value === UNDER_PRICE_LABEL) {
     pool = pool.filter((p) => p.priceValue > 0 && p.priceValue < UNDER_PRICE)
   } else if (activeFilter.value !== 'All') {
     pool = pool.filter((p) => p.category === activeFilter.value)

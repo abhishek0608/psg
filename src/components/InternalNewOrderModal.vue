@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import UiSelect from './UiSelect.vue'
 import { API_BASE } from '../config-api'
 import { useAuth } from '../composables/useAuth'
+import { formatInr } from '../utils/currency'
 
 const emit = defineEmits<{ close: []; created: [] }>()
 
@@ -51,14 +52,6 @@ const statusOptions = [
 const subtotalPaise = computed(() =>
   lines.value.reduce((sum, line) => sum + (line.pricePaise || 0) * line.qty, 0),
 )
-
-function formatPaise(paise: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(paise / 100)
-}
 
 function onCustomerInput() {
   if (customerDebounce) clearTimeout(customerDebounce)
@@ -275,7 +268,7 @@ async function submit() {
               ✕
             </button>
           </div>
-          <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Subtotal: {{ formatPaise(subtotalPaise) }}</p>
+          <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Subtotal: {{ formatInr(subtotalPaise) }}</p>
         </div>
         <p v-else class="ect-mt-2 ect-font-body ect-text-xs ect-text-charcoal/45">No products added yet.</p>
       </div>

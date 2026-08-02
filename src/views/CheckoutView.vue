@@ -7,6 +7,7 @@ import { useQuotes } from '../composables/useQuotes'
 import { useRazorpay } from '../composables/useRazorpay'
 import { useSavedAddresses, COUNTRY_OPTIONS, countryDisplayName } from '../composables/useSavedAddresses'
 import { notifyTransaction } from '../composables/notifyTransactionEmail'
+import { formatInr } from '../utils/currency'
 
 const router = useRouter()
 const {
@@ -227,7 +228,7 @@ function finalizeCheckout() {
       country: countryDisplayName(form.value.country),
       pincode: form.value.pincode.trim(),
       paymentMethod: form.value.payment,
-      formattedTotal: '$' + nonCustomTotal.toLocaleString('en-US'),
+      formattedTotal: formatInr(nonCustomTotal),
       items: snapshot.map((i) => ({
         title: i.product.title,
         qty: i.qty,

@@ -71,13 +71,14 @@ async function assertAdminUser(userId) {
 // Dashboard (no resource param)
 // ---------------------------------------------------------------------------
 
-function formatMoney(paise, currency = 'USD') {
-  const value = Number(paise || 0) / 100
-  return new Intl.NumberFormat('en-US', {
+// Money columns hold whole currency units despite the historic `Paise`
+// naming, so the stored integer is formatted as-is.
+function formatMoney(amount, currency = 'INR') {
+  return new Intl.NumberFormat(currency === 'INR' ? 'en-IN' : 'en-US', {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
-  }).format(value)
+  }).format(Number(amount || 0))
 }
 
 async function buildDashboardPayload() {
@@ -329,7 +330,7 @@ async function handleProductsListResource(req, res, body) {
         material: product.material,
         active: product.active,
         pricePaise: variant?.listPricePaise ?? null,
-        price: variant ? formatMoney(variant.listPricePaise, variant.currency || 'USD') : null,
+        price: variant ? formatMoney(variant.listPricePaise, variant.currency || 'INR') : null,
         createdBy: actorName(actorMap, product.createdById),
         createdAt: product.createdAt,
         modifiedBy: actorName(actorMap, product.updatedById),
@@ -633,7 +634,7 @@ async function handleOrderCreateResource(req, res, body) {
         titleSnapshot: product.title,
         pricePaise: variant.listPricePaise || 0,
         qty: item.qty,
-        currency: variant.currency || 'USD',
+        currency: variant.currency || 'INR',
       })
     }
 
@@ -860,7 +861,7 @@ async function importOneBulkRow(row, mode) {
             })
           } else {
             await tx.productVariant.create({
-              data: { productId: existing.id, sku: createSkuFromSlug(slug), title: data.title, listPricePaise, currency: 'USD', active: true },
+              data: { productId: existing.id, sku: createSkuFromSlug(slug), title: data.title, listPricePaise, currency: 'INR', active: true },
             })
           }
           await upsertB2CPriceBookItem(tx, existing.id, listPricePaise)
@@ -873,7 +874,7 @@ async function importOneBulkRow(row, mode) {
     await prisma.$transaction(async (tx) => {
       const product = await tx.product.create({ data })
       await tx.productVariant.create({
-        data: { productId: product.id, sku: createSkuFromSlug(slug), title: data.title, listPricePaise, currency: 'USD', active: true },
+        data: { productId: product.id, sku: createSkuFromSlug(slug), title: data.title, listPricePaise, currency: 'INR', active: true },
       })
       if (listPricePaise > 0) await upsertB2CPriceBookItem(tx, product.id, listPricePaise)
     })
@@ -1351,7 +1352,7 @@ async function handleProductPatch(res, currentSlug, body, userId) {
               sku: createSkuFromSlug(nextSlug),
               title,
               listPricePaise: Math.round(variantPricePaise),
-              currency: 'USD',
+              currency: 'INR',
               active: true,
             },
           })
@@ -1458,7 +1459,7 @@ async function handleProductPost(res, body, userId) {
           sku: createSkuFromSlug(nextSlug),
           title,
           listPricePaise: listPricePaise,
-          currency: 'USD',
+          currency: 'INR',
           active: true,
         },
       })

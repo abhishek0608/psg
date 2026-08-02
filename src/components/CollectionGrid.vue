@@ -6,6 +6,7 @@ import { CATEGORIES, STONE_TYPE_OPTIONS, COLORS, CENTER_SHAPE_OPTIONS, CENTER_ST
 import { useCollectionPreset } from '../composables/useCollectionPreset'
 import { useProductsApi } from '../composables/useProductsApi'
 import { API_BASE } from '../config-api'
+import { formatInr } from '../utils/currency'
 
 type TabId = 'new' | 'bestseller' | 'all'
 
@@ -169,7 +170,7 @@ function onPriceMaxInput() {
 const minPct = computed(() => maxPrice.value ? Math.min(100, (appliedFilters.value.priceMin / maxPrice.value) * 100) : 0)
 const maxPct = computed(() => maxPrice.value ? Math.min(100, (appliedFilters.value.priceMax / maxPrice.value) * 100) : 100)
 function formatPrice(val: number) {
-  return '$' + val.toLocaleString('en-US')
+  return formatInr(val)
 }
 
 function applyClientFilters() {
@@ -342,8 +343,8 @@ watch([activeTab, appliedFilters], () => {
           <div class="jewelet-range">
             <span class="jewelet-range__track"></span>
             <span class="jewelet-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
-            <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="appliedFilters.priceMin" @input="onPriceMinInput" aria-label="Minimum price" />
-            <input type="range" :min="0" :max="maxPrice" step="50" v-model.number="appliedFilters.priceMax" @input="onPriceMaxInput" aria-label="Maximum price" />
+            <input type="range" :min="0" :max="maxPrice" step="1000" v-model.number="appliedFilters.priceMin" @input="onPriceMinInput" aria-label="Minimum price" />
+            <input type="range" :min="0" :max="maxPrice" step="1000" v-model.number="appliedFilters.priceMax" @input="onPriceMaxInput" aria-label="Maximum price" />
           </div>
           <div class="ect-flex ect-justify-between ect-mt-2.5 ect-font-body ect-text-xs ect-text-charcoal/55">
             <span>{{ formatPrice(appliedFilters.priceMin) }}</span>
@@ -502,7 +503,7 @@ watch([activeTab, appliedFilters], () => {
         <button type="button" @click="appliedFilters.centerStoneSizes = appliedFilters.centerStoneSizes.filter(s => s !== size)" class="hover:ect-text-charcoal/70">×</button>
       </span>
       <span v-if="appliedFilters.priceMin > 0 || appliedFilters.priceMax < maxPrice" class="ect-inline-flex ect-items-center ect-gap-1 ect-px-3 ect-py-1 ect-rounded-full ect-bg-charcoal/10 ect-text-charcoal ect-font-body ect-text-xs ect-font-medium">
-        ${{ appliedFilters.priceMin.toLocaleString('en-US') }} – ${{ appliedFilters.priceMax.toLocaleString('en-US') }}
+        {{ formatPrice(appliedFilters.priceMin) }} – {{ formatPrice(appliedFilters.priceMax) }}
         <button type="button" @click="appliedFilters.priceMin = 0; appliedFilters.priceMax = maxPrice" class="hover:ect-text-charcoal/70">×</button>
       </span>
     </section>

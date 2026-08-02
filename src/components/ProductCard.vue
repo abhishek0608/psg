@@ -52,7 +52,7 @@ function handleWishlist(e: Event) {
 // not a rainbow of category colours — is the focus of every card.
 const PLACEHOLDER_GRADIENT = 'ect-from-champagne ect-to-cream'
 
-// A "$0" price reads as a bug; unpriced pieces are quoted individually instead.
+// A "₹0" price reads as a bug; unpriced pieces are quoted individually instead.
 const hasRetailPrice = computed(() => {
   const numeric = Number(String(props.price || '').replace(/[^0-9.]/g, ''))
   return Number.isFinite(numeric) && numeric > 0
@@ -72,7 +72,7 @@ const reviewLabel = computed(() => {
 const productTag = computed(() => {
   if (props.product?.isBestSeller) return 'Bestseller'
   if (props.product?.isNewArrival) return 'New'
-  if (props.product?.priceValue && props.product.priceValue <= 1000) return 'Under $1k'
+  if (props.product?.priceValue && props.product.priceValue <= 50000) return 'Under ₹50k'
   return ''
 })
 </script>

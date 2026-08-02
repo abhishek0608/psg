@@ -3,6 +3,7 @@ import type { Product } from '../data/products'
 import { useAuth } from './useAuth'
 import { useSiteConfig, type VolumeDiscountTier } from './useSiteConfig'
 import { API_BASE } from '../config-api'
+import { formatInr } from '../utils/currency'
 
 export interface ProductCustomization {
   isCustomized?: boolean
@@ -29,7 +30,7 @@ export function isCustomizedCartItem(item: Pick<CartItem, 'customization'>) {
   return Boolean(item.customization?.isCustomized)
 }
 
-// Unpriced ("$0") products are quoted individually, so cart/checkout labels
+// Unpriced ("₹0") products are quoted individually, so cart/checkout labels
 // them "Price on request" rather than displaying a zero amount.
 export function isPriceOnRequestCartItem(item: Pick<CartItem, 'product'>) {
   const value =
@@ -111,7 +112,7 @@ export function useCart() {
     }, 0),
   )
 
-  const formattedTotal = computed(() => '$' + totalPrice.value.toLocaleString('en-US'))
+  const formattedTotal = computed(() => formatInr(totalPrice.value))
 
   // --- Site-wide volume (quantity) discount ---
   // The best applicable tier is the one with the highest minQty the cart's
@@ -127,8 +128,8 @@ export function useCart() {
   const discountPercent = computed(() => volumeDiscountTier.value?.percent ?? 0)
   const discountAmount = computed(() => Math.round((totalPrice.value * discountPercent.value) / 100))
   const discountedTotal = computed(() => totalPrice.value - discountAmount.value)
-  const formattedDiscount = computed(() => '$' + discountAmount.value.toLocaleString('en-US'))
-  const formattedDiscountedTotal = computed(() => '$' + discountedTotal.value.toLocaleString('en-US'))
+  const formattedDiscount = computed(() => formatInr(discountAmount.value))
+  const formattedDiscountedTotal = computed(() => formatInr(discountedTotal.value))
 
   // The next unreached tier, used to nudge shoppers ("add N more to save X%").
   const nextVolumeDiscountTier = computed<VolumeDiscountTier | null>(() => {

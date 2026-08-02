@@ -238,7 +238,7 @@ const coreDisplayRows = computed(() => [
   { label: 'Subtype', value: displayValue(findOptionLabel(subtypeOptions, form.value.subtype)) },
   { label: 'Material', value: displayValue(findOptionLabel(materialOptions, form.value.material)) },
   { label: 'Color', value: displayValue(COLORS.find((color) => color.id === form.value.color)?.label || form.value.color) },
-  { label: 'Price (USD)', value: displayValue(form.value.variantPricePaise) },
+  { label: 'Price (INR)', value: displayValue(form.value.variantPricePaise) },
 ])
 
 const attributeDisplayRows = computed(() => [
@@ -858,7 +858,7 @@ watch(
                 </select>
               </label>
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Price (USD)</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Price (INR)</span>
                 <input
                   v-model="form.variantPricePaise"
                   type="number"
