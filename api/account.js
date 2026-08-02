@@ -2,7 +2,7 @@ import { prisma } from '../server/api/db.js'
 import { toApiProduct } from '../server/api/product-presenter.js'
 import { getCatalogProducts } from '../server/api/products-source.js'
 import { applyCors, handlePreflight } from '../server/api/cors.js'
-import { createVideoCallBooking, getBookedVideoCallSlots, toVideoCallPayload } from '../server/api/video-call-bookings.js'
+import { createVideoCallBooking, toVideoCallPayload } from '../server/api/video-call-bookings.js'
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto'
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000 // 1 hour
@@ -601,7 +601,6 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      if (mode === 'video-call-slots') return res.status(200).json({ booked: await getBookedVideoCallSlots() })
       if (mode === 'profile') return await handleGetProfile(res, userId)
       if (mode === 'cart') return await handleGetCart(res, userId)
       if (mode === 'wishlist') return await handleGetWishlist(res, userId)

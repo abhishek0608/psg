@@ -62,6 +62,13 @@ const collectionImages = ref<Record<string, string>>({})
 // About Us page content configured in the internal workspace. Stays at the
 // empty defaults (and the About page renders its bundled copy) until set.
 const aboutContent = ref<AboutContent>({ ...EMPTY_ABOUT_CONTENT })
+// Video-call consultation settings, configured in the internal workspace.
+// Defaults mirror the server's so the storefront behaves sensibly before the
+// first config load resolves (and if it never does).
+const videoCallEnabled = ref(true)
+const videoCallFee = ref(0)
+const videoCallMinPrice = ref(0)
+const videoCallMaxItems = ref(5)
 const loaded = ref(false)
 const loading = ref(false)
 
@@ -122,6 +129,11 @@ function parseAboutContent(raw: unknown): AboutContent {
   }
 }
 
+function parseWholeNumber(raw: unknown, fallback: number): number {
+  const parsed = Math.floor(Number(raw))
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback
+}
+
 function parseStoneSizes(raw: unknown): StoneSizeOption[] {
   if (!Array.isArray(raw)) return []
   return raw
@@ -153,6 +165,10 @@ export async function ensureSiteConfigLoaded() {
       volumeDiscountTiers.value = parseVolumeDiscountTiers(data?.siteConfig?.volumeDiscountTiers)
       collectionImages.value = parseCollectionImages(data?.siteConfig?.collectionImages)
       aboutContent.value = parseAboutContent(data?.siteConfig?.aboutContent)
+      videoCallEnabled.value = data?.siteConfig?.videoCallEnabled !== false
+      videoCallFee.value = parseWholeNumber(data?.siteConfig?.videoCallFee, 0)
+      videoCallMinPrice.value = parseWholeNumber(data?.siteConfig?.videoCallMinPrice, 0)
+      videoCallMaxItems.value = Math.max(1, parseWholeNumber(data?.siteConfig?.videoCallMaxItems, 5))
       stoneSizes.value = parseStoneSizes(data?.stoneSizes)
       loaded.value = true
     }
@@ -165,12 +181,17 @@ export async function ensureSiteConfigLoaded() {
 
 export function useSiteConfig() {
   return {
+    loaded,
     logoSrc,
     logoUrl,
     volumeDiscountEnabled,
     volumeDiscountTiers,
     collectionImages,
     aboutContent,
+    videoCallEnabled,
+    videoCallFee,
+    videoCallMinPrice,
+    videoCallMaxItems,
     stoneSizes,
     ensureSiteConfigLoaded,
     invalidateSiteConfig,

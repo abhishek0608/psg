@@ -99,6 +99,14 @@ function normalizeAboutContent(raw) {
   }
 }
 
+// Whole-rupee / count settings clamp into range rather than throwing, so a bad
+// value can never take the storefront's video-call option down with it.
+function normalizeWholeNumber(value, { fallback, min, max }) {
+  const parsed = Math.floor(Number(value))
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.min(max, Math.max(min, parsed))
+}
+
 function normalizeSiteConfig(row) {
   return {
     logoUrl: row?.logoUrl || '',
@@ -106,6 +114,12 @@ function normalizeSiteConfig(row) {
     volumeDiscountTiers: normalizeVolumeDiscountTiers(row?.volumeDiscountTiers),
     collectionImages: normalizeCollectionImages(row?.collectionImages),
     aboutContent: normalizeAboutContent(row?.aboutContent),
+    // A row that predates the video-call columns reads as "enabled" so the
+    // storefront keeps offering consultations until an admin says otherwise.
+    videoCallEnabled: row?.videoCallEnabled !== false,
+    videoCallFee: normalizeWholeNumber(row?.videoCallFee, { fallback: 0, min: 0, max: 10_000_000 }),
+    videoCallMinPrice: normalizeWholeNumber(row?.videoCallMinPrice, { fallback: 0, min: 0, max: 100_000_000 }),
+    videoCallMaxItems: normalizeWholeNumber(row?.videoCallMaxItems, { fallback: 5, min: 1, max: 20 }),
     updatedAt: row?.updatedAt || null,
   }
 }
@@ -134,6 +148,18 @@ export async function saveSiteConfig(patch = {}) {
   }
   if ('aboutContent' in patch) {
     update.aboutContent = normalizeAboutContent(patch.aboutContent)
+  }
+  if ('videoCallEnabled' in patch) {
+    update.videoCallEnabled = Boolean(patch.videoCallEnabled)
+  }
+  if ('videoCallFee' in patch) {
+    update.videoCallFee = normalizeWholeNumber(patch.videoCallFee, { fallback: 0, min: 0, max: 10_000_000 })
+  }
+  if ('videoCallMinPrice' in patch) {
+    update.videoCallMinPrice = normalizeWholeNumber(patch.videoCallMinPrice, { fallback: 0, min: 0, max: 100_000_000 })
+  }
+  if ('videoCallMaxItems' in patch) {
+    update.videoCallMaxItems = normalizeWholeNumber(patch.videoCallMaxItems, { fallback: 5, min: 1, max: 20 })
   }
   const row = await prisma.siteConfig.upsert({
     where: { id: SITE_CONFIG_ID },

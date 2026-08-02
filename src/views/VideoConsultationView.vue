@@ -1,90 +1,71 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
-import { createVideoCallBooking, fetchBookedVideoCallSlots } from '../composables/useVideoCallBookings'
+import { computed, reactive, ref, watch } from 'vue'
+import { RouterLink } from 'vue-router'
+import { createVideoCallBooking, type VideoCallChannel } from '../composables/useVideoCallBookings'
+import { useVideoCallList } from '../composables/useVideoCallList'
+import { useAuth } from '../composables/useAuth'
+import { useSiteConfig } from '../composables/useSiteConfig'
+import { formatInr } from '../utils/currency'
 
-const TZ = 'Asia/Kolkata'
-const selectedDate = ref('')
-const selectedSlot = ref('')
-const booked = ref(new Set<string>())
-const loading = ref(true)
+const { user, isLoggedIn } = useAuth()
+const { items, count, maxItems, enabled, remove, clear } = useVideoCallList()
+const { videoCallFee } = useSiteConfig()
 const submitting = ref(false)
 const errorMessage = ref('')
 const reference = ref('')
-const form = reactive({ name: '', email: '', phone: '', notes: '' })
-const dateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
-
-function dateKey(date: Date) {
-  const parts = dateFormatter.formatToParts(date)
-  const get = (type: string) => parts.find((part) => part.type === type)?.value || ''
-  return `${get('year')}-${get('month')}-${get('day')}`
-}
-
-const dates = computed(() => {
-  const start = new Date(`${dateKey(new Date())}T00:00:00+05:30`)
-  return Array.from({ length: 14 }, (_, offset) => new Date(start.getTime() + offset * 86400000))
-    .filter((date) => new Intl.DateTimeFormat('en-US', { timeZone: TZ, weekday: 'short' }).format(date) !== 'Sun')
-    .map((date) => ({
-      value: dateKey(date),
-      day: new Intl.DateTimeFormat('en-IN', { timeZone: TZ, weekday: 'short' }).format(date),
-      label: new Intl.DateTimeFormat('en-IN', { timeZone: TZ, day: 'numeric', month: 'short' }).format(date),
-      full: new Intl.DateTimeFormat('en-IN', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).format(date),
-    }))
+const form = reactive({
+  name: user.value?.name || '',
+  email: user.value?.email || '',
+  phone: '',
+  channel: 'whatsapp' as VideoCallChannel,
+  preferredTime: '',
+  notes: '',
 })
 
-const slots = computed(() => {
-  if (!selectedDate.value) return []
-  return Array.from({ length: 16 }, (_, index) => {
-    const hour = 10 + Math.floor(index / 2)
-    const minute = index % 2 ? 30 : 0
-    const value = new Date(`${selectedDate.value}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+05:30`).toISOString()
-    return {
-      value,
-      label: new Intl.DateTimeFormat('en-IN', { timeZone: TZ, hour: 'numeric', minute: '2-digit', hour12: true }).format(new Date(value)),
-      disabled: booked.value.has(value) || new Date(value).getTime() < Date.now() + 15 * 60000,
-    }
-  })
-})
+// A shopper who signs in mid-flow shouldn't have to retype what we already know.
+watch(
+  () => user.value,
+  (current) => {
+    if (!current) return
+    if (!form.name.trim()) form.name = current.name
+    if (!form.email.trim()) form.email = current.email
+  },
+)
 
-const selectedDateLabel = computed(() => dates.value.find((date) => date.value === selectedDate.value)?.full || '')
-const selectedTimeLabel = computed(() => slots.value.find((slot) => slot.value === selectedSlot.value)?.label || '')
+const channels: { value: VideoCallChannel; label: string; hint: string }[] = [
+  { value: 'whatsapp', label: 'WhatsApp', hint: 'We’ll message you to fix a time.' },
+  { value: 'call', label: 'Phone call', hint: 'We’ll call you to fix a time.' },
+]
 
-async function loadAvailability() {
-  loading.value = true
-  try {
-    booked.value = new Set(await fetchBookedVideoCallSlots())
-    for (const date of dates.value) {
-      selectedDate.value = date.value
-      if (slots.value.some((slot) => !slot.disabled)) break
-    }
-  } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Could not load available slots.'
-  } finally {
-    loading.value = false
-  }
-}
+const listTotal = computed(() => items.reduce((sum, item) => sum + (item.priceValue || 0), 0))
 
 async function submit() {
   errorMessage.value = ''
-  if (!selectedSlot.value) return void (errorMessage.value = 'Please select an available time slot.')
   if (!form.name.trim()) return void (errorMessage.value = 'Please enter your full name.')
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return void (errorMessage.value = 'Please enter a valid email address.')
   if (!/^\+?[\d\s()-]{7,20}$/.test(form.phone.trim())) return void (errorMessage.value = 'Please enter a valid mobile number.')
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return void (errorMessage.value = 'Please enter a valid email address.')
   submitting.value = true
   try {
     const booking = await createVideoCallBooking({
-      scheduledAt: selectedSlot.value,
-      name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim(), notes: form.notes.trim(),
+      name: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      contactChannel: form.channel,
+      preferredTime: form.preferredTime.trim(),
+      notes: form.notes.trim(),
+      items: items.map((item) => ({ slug: item.slug, title: item.title, price: item.price, imageUrl: item.imageUrl })),
+      userId: user.value?.id || null,
     })
     reference.value = booking.reference
+    // The request now owns the shortlist; leaving it behind would have the next
+    // request silently re-send the same pieces.
+    clear()
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Could not book the video call.'
-    await loadAvailability()
+    errorMessage.value = error instanceof Error ? error.message : 'Could not submit your request.'
   } finally {
     submitting.value = false
   }
 }
-
-void loadAvailability()
 </script>
 
 <template>
@@ -93,60 +74,110 @@ void loadAvailability()
       <div class="ect-mx-auto ect-max-w-5xl ect-text-center">
         <p class="ect-mb-4 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.2em] ect-text-gold-400">Personal jewellery guidance</p>
         <h1 class="ect-mb-5 ect-font-display ect-text-4xl sm:ect-text-6xl ect-font-light">Meet your jewellery expert online</h1>
-        <p class="ect-mx-auto ect-max-w-2xl ect-font-body ect-text-base ect-leading-relaxed ect-text-cream/60">A private 30-minute video consultation for design advice, customisation, sizing, gifting, or help choosing the perfect piece.</p>
+        <p class="ect-mx-auto ect-max-w-2xl ect-font-body ect-text-base ect-leading-relaxed ect-text-cream/60">Shortlist the pieces you’d like to see, leave your number, and a jewellery specialist will reach out to set up a private video call.</p>
       </div>
     </section>
 
-    <section class="ect-mx-auto ect-grid ect-max-w-6xl ect-gap-8 ect-px-5 ect-py-10 lg:ect-grid-cols-[0.72fr_1.28fr] lg:ect-py-14">
-      <aside class="ect-self-start ect-rounded-3xl ect-bg-white ect-p-7 ect-ring-1 ect-ring-sand lg:ect-sticky lg:ect-top-32">
-        <p class="ect-mb-4 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.16em] ect-text-gold-700">What to expect</p>
-        <h2 class="ect-mb-5 ect-font-display ect-text-3xl ect-font-light ect-text-charcoal">Expert advice, from wherever you are</h2>
-        <ul class="ect-grid ect-gap-4 ect-font-body ect-text-sm ect-leading-relaxed ect-text-charcoal/65">
-          <li><strong class="ect-block ect-text-charcoal">One-to-one guidance</strong>Talk privately with a jewellery specialist.</li>
-          <li><strong class="ect-block ect-text-charcoal">30 focused minutes</strong>Discuss products, designs, sizing, and custom requests.</li>
-          <li><strong class="ect-block ect-text-charcoal">Secure meeting link</strong>We’ll email your video-call link before the appointment.</li>
-        </ul>
-        <p class="ect-mt-6 ect-border-t ect-border-sand ect-pt-5 ect-font-body ect-text-xs ect-text-charcoal/45">Available Monday–Saturday, 10:00 AM–6:00 PM IST. No payment required.</p>
-      </aside>
+    <section v-if="!enabled" class="ect-mx-auto ect-max-w-3xl ect-px-5 ect-py-16 ect-text-center">
+      <h2 class="ect-mb-3 ect-font-display ect-text-3xl ect-font-light ect-text-charcoal">Video consultations are paused</h2>
+      <p class="ect-font-body ect-text-sm ect-text-charcoal/60">We’re not taking new consultation requests right now. Please check back soon.</p>
+    </section>
 
-      <article class="ect-rounded-3xl ect-bg-white ect-p-6 sm:ect-p-8 ect-ring-1 ect-ring-sand">
-        <div v-if="reference" class="ect-py-12 ect-text-center">
-          <div class="ect-mx-auto ect-mb-5 ect-grid ect-h-16 ect-w-16 ect-place-items-center ect-rounded-full ect-bg-emerald-50 ect-text-3xl ect-text-emerald-700">✓</div>
-          <p class="ect-mb-2 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700">Booking confirmed</p>
-          <h2 class="ect-mb-3 ect-font-display ect-text-3xl ect-text-charcoal">Your video consultation is booked</h2>
-          <p class="ect-font-body ect-text-sm ect-text-charcoal/65">{{ selectedDateLabel }} at {{ selectedTimeLabel }} IST</p>
-          <p class="ect-mb-6 ect-font-body ect-text-sm ect-text-charcoal/50">Reference: <strong class="ect-text-charcoal">{{ reference }}</strong></p>
-          <p class="ect-mx-auto ect-max-w-md ect-font-body ect-text-sm ect-leading-relaxed ect-text-charcoal/60">We’ll send the video-call link to {{ form.email }} before your appointment.</p>
+    <section v-else class="ect-mx-auto ect-grid ect-max-w-6xl ect-gap-8 ect-px-5 ect-py-10 lg:ect-grid-cols-[1.05fr_0.95fr] lg:ect-py-14">
+      <!-- Shortlist: the pieces the advisor will bring to the call -->
+      <aside class="ect-self-start ect-rounded-3xl ect-bg-white ect-p-6 sm:ect-p-7 ect-ring-1 ect-ring-sand">
+        <div class="ect-mb-5 ect-flex ect-items-baseline ect-justify-between ect-gap-3">
+          <div>
+            <p class="ect-mb-1 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.16em] ect-text-gold-700">Your shortlist</p>
+            <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Pieces for this call</h2>
+          </div>
+          <span class="ect-shrink-0 ect-rounded-full ect-bg-cream ect-px-3 ect-py-1 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/60">{{ count }} / {{ maxItems }}</span>
         </div>
 
-        <form v-else class="ect-grid ect-gap-8" @submit.prevent="submit">
-          <fieldset :disabled="loading || submitting">
-            <legend class="ect-mb-3 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">1. Choose a date</legend>
-            <div class="ect-grid ect-grid-cols-3 sm:ect-grid-cols-6 ect-gap-2">
-              <button v-for="date in dates" :key="date.value" type="button" class="ect-rounded-xl ect-border ect-px-2 ect-py-3 ect-transition-colors" :class="selectedDate === date.value ? 'ect-border-charcoal ect-bg-charcoal ect-text-white' : 'ect-border-sand hover:ect-border-gold-400'" @click="selectedDate = date.value; selectedSlot = ''">
-                <span class="ect-block ect-font-body ect-text-[11px] ect-uppercase ect-opacity-60">{{ date.day }}</span><span class="ect-block ect-font-body ect-text-sm ect-font-semibold">{{ date.label }}</span>
-              </button>
+        <ul v-if="items.length" class="ect-grid ect-gap-3">
+          <li v-for="item in items" :key="item.slug" class="ect-flex ect-items-center ect-gap-3 ect-rounded-2xl ect-border ect-border-sand ect-p-3">
+            <RouterLink :to="`/product/${item.slug}`" class="ect-h-16 ect-w-16 ect-shrink-0 ect-overflow-hidden ect-rounded-xl ect-bg-champagne">
+              <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.title" loading="lazy" class="ect-h-full ect-w-full ect-object-cover" />
+            </RouterLink>
+            <div class="ect-min-w-0 ect-flex-1">
+              <RouterLink :to="`/product/${item.slug}`" class="ect-block ect-truncate ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal hover:ect-text-gold-700">{{ item.title }}</RouterLink>
+              <p class="ect-font-body ect-text-xs ect-text-charcoal/50">{{ item.priceValue > 0 ? item.price : 'Price on request' }}</p>
             </div>
-          </fieldset>
+            <button type="button" class="ect-rounded-full ect-p-2 ect-text-charcoal/30 hover:ect-bg-red-50 hover:ect-text-red-500 ect-transition-colors" :aria-label="`Remove ${item.title}`" @click="remove(item.slug)">
+              <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </li>
+        </ul>
 
-          <fieldset :disabled="loading || submitting">
-            <legend class="ect-mb-3 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">2. Choose a time</legend>
-            <p v-if="loading" class="ect-font-body ect-text-sm ect-text-charcoal/45">Loading available times…</p>
-            <div v-else class="ect-grid ect-grid-cols-3 sm:ect-grid-cols-4 ect-gap-2">
-              <button v-for="slot in slots" :key="slot.value" type="button" :disabled="slot.disabled" class="ect-rounded-xl ect-border ect-px-2 ect-py-2.5 ect-font-body ect-text-sm ect-font-semibold disabled:ect-cursor-not-allowed disabled:ect-bg-cream disabled:ect-text-charcoal/25" :class="selectedSlot === slot.value ? 'ect-border-charcoal ect-bg-charcoal ect-text-white' : 'ect-border-sand hover:ect-border-gold-400'" @click="selectedSlot = slot.value">{{ slot.label }}</button>
-            </div>
-          </fieldset>
+        <p v-else class="ect-rounded-2xl ect-bg-cream ect-px-4 ect-py-6 ect-text-center ect-font-body ect-text-sm ect-text-charcoal/55">
+          No pieces added yet. Browse the catalogue and use “Add to video call” on any product — you can bring up to {{ maxItems }}.
+        </p>
+
+        <div class="ect-mt-5 ect-flex ect-flex-wrap ect-items-center ect-gap-3 ect-border-t ect-border-sand ect-pt-5">
+          <RouterLink to="/collections" class="ect-rounded-full ect-border ect-border-charcoal/15 ect-px-5 ect-py-2.5 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal hover:ect-border-gold-400 hover:ect-text-gold-700 ect-transition-colors">
+            {{ items.length ? 'Add more pieces' : 'Browse the catalogue' }}
+          </RouterLink>
+          <button v-if="items.length" type="button" class="ect-font-body ect-text-sm ect-text-charcoal/45 hover:ect-text-red-600" @click="clear()">Clear all</button>
+          <span v-if="listTotal > 0" class="ect-ml-auto ect-font-body ect-text-xs ect-text-charcoal/45">Shortlist value {{ formatInr(listTotal) }}</span>
+        </div>
+
+        <ul class="ect-mt-6 ect-grid ect-gap-3 ect-border-t ect-border-sand ect-pt-5 ect-font-body ect-text-sm ect-leading-relaxed ect-text-charcoal/65">
+          <li><strong class="ect-block ect-text-charcoal">One-to-one guidance</strong>A specialist walks you through each piece live.</li>
+          <li><strong class="ect-block ect-text-charcoal">No fixed slot to pick</strong>We contact you and fit the call around your day.</li>
+          <li><strong class="ect-block ect-text-charcoal">Secure meeting link</strong>Sent to you once the time is agreed.</li>
+        </ul>
+      </aside>
+
+      <!-- Request form: contact-first, no slot to choose -->
+      <article class="ect-self-start ect-rounded-3xl ect-bg-white ect-p-6 sm:ect-p-8 ect-ring-1 ect-ring-sand">
+        <div v-if="reference" class="ect-py-10 ect-text-center">
+          <div class="ect-mx-auto ect-mb-5 ect-grid ect-h-16 ect-w-16 ect-place-items-center ect-rounded-full ect-bg-emerald-50 ect-text-3xl ect-text-emerald-700">✓</div>
+          <p class="ect-mb-2 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700">Request received</p>
+          <h2 class="ect-mb-3 ect-font-display ect-text-3xl ect-text-charcoal">We’ll be in touch shortly</h2>
+          <p class="ect-mb-6 ect-font-body ect-text-sm ect-text-charcoal/50">Reference: <strong class="ect-text-charcoal">{{ reference }}</strong></p>
+          <p class="ect-mx-auto ect-max-w-md ect-font-body ect-text-sm ect-leading-relaxed ect-text-charcoal/60">
+            A jewellery specialist will {{ form.channel === 'whatsapp' ? `message you on WhatsApp at ${form.phone}` : `call you on ${form.phone}` }} to agree a time, and the meeting link goes to {{ form.email }}.
+          </p>
+          <RouterLink to="/collections" class="ect-mt-7 ect-inline-flex ect-rounded-full ect-bg-charcoal ect-px-7 ect-py-3 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir">Continue browsing</RouterLink>
+        </div>
+
+        <form v-else class="ect-grid ect-gap-6" @submit.prevent="submit">
+          <div>
+            <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Request a call back</h2>
+            <p class="ect-mt-1 ect-font-body ect-text-sm ect-text-charcoal/55">Tell us how to reach you and we’ll set up the consultation.</p>
+            <p v-if="videoCallFee > 0" class="ect-mt-2 ect-font-body ect-text-sm ect-font-semibold ect-text-gold-700">Consultation fee {{ formatInr(videoCallFee) }}, adjusted against your purchase.</p>
+          </div>
+
+          <p v-if="!isLoggedIn" class="ect-rounded-2xl ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/60">
+            No account needed — just leave your details.
+            <RouterLink to="/login" class="ect-font-semibold ect-text-gold-700 hover:ect-underline">Sign in</RouterLink> if you’d like the request saved to your account.
+          </p>
 
           <fieldset :disabled="submitting" class="ect-grid sm:ect-grid-cols-2 ect-gap-4">
-            <legend class="ect-col-span-full ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">3. Your details</legend>
             <label class="ect-grid ect-gap-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70">Full name<input v-model="form.name" required autocomplete="name" class="ect-rounded-xl ect-border ect-border-sand ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-normal focus:ect-border-gold-400 focus:ect-outline-none" /></label>
-            <label class="ect-grid ect-gap-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70">Mobile number<input v-model="form.phone" required autocomplete="tel" inputmode="tel" class="ect-rounded-xl ect-border ect-border-sand ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-normal focus:ect-border-gold-400 focus:ect-outline-none" /></label>
-            <label class="ect-grid ect-gap-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 sm:ect-col-span-2">Email address<input v-model="form.email" required type="email" autocomplete="email" class="ect-rounded-xl ect-border ect-border-sand ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-normal focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+            <label class="ect-grid ect-gap-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70">{{ form.channel === 'whatsapp' ? 'WhatsApp number' : 'Mobile number' }}<input v-model="form.phone" required autocomplete="tel" inputmode="tel" placeholder="+91 98765 43210" class="ect-rounded-xl ect-border ect-border-sand ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-normal focus:ect-border-gold-400 focus:ect-outline-none" /></label>
+            <label class="ect-grid ect-gap-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 sm:ect-col-span-2">Email address<input v-model="form.email" required type="email" autocomplete="email" class="ect-rounded-xl ect-border ect-border-sand ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-normal focus:ect-border-gold-400 focus:ect-outline-none" /><span class="ect-font-normal ect-text-charcoal/45">We send the meeting link here.</span></label>
+
+            <div class="sm:ect-col-span-2">
+              <span class="ect-mb-2 ect-block ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70">How should we reach you?</span>
+              <div class="ect-grid ect-gap-2 sm:ect-grid-cols-2">
+                <button v-for="channel in channels" :key="channel.value" type="button" class="ect-rounded-xl ect-border ect-px-4 ect-py-3 ect-text-left ect-transition-colors" :class="form.channel === channel.value ? 'ect-border-charcoal ect-bg-charcoal ect-text-white' : 'ect-border-sand hover:ect-border-gold-400'" @click="form.channel = channel.value">
+                  <span class="ect-block ect-font-body ect-text-sm ect-font-semibold">{{ channel.label }}</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-opacity-60">{{ channel.hint }}</span>
+                </button>
+              </div>
+            </div>
+
+            <label class="ect-grid ect-gap-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 sm:ect-col-span-2">When are you usually free? (optional)<input v-model="form.preferredTime" maxlength="200" placeholder="Weekday evenings after 7 PM" class="ect-rounded-xl ect-border ect-border-sand ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-normal focus:ect-border-gold-400 focus:ect-outline-none" /></label>
             <label class="ect-grid ect-gap-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 sm:ect-col-span-2">What would you like to discuss? (optional)<textarea v-model="form.notes" rows="3" maxlength="1000" class="ect-resize-none ect-rounded-xl ect-border ect-border-sand ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-normal focus:ect-border-gold-400 focus:ect-outline-none" placeholder="A custom design, product advice, sizing…" /></label>
           </fieldset>
 
+          <p class="ect-font-body ect-text-xs ect-text-charcoal/45">
+            {{ count ? `${count} ${count === 1 ? 'piece' : 'pieces'} will be shared with your specialist before the call.` : 'You can request a call without shortlisting anything — we’ll help you find pieces on the call.' }}
+          </p>
+
           <p v-if="errorMessage" role="alert" class="ect-rounded-xl ect-bg-red-50 ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-red-700">{{ errorMessage }}</p>
-          <button type="submit" :disabled="loading || submitting" class="ect-justify-self-end ect-rounded-full ect-bg-charcoal ect-px-8 ect-py-3.5 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir disabled:ect-opacity-50">{{ submitting ? 'Booking…' : 'Confirm booking' }}</button>
+          <button type="submit" :disabled="submitting" class="ect-justify-self-end ect-rounded-full ect-bg-charcoal ect-px-8 ect-py-3.5 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir disabled:ect-opacity-50">{{ submitting ? 'Sending…' : 'Request a video call' }}</button>
         </form>
       </article>
     </section>
