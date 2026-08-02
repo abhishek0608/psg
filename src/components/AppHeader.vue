@@ -6,6 +6,7 @@ import { useAuth } from '../composables/useAuth'
 import { useSearch } from '../composables/useSearch'
 import { useCart } from '../composables/useCart'
 import { useWishlist } from '../composables/useWishlist'
+import { useVideoCallList } from '../composables/useVideoCallList'
 import { useOrders } from '../composables/useOrders'
 import { COLLECTION_LINKS, type CollectionLink } from '../data/collections'
 import { MEGA_MENUS, MEGA_PRICE_RANGES } from '../data/megaMenu'
@@ -19,6 +20,7 @@ const { user, isLoggedIn, isInternalUser, refreshCurrentUser, logout } = useAuth
 const { query, submitTextSearch } = useSearch()
 const { totalItems } = useCart()
 const { count: wishlistCount } = useWishlist()
+const { count: videoCallCount } = useVideoCallList()
 const { orders } = useOrders()
 const menuOpen = ref(false)
 const notificationOpen = ref(false)
@@ -246,11 +248,12 @@ function toggleNotifications() {
           </form>
 
           <!-- Video call -->
-          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Video consultation">
+          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Video consultation">
             <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
             </svg>
             <span class="ect-font-body ect-text-[10px] ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Video call</span>
+            <span v-if="videoCallCount > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-[9px] ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ videoCallCount }}</span>
           </RouterLink>
 
           <!-- Wishlist -->
@@ -708,7 +711,10 @@ function toggleNotifications() {
               class="ect-flex ect-items-center ect-justify-between ect-py-4 ect-border-b ect-border-charcoal/[0.08] ect-font-body ect-text-[15px] ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
             >
               <span>Book Video Consultation</span>
-              <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+              <span class="ect-flex ect-items-center ect-gap-2">
+                <span v-if="videoCallCount > 0" class="ect-min-w-[20px] ect-h-5 ect-px-1.5 ect-rounded-full ect-bg-rose-500 ect-text-white ect-font-body ect-text-xs ect-font-bold ect-flex ect-items-center ect-justify-center">{{ videoCallCount }}</span>
+                <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+              </span>
             </RouterLink>
             <RouterLink
               to="/about"

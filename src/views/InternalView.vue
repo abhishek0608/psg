@@ -84,10 +84,20 @@ const videoCallsLoading = ref(false)
 const videoCallsError = ref('')
 const videoCallSearch = ref('')
 const videoCallStatusOptions = [
-  { value: 'booked', label: 'Booked' },
+  { value: 'new', label: 'New' },
+  { value: 'contacted', label: 'Contacted' },
+  { value: 'scheduled', label: 'Scheduled' },
   { value: 'completed', label: 'Completed' },
   { value: 'cancelled', label: 'Cancelled' },
 ]
+
+// --- Video consultation settings (site config) ---
+const videoCallEnabled = ref(true)
+const videoCallFee = ref<number | null>(0)
+const videoCallMinPrice = ref<number | null>(0)
+const videoCallMaxItems = ref<number | null>(5)
+const videoCallSettingsSaving = ref(false)
+const videoCallSettingsMessage = ref('')
 const homepageSlides = ref<HomepageSlideRecord[]>([])
 const homepageGrid = ref<HTMLElement | null>(null)
 const homepageLoading = ref(false)
@@ -267,9 +277,11 @@ const filteredVideoCallBookings = computed(() => {
   const query = videoCallSearch.value.trim().toLowerCase()
   if (!query) return videoCallBookings.value
   return videoCallBookings.value.filter((booking) =>
-    [booking.reference, booking.name, booking.email, booking.phone, booking.status, booking.notes].some(
-      (value) => String(value || '').toLowerCase().includes(query),
-    ),
+    [
+      booking.reference, booking.name, booking.email, booking.phone, booking.status,
+      booking.notes, booking.preferredTime,
+      ...booking.items.map((item) => item.title),
+    ].some((value) => String(value || '').toLowerCase().includes(query)),
   )
 })
 
@@ -280,7 +292,7 @@ async function loadVideoCallBookings() {
   try {
     videoCallBookings.value = await fetchVideoCallBookings(user.value.id)
   } catch (err) {
-    videoCallsError.value = err instanceof Error ? err.message : 'Could not load video-call bookings.'
+    videoCallsError.value = err instanceof Error ? err.message : 'Could not load video-call requests.'
   } finally {
     videoCallsLoading.value = false
   }
@@ -293,8 +305,67 @@ async function setVideoCallStatus(booking: VideoCallBooking, nextStatus: string)
     const index = videoCallBookings.value.findIndex((item) => item.reference === booking.reference)
     if (index >= 0) videoCallBookings.value[index] = updated
   } catch (err) {
-    videoCallsError.value = err instanceof Error ? err.message : 'Could not update the booking.'
+    videoCallsError.value = err instanceof Error ? err.message : 'Could not update the request.'
   }
+}
+
+// A datetime-local input speaks the browser's local time; the API stores UTC.
+function toLocalInputValue(iso: string | null) {
+  if (!iso) return ''
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+async function setVideoCallSchedule(booking: VideoCallBooking, localValue: string) {
+  if (!user.value?.id) return
+  const scheduledAt = localValue ? new Date(localValue).toISOString() : ''
+  // Agreeing a time is what "scheduled" means, so the status follows the date.
+  const nextStatus: VideoCallStatus =
+    localValue && (booking.status === 'new' || booking.status === 'contacted') ? 'scheduled' : booking.status
+  try {
+    const updated = await updateVideoCallStatus(user.value.id, booking.reference, nextStatus, scheduledAt)
+    const index = videoCallBookings.value.findIndex((item) => item.reference === booking.reference)
+    if (index >= 0) videoCallBookings.value[index] = updated
+  } catch (err) {
+    videoCallsError.value = err instanceof Error ? err.message : 'Could not update the appointment time.'
+  }
+}
+
+async function saveVideoCallSettings() {
+  if (!isInternalUser.value || !user.value?.id) return
+  videoCallSettingsSaving.value = true
+  videoCallSettingsMessage.value = ''
+  try {
+    const res = await fetch(`${API_BASE}/api/internal?resource=site-config`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: user.value.id,
+        videoCallEnabled: videoCallEnabled.value,
+        videoCallFee: Math.max(0, Math.floor(Number(videoCallFee.value) || 0)),
+        videoCallMinPrice: Math.max(0, Math.floor(Number(videoCallMinPrice.value) || 0)),
+        videoCallMaxItems: Math.min(20, Math.max(1, Math.floor(Number(videoCallMaxItems.value) || 5))),
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || 'Unable to save video-call settings.')
+    applyVideoCallSettings(data?.siteConfig)
+    invalidateSiteConfig()
+    videoCallSettingsMessage.value = 'Video-call settings saved.'
+  } catch (e) {
+    videoCallSettingsMessage.value = e instanceof Error ? e.message : 'Unable to save video-call settings.'
+  } finally {
+    videoCallSettingsSaving.value = false
+  }
+}
+
+function applyVideoCallSettings(siteConfig: Record<string, unknown> | undefined | null) {
+  videoCallEnabled.value = siteConfig?.videoCallEnabled !== false
+  videoCallFee.value = Number(siteConfig?.videoCallFee) || 0
+  videoCallMinPrice.value = Number(siteConfig?.videoCallMinPrice) || 0
+  videoCallMaxItems.value = Number(siteConfig?.videoCallMaxItems) || 5
 }
 
 // --- Products tab: searchable + paginated list (independent of the dashboard
@@ -895,6 +966,7 @@ async function loadSiteConfig() {
       .sort((a: DiscountTierDraft, b: DiscountTierDraft) => Number(a.minQty) - Number(b.minQty))
     collectionImages.value = normalizeCollectionImagesForView(data?.siteConfig?.collectionImages)
     applyAboutContentToView(data?.siteConfig?.aboutContent)
+    applyVideoCallSettings(data?.siteConfig)
   } catch (e) {
     logoMessage.value = e instanceof Error ? e.message : 'Unable to load branding settings.'
   } finally {
@@ -1457,30 +1529,105 @@ onBeforeUnmount(() => {
           </table>
         </div>
 
-        <div v-else-if="activeTabId === 'video-calls'" class="ect-overflow-x-auto">
+        <div v-else-if="activeTabId === 'video-calls'">
+          <!-- Storefront settings for the consultation feature -->
+          <section v-if="isAdminUser" class="ect-border-b ect-border-sand ect-p-4 sm:ect-p-5">
+            <div class="ect-mb-4 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
+              <div>
+                <p class="ect-mb-1 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-gold-700">Storefront</p>
+                <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Video consultation settings</h2>
+                <p class="ect-mt-1 ect-font-body ect-text-sm ect-text-charcoal/55">Controls the “Add to Video Call” option shoppers see on products, and how many pieces they can bring to one call.</p>
+              </div>
+              <button
+                type="button"
+                class="ect-inline-flex ect-shrink-0 ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60"
+                :disabled="videoCallSettingsSaving || logoLoading"
+                @click="saveVideoCallSettings"
+              >
+                {{ videoCallSettingsSaving ? 'Saving…' : 'Save settings' }}
+              </button>
+            </div>
+
+            <p
+              v-if="videoCallSettingsMessage"
+              class="ect-mb-3 ect-font-body ect-text-sm"
+              :class="videoCallSettingsMessage === 'Video-call settings saved.' ? 'ect-text-emerald-700' : 'ect-text-red-600'"
+            >
+              {{ videoCallSettingsMessage }}
+            </p>
+
+            <article class="ect-max-w-3xl ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-p-5 ect-space-y-5">
+              <label class="ect-flex ect-items-center ect-gap-3 ect-cursor-pointer">
+                <input v-model="videoCallEnabled" type="checkbox" class="ect-h-4 ect-w-4 ect-rounded ect-border-charcoal/25 ect-text-gold-700 focus:ect-ring-gold-400/40" />
+                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Offer video consultations on the storefront</span>
+              </label>
+
+              <div class="ect-grid ect-gap-4 sm:ect-grid-cols-3" :class="videoCallEnabled ? '' : 'ect-opacity-50 ect-pointer-events-none'">
+                <label class="ect-grid ect-gap-1.5">
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Consultation fee (₹)</span>
+                  <input v-model.number="videoCallFee" type="number" min="0" step="100" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                  <span class="ect-font-body ect-text-[11px] ect-text-charcoal/40">0 keeps the call free.</span>
+                </label>
+                <label class="ect-grid ect-gap-1.5">
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Minimum product price (₹)</span>
+                  <input v-model.number="videoCallMinPrice" type="number" min="0" step="1000" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                  <span class="ect-font-body ect-text-[11px] ect-text-charcoal/40">Cheaper pieces don’t show the option. Price-on-request pieces always do.</span>
+                </label>
+                <label class="ect-grid ect-gap-1.5">
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Max pieces per call</span>
+                  <input v-model.number="videoCallMaxItems" type="number" min="1" max="20" step="1" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                  <span class="ect-font-body ect-text-[11px] ect-text-charcoal/40">Between 1 and 20.</span>
+                </label>
+              </div>
+            </article>
+          </section>
+
           <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-3 ect-border-b ect-border-sand ect-bg-cream ect-px-4 ect-py-3">
             <div class="ect-relative ect-w-full sm:ect-w-80">
-              <input v-model="videoCallSearch" type="search" placeholder="Search video-call bookings…" class="ect-w-full ect-rounded-full ect-border ect-border-charcoal/15 ect-bg-white ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-border-gold-400 focus:ect-outline-none" />
+              <input v-model="videoCallSearch" type="search" placeholder="Search video-call requests…" class="ect-w-full ect-rounded-full ect-border ect-border-charcoal/15 ect-bg-white ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-border-gold-400 focus:ect-outline-none" />
             </div>
-            <RouterLink to="/video-consultation" class="sm:ect-ml-auto ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir">Open booking page</RouterLink>
+            <RouterLink to="/video-consultation" class="sm:ect-ml-auto ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir">Open request page</RouterLink>
           </div>
-          <table class="ect-w-full ect-min-w-[980px] ect-border-collapse">
-            <thead class="ect-bg-cream"><tr><th v-for="heading in ['Reference', 'Appointment', 'Customer', 'Contact', 'Notes', 'Status', 'Booked on']" :key="heading" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ heading }}</th></tr></thead>
+          <div class="ect-overflow-x-auto">
+          <table class="ect-w-full ect-min-w-[1180px] ect-border-collapse">
+            <thead class="ect-bg-cream"><tr><th v-for="heading in ['Reference', 'Requested', 'Customer', 'Contact', 'Pieces', 'Availability', 'Appointment', 'Status']" :key="heading" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ heading }}</th></tr></thead>
             <tbody>
-              <tr v-for="booking in filteredVideoCallBookings" :key="booking.reference" class="ect-border-t ect-border-sand">
+              <tr v-for="booking in filteredVideoCallBookings" :key="booking.reference" class="ect-border-t ect-border-sand ect-align-top">
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ booking.reference }}</td>
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ formatDate(booking.scheduledAt) }}<span class="ect-block ect-text-xs ect-font-normal ect-text-charcoal/40">IST</span></td>
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/70">{{ booking.name }}</td>
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/70">{{ booking.phone }}<span class="ect-block ect-text-xs ect-text-charcoal/40">{{ booking.email }}</span></td>
-                <td class="ect-max-w-xs ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/60"><span class="ect-line-clamp-2">{{ booking.notes || '—' }}</span></td>
-                <td class="ect-w-36 ect-px-4 ect-py-3"><UiSelect :model-value="booking.status" :options="videoCallStatusOptions" @update:model-value="setVideoCallStatus(booking, $event)" /></td>
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/50">{{ formatDate(booking.createdAt) }}</td>
+                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/70">{{ booking.name }}<span v-if="booking.notes" class="ect-mt-1 ect-block ect-max-w-[16rem] ect-text-xs ect-text-charcoal/45">“{{ booking.notes }}”</span></td>
+                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/70">
+                  {{ booking.phone }}
+                  <span class="ect-mt-0.5 ect-inline-flex ect-rounded-full ect-px-2 ect-py-0.5 ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.1em]" :class="booking.contactChannel === 'whatsapp' ? 'ect-bg-emerald-50 ect-text-emerald-700' : 'ect-bg-cream ect-text-charcoal/55'">{{ booking.contactChannel === 'whatsapp' ? 'WhatsApp' : 'Phone call' }}</span>
+                  <span class="ect-block ect-text-xs ect-text-charcoal/40">{{ booking.email }}</span>
+                </td>
+                <td class="ect-max-w-xs ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/60">
+                  <span v-if="!booking.items.length" class="ect-text-charcoal/35">No pieces</span>
+                  <ul v-else class="ect-space-y-1">
+                    <li v-for="item in booking.items" :key="item.slug" class="ect-flex ect-items-baseline ect-gap-2">
+                      <RouterLink :to="`/internal/products/${item.slug}`" class="ect-truncate ect-text-charcoal hover:ect-text-gold-700 hover:ect-underline">{{ item.title || item.slug }}</RouterLink>
+                      <span class="ect-shrink-0 ect-text-xs ect-text-charcoal/40">{{ item.price }}</span>
+                    </li>
+                  </ul>
+                </td>
+                <td class="ect-max-w-[12rem] ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/60">{{ booking.preferredTime || '—' }}</td>
+                <td class="ect-px-4 ect-py-3">
+                  <input
+                    type="datetime-local"
+                    :value="toLocalInputValue(booking.scheduledAt)"
+                    class="ect-w-48 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                    @change="setVideoCallSchedule(booking, ($event.target as HTMLInputElement).value)"
+                  />
+                  <span class="ect-mt-1 ect-block ect-font-body ect-text-[11px] ect-text-charcoal/40">Your local time</span>
+                </td>
+                <td class="ect-w-36 ect-px-4 ect-py-3"><UiSelect :model-value="booking.status" :options="videoCallStatusOptions" @update:model-value="setVideoCallStatus(booking, $event)" /></td>
               </tr>
-              <tr v-if="videoCallsLoading && !videoCallBookings.length" class="ect-border-t ect-border-sand"><td colspan="7" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-charcoal/45">Loading video-call bookings…</td></tr>
-              <tr v-else-if="videoCallsError" class="ect-border-t ect-border-sand"><td colspan="7" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-red-600">{{ videoCallsError }}</td></tr>
-              <tr v-else-if="!filteredVideoCallBookings.length" class="ect-border-t ect-border-sand"><td colspan="7" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-charcoal/45">{{ videoCallSearch.trim() ? 'No video-call bookings match your search.' : 'No video-call bookings yet.' }}</td></tr>
+              <tr v-if="videoCallsLoading && !videoCallBookings.length" class="ect-border-t ect-border-sand"><td colspan="8" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-charcoal/45">Loading video-call requests…</td></tr>
+              <tr v-else-if="videoCallsError" class="ect-border-t ect-border-sand"><td colspan="8" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-red-600">{{ videoCallsError }}</td></tr>
+              <tr v-else-if="!filteredVideoCallBookings.length" class="ect-border-t ect-border-sand"><td colspan="8" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-charcoal/45">{{ videoCallSearch.trim() ? 'No video-call requests match your search.' : 'No video-call requests yet.' }}</td></tr>
             </tbody>
           </table>
+          </div>
         </div>
 
         <div v-else-if="activeTabId === 'users'" class="ect-overflow-x-auto">

@@ -6,6 +6,7 @@ import StarRating from '../components/StarRating.vue'
 import VolumeDiscountInfo from '../components/VolumeDiscountInfo.vue'
 import ImageWatermark from '../components/ImageWatermark.vue'
 import { useCart } from '../composables/useCart'
+import { useVideoCallList } from '../composables/useVideoCallList'
 import { useProductsApi } from '../composables/useProductsApi'
 import { setPageMeta, setProductJsonLd } from '../composables/useSeo'
 import { SITE_SETTINGS } from '../config/site-settings'
@@ -21,6 +22,13 @@ function goBack() {
   else router.push('/#collections')
 }
 const { addToCart } = useCart()
+const {
+  add: addToVideoCall,
+  has: inVideoCallList,
+  isEligible: videoCallEligible,
+  isFull: videoCallListFull,
+  maxItems: videoCallMaxItems,
+} = useVideoCallList()
 const { products, ensureProductsLoaded, loading } = useProductsApi()
 
 const product = computed(() => products.value.find((p) => p.slug === String(route.params.slug || '')))
@@ -340,6 +348,21 @@ async function handleAddToCart() {
     addingToCart.value = false
   }
 }
+
+// --- Video consultation shortlist ---
+const showVideoCallOption = computed(() => (product.value ? videoCallEligible(product.value) : false))
+const addedToVideoCall = computed(() => (product.value ? inVideoCallList(product.value.slug) : false))
+const videoCallMessage = ref('')
+
+function handleAddToVideoCall() {
+  if (!product.value) return
+  const result = addToVideoCall(product.value)
+  videoCallMessage.value = result.ok || result.reason === 'duplicate'
+    ? ''
+    : result.reason === 'full'
+      ? `You can bring up to ${videoCallMaxItems.value} pieces to one call. Remove one to add this.`
+      : 'This piece isn’t available for a video consultation.'
+}
 </script>
 
 <template>
@@ -564,6 +587,37 @@ async function handleAddToCart() {
             >
               View Cart
             </RouterLink>
+          </div>
+
+          <!-- Video consultation: shortlist this piece for a call with an expert -->
+          <div v-if="showVideoCallOption" class="ect-mt-3">
+            <div class="ect-flex ect-flex-col sm:ect-flex-row ect-items-stretch sm:ect-items-center ect-gap-3">
+              <button
+                type="button"
+                @click="handleAddToVideoCall"
+                :disabled="addedToVideoCall || (videoCallListFull && !addedToVideoCall)"
+                class="ect-flex-1 ect-inline-flex ect-items-center ect-justify-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-full ect-border ect-font-body ect-text-sm ect-font-semibold ect-transition-colors disabled:ect-cursor-default"
+                :class="addedToVideoCall
+                  ? 'ect-border-emerald-200 ect-bg-emerald-50 ect-text-emerald-700'
+                  : videoCallListFull
+                  ? 'ect-border-sand ect-bg-white ect-text-charcoal/35'
+                  : 'ect-border-charcoal/15 ect-bg-white ect-text-charcoal hover:ect-border-gold-400 hover:ect-text-gold-700'"
+              >
+                <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h8.25a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H4.5A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+                </svg>
+                <span>{{ addedToVideoCall ? 'Added to video call' : 'Add to Video Call' }}</span>
+              </button>
+              <RouterLink
+                v-if="addedToVideoCall"
+                to="/video-consultation"
+                class="ect-inline-flex ect-items-center ect-justify-center ect-px-6 ect-py-3.5 ect-rounded-full ect-border ect-border-charcoal/15 ect-bg-white ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal hover:ect-border-gold-400 hover:ect-text-gold-700 ect-transition-colors"
+              >
+                Book the call
+              </RouterLink>
+            </div>
+            <p v-if="videoCallMessage" class="ect-mt-2 ect-font-body ect-text-xs ect-text-red-600">{{ videoCallMessage }}</p>
+            <p v-else class="ect-mt-2 ect-font-body ect-text-xs ect-text-charcoal/45">See this piece live on a private video call — shortlist up to {{ videoCallMaxItems }} pieces.</p>
           </div>
 
           <p class="ect-mt-3 ect-font-body ect-text-xs ect-leading-5 ect-text-charcoal/45">

@@ -1670,6 +1670,9 @@ async function handleSiteConfigResource(req, res, body) {
     if ('aboutContent' in (body || {})) {
       patch.aboutContent = body.aboutContent
     }
+    for (const key of ['videoCallEnabled', 'videoCallFee', 'videoCallMinPrice', 'videoCallMaxItems']) {
+      if (key in (body || {})) patch[key] = body[key]
+    }
     try {
       return res.status(200).json({ siteConfig: await saveSiteConfig(patch) })
     } catch (error) {
@@ -1802,7 +1805,7 @@ async function handleVideoCallsResource(req, res, body) {
   const internalUser = await assertInternalUser(userId)
   if (!internalUser) return res.status(403).json({ message: 'Internal access required.' })
   if (req.method === 'GET') {
-    const bookings = await prisma.videoCallBooking.findMany({ take: 300, orderBy: { scheduledAt: 'desc' } })
+    const bookings = await prisma.videoCallBooking.findMany({ take: 300, orderBy: { createdAt: 'desc' } })
     return res.status(200).json({ bookings: bookings.map(toVideoCallPayload) })
   }
   if (req.method === 'PUT') {
@@ -1812,7 +1815,18 @@ async function handleVideoCallsResource(req, res, body) {
     if (!VIDEO_CALL_STATUSES.includes(status)) return res.status(400).json({ message: 'Invalid status.' })
     const existing = await prisma.videoCallBooking.findUnique({ where: { reference } })
     if (!existing) return res.status(404).json({ message: 'Video-call booking not found.' })
-    const booking = await prisma.videoCallBooking.update({ where: { reference }, data: { status } })
+    const data = { status }
+    // The agreed time is entered here once the team has reached the customer;
+    // an empty value clears it again.
+    if ('scheduledAt' in (body || {})) {
+      const raw = String(body.scheduledAt || '').trim()
+      const scheduledAt = raw ? new Date(raw) : null
+      if (scheduledAt && Number.isNaN(scheduledAt.getTime())) {
+        return res.status(400).json({ message: 'Invalid appointment time.' })
+      }
+      data.scheduledAt = scheduledAt
+    }
+    const booking = await prisma.videoCallBooking.update({ where: { reference }, data })
     return res.status(200).json({ booking: toVideoCallPayload(booking) })
   }
   res.setHeader('Allow', 'GET,PUT,OPTIONS')
