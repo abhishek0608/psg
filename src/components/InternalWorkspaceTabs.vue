@@ -33,7 +33,7 @@ const tabs: { id: InternalWorkspaceTabId; label: string }[] = [
       :to="{ path: '/internal', query: { tab: t.id } }"
       class="ect-shrink-0 ect-rounded-md ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-transition-colors"
       :class="
-        activeTabId === t.id
+ activeTabId === t.id
           ? 'ect-bg-charcoal ect-text-white'
           : 'ect-text-charcoal/55 hover:ect-bg-champagne/40 hover:ect-text-charcoal'
       "

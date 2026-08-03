@@ -72,7 +72,7 @@ async function submit() {
   <main class="ect-min-h-screen ect-bg-cream ect-pt-28 lg:ect-pt-32 ect-pb-16">
     <section class="ect-bg-charcoal ect-px-6 ect-py-14 sm:ect-py-20 ect-text-cream">
       <div class="ect-mx-auto ect-max-w-5xl ect-text-center">
-        <p class="ect-mb-4 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.2em] ect-text-gold-400">Personal jewellery guidance</p>
+        <p class="ect-mb-4 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-gold-400">Personal jewellery guidance</p>
         <h1 class="ect-mb-5 ect-font-display ect-text-4xl sm:ect-text-6xl ect-font-light">Meet your jewellery expert online</h1>
         <p class="ect-mx-auto ect-max-w-2xl ect-font-body ect-text-base ect-leading-relaxed ect-text-cream/60">Shortlist the pieces you’d like to see, leave your number, and a jewellery specialist will reach out to set up a private video call.</p>
       </div>
@@ -88,7 +88,7 @@ async function submit() {
       <aside class="ect-self-start ect-rounded-3xl ect-bg-white ect-p-6 sm:ect-p-7 ect-ring-1 ect-ring-sand">
         <div class="ect-mb-5 ect-flex ect-items-baseline ect-justify-between ect-gap-3">
           <div>
-            <p class="ect-mb-1 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.16em] ect-text-gold-700">Your shortlist</p>
+            <p class="ect-mb-1 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-gold-700">Your shortlist</p>
             <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Pieces for this call</h2>
           </div>
           <span class="ect-shrink-0 ect-rounded-full ect-bg-cream ect-px-3 ect-py-1 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/60">{{ count }} / {{ maxItems }}</span>
@@ -132,7 +132,7 @@ async function submit() {
       <article class="ect-self-start ect-rounded-3xl ect-bg-white ect-p-6 sm:ect-p-8 ect-ring-1 ect-ring-sand">
         <div v-if="reference" class="ect-py-10 ect-text-center">
           <div class="ect-mx-auto ect-mb-5 ect-grid ect-h-16 ect-w-16 ect-place-items-center ect-rounded-full ect-bg-emerald-50 ect-text-3xl ect-text-emerald-700">✓</div>
-          <p class="ect-mb-2 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.18em] ect-text-gold-700">Request received</p>
+          <p class="ect-mb-2 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-gold-700">Request received</p>
           <h2 class="ect-mb-3 ect-font-display ect-text-3xl ect-text-charcoal">We’ll be in touch shortly</h2>
           <p class="ect-mb-6 ect-font-body ect-text-sm ect-text-charcoal/50">Reference: <strong class="ect-text-charcoal">{{ reference }}</strong></p>
           <p class="ect-mx-auto ect-max-w-md ect-font-body ect-text-sm ect-leading-relaxed ect-text-charcoal/60">

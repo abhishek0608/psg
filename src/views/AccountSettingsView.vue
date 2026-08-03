@@ -101,7 +101,7 @@ async function handleSubmit() {
   <section class="ect-min-h-screen ect-px-4 sm:ect-px-6 ect-pt-28 ect-pb-16 ect-bg-gradient-to-b ect-from-cream ect-via-champagne/40 ect-to-cream">
     <div class="ect-max-w-5xl ect-mx-auto">
       <header class="ect-mb-8 lg:ect-mb-10">
-        <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.18em] ect-text-bluestone-700 ect-mb-2">Jewelet</p>
+        <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-bluestone-700 ect-mb-2">Jewelet</p>
         <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal ect-tracking-wide">Account settings</h1>
       </header>
 
@@ -112,7 +112,7 @@ async function handleSubmit() {
             <span class="ect-inline-flex ect-items-center ect-justify-center ect-w-11 ect-h-11 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-bold ect-uppercase ect-shrink-0">{{ user?.name?.charAt(0) }}</span>
             <span class="ect-min-w-0">
               <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-truncate">{{ user?.name }}</p>
-              <p class="ect-font-body ect-text-[12px] ect-text-charcoal/50 ect-truncate">{{ user?.email }}</p>
+              <p class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-truncate">{{ user?.email }}</p>
             </span>
           </div>
           <nav class="ect-p-2">
@@ -125,7 +125,7 @@ async function handleSubmit() {
               :class="activeSection === section.id ? 'ect-bg-champagne/60 ect-text-charcoal ect-font-semibold' : 'ect-text-charcoal/70 hover:ect-bg-cream hover:ect-text-charcoal'"
             >
               <span class="ect-block">{{ section.label }}</span>
-              <span class="ect-block ect-mt-0.5 ect-text-[11px] ect-font-normal ect-text-charcoal/45">{{ section.description }}</span>
+              <span class="ect-block ect-mt-0.5 ect-text-micro ect-font-normal ect-text-charcoal/45">{{ section.description }}</span>
             </button>
           </nav>
         </aside>
@@ -142,7 +142,7 @@ async function handleSubmit() {
 
             <form @submit.prevent="handleSubmit" class="ect-space-y-5 ect-max-w-md">
               <label class="ect-block">
-                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 ect-mb-1.5 ect-block">Current password</span>
+                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-1.5 ect-block">Current password</span>
                 <div class="ect-relative">
                   <span class="ect-absolute ect-left-4 ect-top-1/2 -ect-translate-y-1/2 ect-text-charcoal/30 ect-pointer-events-none">
                     <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -160,7 +160,7 @@ async function handleSubmit() {
               </label>
 
               <label class="ect-block">
-                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 ect-mb-1.5 ect-block">New password</span>
+                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-1.5 ect-block">New password</span>
                 <div class="ect-relative">
                   <span class="ect-absolute ect-left-4 ect-top-1/2 -ect-translate-y-1/2 ect-text-charcoal/30 ect-pointer-events-none">
                     <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -180,7 +180,7 @@ async function handleSubmit() {
               </label>
 
               <label class="ect-block">
-                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 ect-mb-1.5 ect-block">Confirm new password</span>
+                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-1.5 ect-block">Confirm new password</span>
                 <div class="ect-relative">
                   <span class="ect-absolute ect-left-4 ect-top-1/2 -ect-translate-y-1/2 ect-text-charcoal/30 ect-pointer-events-none">
                     <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -201,7 +201,7 @@ async function handleSubmit() {
               <button
                 type="submit"
                 :disabled="isLoading"
-                class="ect-w-full sm:ect-w-auto ect-px-8 ect-py-4 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-[0.15em] ect-rounded-xl hover:ect-bg-noir focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400 focus:ect-ring-offset-2 focus:ect-ring-offset-white ect-transition-colors disabled:ect-opacity-50 disabled:ect-cursor-not-allowed ect-mt-2"
+                class="ect-w-full sm:ect-w-auto ect-px-8 ect-py-4 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-xl hover:ect-bg-noir focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400 focus:ect-ring-offset-2 focus:ect-ring-offset-white ect-transition-colors disabled:ect-opacity-50 disabled:ect-cursor-not-allowed ect-mt-2"
               >
                 {{ isLoading ? 'Updating…' : 'Update password' }}
               </button>
@@ -246,7 +246,7 @@ async function handleSubmit() {
               </div>
             </section>
 
-            <button type="button" class="ect-mt-5 ect-rounded-xl ect-bg-charcoal ect-px-6 ect-py-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-white hover:ect-bg-noir ect-transition-colors" @click="openNewAddress">Add new address</button>
+            <button type="button" class="ect-mt-5 ect-rounded-xl ect-bg-charcoal ect-px-6 ect-py-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-white hover:ect-bg-noir ect-transition-colors" @click="openNewAddress">Add new address</button>
 
             <form v-if="showAddressForm" class="ect-mt-6 ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-p-5 sm:ect-p-6" @submit.prevent="submitAddress">
               <div class="ect-mb-5 ect-flex ect-items-center ect-justify-between">
@@ -264,7 +264,7 @@ async function handleSubmit() {
                 <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Country *</span><select v-model="addressForm.country" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none"><option v-for="country in COUNTRY_OPTIONS" :key="country.code" :value="country.code">{{ country.name }}</option></select></label>
                 <label class="ect-block"><span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60">Postal code *</span><input v-model="addressForm.pincode" required class="ect-w-full ect-rounded-xl ect-border ect-border-sand ect-bg-cream ect-px-4 ect-py-3 ect-font-body ect-text-sm focus:ect-border-gold-400 focus:ect-outline-none" /></label>
               </div>
-              <button type="submit" class="ect-mt-5 ect-rounded-xl ect-bg-gold-600 ect-px-6 ect-py-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-white hover:ect-bg-gold-700 ect-transition-colors">{{ editingAddressId ? 'Save changes' : 'Save address' }}</button>
+              <button type="submit" class="ect-mt-5 ect-rounded-xl ect-bg-gold-600 ect-px-6 ect-py-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-white hover:ect-bg-gold-700 ect-transition-colors">{{ editingAddressId ? 'Save changes' : 'Save address' }}</button>
             </form>
           </div>
         </div>

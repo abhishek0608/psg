@@ -1466,7 +1466,7 @@ onBeforeUnmount(() => {
           </div>
           <InternalNewOrderModal v-if="newOrderOpen" @close="newOrderOpen = false" @created="onOrderCreated" />
           <table class="ect-w-full ect-min-w-[980px] ect-border-collapse">
-            <thead class="ect-bg-cream"><tr><th v-for="h in ['Order', 'Customer', 'Items', 'Status', 'Total', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ h }}</th></tr></thead>
+            <thead class="ect-bg-cream"><tr><th v-for="h in ['Order', 'Customer', 'Items', 'Status', 'Total', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/45">{{ h }}</th></tr></thead>
             <tbody>
               <template v-if="orderListLoading">
                 <tr v-for="index in skeletonRows" :key="index" class="ect-border-t ect-border-sand">
@@ -1549,7 +1549,7 @@ onBeforeUnmount(() => {
           <table class="ect-w-full ect-min-w-[860px] ect-border-collapse">
             <thead class="ect-bg-cream">
               <tr>
-                <th v-for="h in ['Quote', 'Customer', 'Items', 'Total', 'Status', 'Created']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ h }}</th>
+                <th v-for="h in ['Quote', 'Customer', 'Items', 'Total', 'Status', 'Created']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/45">{{ h }}</th>
               </tr>
             </thead>
             <tbody>
@@ -1573,7 +1573,7 @@ onBeforeUnmount(() => {
                 <td class="ect-px-4 ect-py-3">
                   <span class="ect-rounded-full ect-px-2.5 ect-py-1 ect-font-body ect-text-xs ect-font-semibold ect-capitalize"
                     :class="{
-                      'ect-bg-amber-100 ect-text-amber-700': quote.status === 'pending',
+ 'ect-bg-amber-100 ect-text-amber-700': quote.status === 'pending',
                       'ect-bg-blue-100 ect-text-blue-700': quote.status === 'reviewing',
                       'ect-bg-purple-100 ect-text-purple-700': quote.status === 'quoted',
                       'ect-bg-emerald-100 ect-text-emerald-700': quote.status === 'accepted',
@@ -1594,7 +1594,7 @@ onBeforeUnmount(() => {
           <section v-if="isAdminUser" class="ect-border-b ect-border-sand ect-p-4 sm:ect-p-5">
             <div class="ect-mb-4 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
               <div>
-                <p class="ect-mb-1 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-gold-700">Storefront</p>
+                <p class="ect-mb-1 ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700">Storefront</p>
                 <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Video consultation settings</h2>
                 <p class="ect-mt-1 ect-font-body ect-text-sm ect-text-charcoal/55">Controls the “Add to Video Call” option shoppers see on products, and how many pieces they can bring to one call.</p>
               </div>
@@ -1624,19 +1624,19 @@ onBeforeUnmount(() => {
 
               <div class="ect-grid ect-gap-4 sm:ect-grid-cols-3" :class="videoCallEnabled ? '' : 'ect-opacity-50 ect-pointer-events-none'">
                 <label class="ect-grid ect-gap-1.5">
-                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Consultation fee (₹)</span>
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Consultation fee (₹)</span>
                   <input v-model.number="videoCallFee" type="number" min="0" step="100" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
-                  <span class="ect-font-body ect-text-[11px] ect-text-charcoal/40">0 keeps the call free.</span>
+                  <span class="ect-font-body ect-text-micro ect-text-charcoal/40">0 keeps the call free.</span>
                 </label>
                 <label class="ect-grid ect-gap-1.5">
-                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Minimum product price (₹)</span>
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Minimum product price (₹)</span>
                   <input v-model.number="videoCallMinPrice" type="number" min="0" step="1000" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
-                  <span class="ect-font-body ect-text-[11px] ect-text-charcoal/40">Cheaper pieces don’t show the option. Price-on-request pieces always do.</span>
+                  <span class="ect-font-body ect-text-micro ect-text-charcoal/40">Cheaper pieces don’t show the option. Price-on-request pieces always do.</span>
                 </label>
                 <label class="ect-grid ect-gap-1.5">
-                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Max pieces per call</span>
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Max pieces per call</span>
                   <input v-model.number="videoCallMaxItems" type="number" min="1" max="20" step="1" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
-                  <span class="ect-font-body ect-text-[11px] ect-text-charcoal/40">Between 1 and 20.</span>
+                  <span class="ect-font-body ect-text-micro ect-text-charcoal/40">Between 1 and 20.</span>
                 </label>
               </div>
             </article>
@@ -1650,7 +1650,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="ect-overflow-x-auto">
           <table class="ect-w-full ect-min-w-[1180px] ect-border-collapse">
-            <thead class="ect-bg-cream"><tr><th v-for="heading in ['Reference', 'Requested', 'Customer', 'Contact', 'Pieces', 'Availability', 'Appointment', 'Status']" :key="heading" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ heading }}</th></tr></thead>
+            <thead class="ect-bg-cream"><tr><th v-for="heading in ['Reference', 'Requested', 'Customer', 'Contact', 'Pieces', 'Availability', 'Appointment', 'Status']" :key="heading" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/45">{{ heading }}</th></tr></thead>
             <tbody>
               <tr v-for="booking in filteredVideoCallBookings" :key="booking.reference" class="ect-border-t ect-border-sand ect-align-top">
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ booking.reference }}</td>
@@ -1658,7 +1658,7 @@ onBeforeUnmount(() => {
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/70">{{ booking.name }}<span v-if="booking.notes" class="ect-mt-1 ect-block ect-max-w-[16rem] ect-text-xs ect-text-charcoal/45">“{{ booking.notes }}”</span></td>
                 <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/70">
                   {{ booking.phone }}
-                  <span class="ect-mt-0.5 ect-inline-flex ect-rounded-full ect-px-2 ect-py-0.5 ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.1em]" :class="booking.contactChannel === 'whatsapp' ? 'ect-bg-emerald-50 ect-text-emerald-700' : 'ect-bg-cream ect-text-charcoal/55'">{{ booking.contactChannel === 'whatsapp' ? 'WhatsApp' : 'Phone call' }}</span>
+                  <span class="ect-mt-0.5 ect-inline-flex ect-rounded-full ect-px-2 ect-py-0.5 ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label" :class="booking.contactChannel === 'whatsapp' ? 'ect-bg-emerald-50 ect-text-emerald-700' : 'ect-bg-cream ect-text-charcoal/55'">{{ booking.contactChannel === 'whatsapp' ? 'WhatsApp' : 'Phone call' }}</span>
                   <span class="ect-block ect-text-xs ect-text-charcoal/40">{{ booking.email }}</span>
                 </td>
                 <td class="ect-max-w-xs ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/60">
@@ -1678,7 +1678,7 @@ onBeforeUnmount(() => {
                     class="ect-w-48 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
                     @change="setVideoCallSchedule(booking, ($event.target as HTMLInputElement).value)"
                   />
-                  <span class="ect-mt-1 ect-block ect-font-body ect-text-[11px] ect-text-charcoal/40">Your local time</span>
+                  <span class="ect-mt-1 ect-block ect-font-body ect-text-micro ect-text-charcoal/40">Your local time</span>
                 </td>
                 <td class="ect-w-36 ect-px-4 ect-py-3"><UiSelect :model-value="booking.status" :options="videoCallStatusOptions" @update:model-value="setVideoCallStatus(booking, $event)" /></td>
               </tr>
@@ -1713,7 +1713,7 @@ onBeforeUnmount(() => {
           </div>
           <InternalNewUserModal v-if="newUserOpen" @close="newUserOpen = false" @created="onUserCreated" />
           <table class="ect-w-full ect-min-w-[940px] ect-border-collapse">
-            <thead class="ect-bg-cream"><tr><th v-for="h in ['Name', 'Email', 'Type', 'Channel', 'Orders', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ h }}</th></tr></thead>
+            <thead class="ect-bg-cream"><tr><th v-for="h in ['Name', 'Email', 'Type', 'Channel', 'Orders', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/45">{{ h }}</th></tr></thead>
             <tbody>
               <template v-if="userListLoading">
                 <tr v-for="index in skeletonRows" :key="index" class="ect-border-t ect-border-sand">
@@ -1745,7 +1745,7 @@ onBeforeUnmount(() => {
         <div v-else-if="activeTabId === 'homepage'" class="ect-p-4 sm:ect-p-5">
           <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
             <div>
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-gold-700 ect-mb-1">Storefront hero</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Storefront hero</p>
               <div class="ect-flex ect-items-center ect-gap-2">
                 <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Homepage full-screen images</h2>
                 <span
@@ -1762,7 +1762,7 @@ onBeforeUnmount(() => {
                   <span
                     class="ect-pointer-events-none ect-absolute ect-left-0 ect-top-full ect-z-30 ect-mt-2 ect-w-[20rem] ect-max-w-[80vw] ect-rounded-xl ect-border ect-border-charcoal/10 ect-bg-white ect-p-4 ect-text-left ect-font-body ect-text-charcoal/70 ect-opacity-0 ect-shadow-[0_18px_50px_-20px_rgba(0,0,0,0.45)] ect-transition-opacity ect-duration-150 group-hover:ect-opacity-100 group-focus-within:ect-opacity-100"
                   >
-                    <span class="ect-mb-2 ect-block ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal">For crisp, undistorted banners</span>
+                    <span class="ect-mb-2 ect-block ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal">For crisp, undistorted banners</span>
                     <span class="ect-mb-2.5 ect-block ect-text-xs ect-leading-relaxed ect-text-charcoal/55">The hero stretches each image to fill the frame (no cropping), so the image’s shape must match the slot or it will look squished.</span>
                     <span class="ect-block ect-space-y-1.5 ect-text-xs ect-leading-relaxed">
                       <span class="ect-flex ect-justify-between ect-gap-3"><span class="ect-text-charcoal/55">Desktop</span><span class="ect-font-semibold ect-text-charcoal">2560 × 1440 px · 16:9 landscape</span></span>
@@ -1821,18 +1821,18 @@ onBeforeUnmount(() => {
             >
               <div class="ect-bg-charcoal/5 ect-p-3">
                 <div class="ect-mb-2 ect-flex ect-items-center ect-justify-between">
-                  <span class="ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-white/90 ect-px-3 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal">
+                  <span class="ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-white/90 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal">
                     Slide {{ index + 1 }}
                   </span>
                   <span
                     v-if="slide.device && slide.device !== 'all'"
-                    class="ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-charcoal/85 ect-px-3 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-white">
+                    class="ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-charcoal/85 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-white">
                     {{ slide.device === 'mobile' ? 'Mobile only' : 'Desktop only' }}
                   </span>
                 </div>
                 <div class="ect-flex ect-gap-3">
                   <div class="ect-flex-1 ect-min-w-0">
-                    <span class="ect-mb-1 ect-block ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/45">Desktop</span>
+                    <span class="ect-mb-1 ect-block ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Desktop</span>
                     <div class="ect-relative ect-aspect-[16/10] ect-overflow-hidden ect-rounded-xl ect-bg-charcoal/10">
                       <img
                         v-if="slide.imageUrl"
@@ -1846,7 +1846,7 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                   <div class="ect-w-24 ect-shrink-0 sm:ect-w-28">
-                    <span class="ect-mb-1 ect-block ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/45">Mobile</span>
+                    <span class="ect-mb-1 ect-block ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Mobile</span>
                     <div class="ect-relative ect-aspect-[9/16] ect-overflow-hidden ect-rounded-xl ect-bg-charcoal/10">
                       <img
                         v-if="slide.mobileImageUrl"
@@ -1904,7 +1904,7 @@ onBeforeUnmount(() => {
 
                 <p
                   v-if="slide.videoUrl || slide.mobileVideoUrl"
-                  class="ect-rounded-xl ect-bg-cream ect-px-3 ect-py-2 ect-font-body ect-text-[11px] ect-leading-5 ect-text-charcoal/60"
+                  class="ect-rounded-xl ect-bg-cream ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-leading-5 ect-text-charcoal/60"
                 >
                   This slide plays a video. The image above is still used as its
                   poster frame — keep one set so the banner paints instantly while
@@ -1912,49 +1912,49 @@ onBeforeUnmount(() => {
                 </p>
 
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Desktop image URL</span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Desktop image URL</span>
                   <input v-model="slide.imageUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
 
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Mobile image URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Mobile image URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
                   <input v-model="slide.mobileImageUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
 
                 <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Desktop video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Desktop video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
                     <input v-model="slide.videoUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Mobile video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Mobile video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
                     <input v-model="slide.mobileVideoUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                 </div>
 
                 <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Headline</span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Headline</span>
                     <input v-model="slide.headline" type="text" placeholder="Optional headline" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">CTA label</span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">CTA label</span>
                     <input v-model="slide.ctaLabel" type="text" placeholder="Explore now" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                 </div>
 
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Subheadline</span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Subheadline</span>
                   <textarea v-model="slide.subheadline" rows="3" placeholder="Optional supporting copy" class="ect-w-full ect-resize-none ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"></textarea>
                 </label>
 
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">CTA link</span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">CTA link</span>
                   <input v-model="slide.ctaHref" type="text" placeholder="/collections or https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
 
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Show on</span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Show on</span>
                   <select v-model="slide.device" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40">
                     <option value="all">All devices</option>
                     <option value="desktop">Desktop only</option>
@@ -1993,7 +1993,7 @@ onBeforeUnmount(() => {
           <div class="ect-mt-10 ect-border-t ect-border-sand ect-pt-8">
             <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
               <div>
-                <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-gold-700 ect-mb-1">Storefront grid</p>
+                <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Storefront grid</p>
                 <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Shop by Collection images</h2>
                 <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Set an image for each collection tile on the homepage grid. Tiles left blank keep the default gold placeholder. Landscape images around 700 × 500 px (7:5) look best.</p>
               </div>
@@ -2037,7 +2037,7 @@ onBeforeUnmount(() => {
                   <div v-else class="ect-flex ect-h-full ect-items-center ect-justify-center ect-px-2 ect-text-center ect-font-body ect-text-xs ect-text-charcoal/40">
                     No image — placeholder shown
                   </div>
-                  <span class="ect-pointer-events-none ect-absolute ect-bottom-2 ect-left-2 ect-rounded-full ect-bg-white/90 ect-px-3 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal">
+                  <span class="ect-pointer-events-none ect-absolute ect-bottom-2 ect-left-2 ect-rounded-full ect-bg-white/90 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal">
                     {{ link.title }}
                   </span>
                 </div>
@@ -2062,7 +2062,7 @@ onBeforeUnmount(() => {
                     </button>
                   </div>
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Image URL</span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Image URL</span>
                     <input
                       :value="collectionImages[link.slug] || ''"
                       type="text"
@@ -2080,7 +2080,7 @@ onBeforeUnmount(() => {
         <div v-else-if="activeTabId === 'about'" class="ect-p-4 sm:ect-p-5">
           <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
             <div>
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-gold-700 ect-mb-1">Storefront page</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Storefront page</p>
               <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">About Us page</h2>
               <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Configure the hero copy, journey milestones, and team portraits shown on the About page. Use real group and founder photos — landscape ~1200 × 900 px (4:3) for milestones, portrait ~900 × 1200 px (3:4) for people. Fields left blank keep the built-in defaults.</p>
             </div>
@@ -2105,19 +2105,19 @@ onBeforeUnmount(() => {
 
           <!-- Hero copy -->
           <div class="ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-p-4 ect-mb-8">
-            <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/45 ect-mb-3">Hero copy</p>
+            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-3">Hero copy</p>
             <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
               <label class="ect-block">
-                <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Eyebrow</span>
+                <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Eyebrow</span>
                 <input v-model="aboutHeroEyebrow" type="text" placeholder="Jewelet · Jaipur" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
               </label>
               <label class="ect-block">
-                <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Headline</span>
+                <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Headline</span>
                 <input v-model="aboutHeroHeadline" type="text" placeholder="Brilliance by Design" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
               </label>
             </div>
             <label class="ect-block ect-mt-4">
-              <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Subheadline</span>
+              <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Subheadline</span>
               <textarea v-model="aboutHeroSubheadline" rows="2" placeholder="Reinventing fine jewellery with precision, craftsmanship and stories told in every stone." class="ect-w-full ect-resize-none ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"></textarea>
             </label>
           </div>
@@ -2125,7 +2125,7 @@ onBeforeUnmount(() => {
           <!-- Journey milestones -->
           <div class="ect-mb-3 ect-flex ect-items-center ect-justify-between">
             <div>
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/45">Journey milestones</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/45">Journey milestones</p>
               <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Shown as alternating photo + story rows. Add your group photos here — until a milestone is added, the page shows the built-in three (2004 Mumbai → 2010 New York → 2024 Jaipur).</p>
             </div>
             <button
@@ -2148,7 +2148,7 @@ onBeforeUnmount(() => {
                 <div v-else class="ect-flex ect-h-full ect-items-center ect-justify-center ect-px-2 ect-text-center ect-font-body ect-text-xs ect-text-charcoal/40">
                   Add a group / workshop photo (4:3)
                 </div>
-                <span class="ect-pointer-events-none ect-absolute ect-bottom-2 ect-left-2 ect-rounded-full ect-bg-white/90 ect-px-3 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal">
+                <span class="ect-pointer-events-none ect-absolute ect-bottom-2 ect-left-2 ect-rounded-full ect-bg-white/90 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal">
                   Milestone {{ index + 1 }}
                 </span>
               </div>
@@ -2160,25 +2160,25 @@ onBeforeUnmount(() => {
                   </label>
                 </div>
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Image URL</span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Image URL</span>
                   <input v-model="step.imageUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
                 <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Year</span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Year</span>
                     <input v-model="step.year" type="text" placeholder="2024" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Place</span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Place</span>
                     <input v-model="step.place" type="text" placeholder="Jaipur" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                 </div>
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Title <span class="ect-text-red-500">*</span></span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Title <span class="ect-text-red-500">*</span></span>
                   <input v-model="step.title" type="text" placeholder="Jewelet" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
                 <label class="ect-block">
-                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Story</span>
+                  <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Story</span>
                   <textarea v-model="step.desc" rows="3" placeholder="What happened at this point in the journey…" class="ect-w-full ect-resize-none ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"></textarea>
                 </label>
                 <div class="ect-flex ect-flex-wrap ect-items-center ect-justify-between ect-gap-3 ect-border-t ect-border-sand ect-pt-4">
@@ -2204,7 +2204,7 @@ onBeforeUnmount(() => {
           <div class="ect-border-t ect-border-sand ect-pt-8">
             <div class="ect-mb-3 ect-flex ect-items-center ect-justify-between">
               <div>
-                <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/45">Founders &amp; team</p>
+                <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/45">Founders &amp; team</p>
                 <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Portrait cards shown in a "The people behind Jewelet" section. The section stays hidden until at least one person is added.</p>
               </div>
               <button
@@ -2236,16 +2236,16 @@ onBeforeUnmount(() => {
                     </label>
                   </div>
                   <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Image URL</span>
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Image URL</span>
                     <input v-model="member.imageUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                   <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
                     <label class="ect-block">
-                      <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Name</span>
+                      <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Name</span>
                       <input v-model="member.name" type="text" placeholder="Full name" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                     </label>
                     <label class="ect-block">
-                      <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Role</span>
+                      <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Role</span>
                       <input v-model="member.role" type="text" placeholder="Co-founder" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                     </label>
                   </div>
@@ -2273,7 +2273,7 @@ onBeforeUnmount(() => {
         <div v-else-if="activeTabId === 'branding'" class="ect-p-4 sm:ect-p-5">
           <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
             <div>
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-gold-700 ect-mb-1">Storefront identity</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Storefront identity</p>
               <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Site logo</h2>
               <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Upload a logo or paste an image URL. It replaces the logo in the header and footer across the storefront. If left empty, the bundled default logo is used.</p>
             </div>
@@ -2325,7 +2325,7 @@ onBeforeUnmount(() => {
               </div>
 
               <label class="ect-block">
-                <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Logo image URL</span>
+                <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Logo image URL</span>
                 <input v-model="logoUrl" type="text" placeholder="https://… or upload above" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
               </label>
             </div>
@@ -2335,7 +2335,7 @@ onBeforeUnmount(() => {
         <div v-else-if="activeTabId === 'discounts'" class="ect-p-4 sm:ect-p-5">
           <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
             <div>
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-gold-700 ect-mb-1">Pricing</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Pricing</p>
               <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Volume discount</h2>
               <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Reward larger orders with an automatic discount based on the total number of items in the cart. The best matching tier is applied at checkout.</p>
             </div>
@@ -2369,7 +2369,7 @@ onBeforeUnmount(() => {
 
             <div :class="volumeDiscountEnabled ? '' : 'ect-opacity-50 ect-pointer-events-none'">
               <div class="ect-flex ect-items-center ect-justify-between ect-mb-2">
-                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Discount tiers</span>
+                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Discount tiers</span>
                 <button
                   type="button"
                   class="ect-inline-flex ect-items-center ect-gap-1 ect-rounded-full ect-border ect-border-gold-400 ect-px-3 ect-py-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-gold-700 hover:ect-bg-cream"
@@ -2418,7 +2418,7 @@ onBeforeUnmount(() => {
                 </div>
               </div>
 
-              <p class="ect-mt-3 ect-font-body ect-text-[11px] ect-text-charcoal/40">Tiers are matched by total cart quantity; the highest tier the cart qualifies for wins. Customized (quote) items count toward quantity but the percentage only reduces the priced subtotal.</p>
+              <p class="ect-mt-3 ect-font-body ect-text-micro ect-text-charcoal/40">Tiers are matched by total cart quantity; the highest tier the cart qualifies for wins. Customized (quote) items count toward quantity but the percentage only reduces the priced subtotal.</p>
             </div>
           </article>
         </div>
@@ -2614,7 +2614,7 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <table class="ect-w-full ect-min-w-[920px] ect-border-collapse">
-            <thead class="ect-bg-cream"><tr><th v-for="h in ['Product', 'Category', 'Material', 'Price', 'Status', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">{{ h }}</th></tr></thead>
+            <thead class="ect-bg-cream"><tr><th v-for="h in ['Product', 'Category', 'Material', 'Price', 'Status', 'Created', 'Modified']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/45">{{ h }}</th></tr></thead>
             <tbody>
               <template v-if="productListLoading">
                 <tr v-for="index in skeletonRows" :key="index" class="ect-border-t ect-border-sand">

@@ -207,13 +207,13 @@ onUnmounted(() => {
         <div class="ect-absolute ect-inset-0 ect-flex ect-flex-col ect-justify-end">
           <div class="ect-mx-auto ect-w-full ect-max-w-7xl ect-px-5 sm:ect-px-6 lg:ect-px-8 ect-pb-10 sm:ect-pb-14 lg:ect-pb-16">
             <div class="ect-max-w-3xl ect-rounded-[2rem] ect-border ect-border-white/12 ect-bg-[linear-gradient(135deg,rgba(18,13,12,0.40),rgba(18,13,12,0.18))] ect-p-6 sm:ect-p-8 lg:ect-p-10 ect-shadow-[0_24px_80px_-28px_rgba(0,0,0,0.65)] ect-backdrop-blur-md">
-              <p class="ect-mb-4 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-border ect-border-white/15 ect-bg-white/10 ect-px-3 ect-py-1 ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.18em] ect-text-white/85">
+              <p class="ect-mb-4 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-border ect-border-white/15 ect-bg-white/10 ect-px-3 ect-py-1 ect-eyebrow ect-text-white/85">
                 <span class="ect-h-1.5 ect-w-1.5 ect-rounded-full ect-bg-gold-300" />
                 Curated Campaign
               </p>
               <h1
                 v-if="currentSlide.headline"
-                class="ect-font-display ect-text-4xl ect-font-light ect-leading-[0.98] sm:ect-text-6xl lg:ect-text-[5.25rem]"
+                class="ect-font-display ect-text-4xl ect-font-light ect-leading-display ect-tracking-display sm:ect-text-6xl lg:ect-text-[5.25rem]"
               >
                 {{ currentSlide.headline }}
               </h1>
@@ -297,11 +297,11 @@ onUnmounted(() => {
 
     <article class="ect-relative ect-max-w-7xl ect-mx-auto ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 ect-gap-10 ect-items-center ect-fade-up">
       <section>
-        <p class="ect-inline-flex ect-items-center ect-gap-2.5 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-gold-700 ect-mb-5">
+        <p class="ect-eyebrow ect-inline-flex ect-items-center ect-gap-2.5 ect-text-gold-700 ect-mb-5">
           <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
           Handcrafted in Jaipur
         </p>
-        <h1 class="ect-font-display ect-text-4xl sm:ect-text-6xl ect-font-light ect-tracking-[0.01em] ect-mb-5 ect-leading-[1.05] ect-text-charcoal">
+        <h1 class="ect-font-display ect-text-4xl sm:ect-text-6xl ect-font-light ect-mb-5 ect-leading-display ect-tracking-display ect-text-charcoal">
           Crafted for<br /><span class="ect-italic ect-text-gold-600">the moment</span> that matters
         </h1>
         <p class="ect-font-body ect-text-base sm:ect-text-lg ect-text-ink/70 ect-max-w-lg ect-mb-6 ect-leading-relaxed">Timeless jewellery that tells your story — hand-finished by master artisans using conflict-free stones and BIS-hallmarked gold.</p>
@@ -357,20 +357,20 @@ onUnmounted(() => {
 
     <ul class="ect-relative ect-max-w-7xl ect-mx-auto ect-mt-12 ect-pt-8 ect-border-t ect-border-sand ect-grid ect-grid-cols-2 sm:ect-grid-cols-4 ect-gap-4 ect-list-none ect-m-0 ect-p-0">
       <li class="ect-text-center">
-        <p class="ect-font-display ect-text-3xl ect-text-charcoal">500+</p>
-        <p class="ect-font-body ect-text-[11px] ect-text-ink/45 ect-uppercase ect-tracking-[0.18em] ect-mt-1">Unique Designs</p>
+        <p class="ect-font-display ect-tabular-nums ect-text-3xl ect-font-medium ect-tracking-display-sm ect-text-charcoal">500+</p>
+        <p class="ect-eyebrow ect-text-ink/45 ect-mt-1.5">Unique Designs</p>
       </li>
       <li class="ect-text-center">
-        <p class="ect-font-display ect-text-3xl ect-text-charcoal">9ct</p>
-        <p class="ect-font-body ect-text-[11px] ect-text-ink/45 ect-uppercase ect-tracking-[0.18em] ect-mt-1">Gold Designs</p>
+        <p class="ect-font-display ect-tabular-nums ect-text-3xl ect-font-medium ect-tracking-display-sm ect-text-charcoal">9ct</p>
+        <p class="ect-eyebrow ect-text-ink/45 ect-mt-1.5">Gold Designs</p>
       </li>
       <li class="ect-text-center">
-        <p class="ect-font-display ect-text-3xl ect-text-charcoal">BIS</p>
-        <p class="ect-font-body ect-text-[11px] ect-text-ink/45 ect-uppercase ect-tracking-[0.18em] ect-mt-1">Hallmarked</p>
+        <p class="ect-font-display ect-tabular-nums ect-text-3xl ect-font-medium ect-tracking-display-sm ect-text-charcoal">BIS</p>
+        <p class="ect-eyebrow ect-text-ink/45 ect-mt-1.5">Hallmarked</p>
       </li>
       <li class="ect-text-center">
-        <p class="ect-font-display ect-text-3xl ect-text-charcoal">Free</p>
-        <p class="ect-font-body ect-text-[11px] ect-text-ink/45 ect-uppercase ect-tracking-[0.18em] ect-mt-1">Pan-India Shipping</p>
+        <p class="ect-font-display ect-tabular-nums ect-text-3xl ect-font-medium ect-tracking-display-sm ect-text-charcoal">Free</p>
+        <p class="ect-eyebrow ect-text-ink/45 ect-mt-1.5">Pan-India Shipping</p>
       </li>
     </ul>
   </section>

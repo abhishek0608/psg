@@ -15,7 +15,7 @@ function handleSubmit() {
   <section class="ect-min-h-screen ect-bg-gradient-to-b ect-from-cream ect-via-champagne/40 ect-to-cream ect-pt-28 sm:ect-pt-36 ect-pb-24 ect-px-6">
     <article class="ect-max-w-5xl ect-mx-auto">
       <header class="ect-text-center ect-mb-14 sm:ect-mb-20">
-        <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-sm ect-uppercase ect-tracking-[0.15em] ect-text-gold-700 ect-mb-4">
+        <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-sm ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-4">
           <span class="ect-w-6 ect-h-px ect-bg-gold-400" /> Get in Touch
         </p>
         <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal ect-mb-6 ect-tracking-wide">Contact Us</h1>
@@ -77,7 +77,7 @@ function handleSubmit() {
           <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-text-charcoal ect-mb-6">Send a message</h2>
           <form @submit.prevent="handleSubmit" class="ect-space-y-5">
             <label class="ect-block">
-              <span class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-[0.15em] ect-text-charcoal/70 ect-mb-2 ect-block">Name</span>
+              <span class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-2 ect-block">Name</span>
               <input
                 v-model="name"
                 type="text"
@@ -87,7 +87,7 @@ function handleSubmit() {
               />
             </label>
             <label class="ect-block">
-              <span class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-[0.15em] ect-text-charcoal/70 ect-mb-2 ect-block">Email</span>
+              <span class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-2 ect-block">Email</span>
               <input
                 v-model="email"
                 type="email"
@@ -97,7 +97,7 @@ function handleSubmit() {
               />
             </label>
             <label class="ect-block">
-              <span class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-[0.15em] ect-text-charcoal/70 ect-mb-2 ect-block">Message</span>
+              <span class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-2 ect-block">Message</span>
               <textarea
                 v-model="message"
                 required

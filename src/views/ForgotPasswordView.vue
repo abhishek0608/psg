@@ -31,7 +31,7 @@ async function handleSubmit() {
 
         <div class="ect-px-8 ect-pt-10 ect-pb-8 sm:ect-px-10 sm:ect-pt-12 sm:ect-pb-10">
           <header class="ect-text-center ect-mb-8">
-            <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.18em] ect-text-bluestone-700 ect-mb-3">Jewelet</p>
+            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-bluestone-700 ect-mb-3">Jewelet</p>
             <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal ect-tracking-wide ect-mb-2">Forgot password</h1>
             <p class="ect-font-body ect-text-base ect-text-charcoal/60">Enter your email and we'll send you a reset link</p>
           </header>
@@ -42,7 +42,7 @@ async function handleSubmit() {
 
           <form v-else @submit.prevent="handleSubmit" class="ect-space-y-5">
             <label class="ect-block">
-              <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 ect-mb-1.5 ect-block">Email</span>
+              <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-1.5 ect-block">Email</span>
               <div class="ect-relative">
                 <span class="ect-absolute ect-left-4 ect-top-1/2 -ect-translate-y-1/2 ect-text-charcoal/30 ect-pointer-events-none">
                   <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -62,7 +62,7 @@ async function handleSubmit() {
             <button
               type="submit"
               :disabled="isLoading"
-              class="ect-w-full ect-py-4 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-[0.15em] ect-rounded-xl hover:ect-bg-noir focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400 focus:ect-ring-offset-2 focus:ect-ring-offset-white ect-transition-colors disabled:ect-opacity-50 disabled:ect-cursor-not-allowed ect-mt-6"
+              class="ect-w-full ect-py-4 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-xl hover:ect-bg-noir focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400 focus:ect-ring-offset-2 focus:ect-ring-offset-white ect-transition-colors disabled:ect-opacity-50 disabled:ect-cursor-not-allowed ect-mt-6"
             >
               {{ isLoading ? 'Sending…' : 'Send reset link' }}
             </button>

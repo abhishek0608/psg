@@ -8,9 +8,11 @@ html {
 
 body {
   @apply ect-antialiased ect-bg-cream ect-text-charcoal;
-  font-family: 'DM Sans', system-ui, sans-serif;
-  font-feature-settings: 'ss01' 1, 'ss02' 1;
-  letter-spacing: 0;
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  /* Instrument Sans is drawn fairly tight; a hair of negative tracking at body
+     size keeps colour even without the letters touching. */
+  letter-spacing: -0.006em;
 }
 
 #app {
@@ -23,23 +25,61 @@ body {
   color: #17202a;
 }
 
-/* Display headings: elegant serif */
-.ect-font-display {
-  letter-spacing: 0.02em;
-  font-feature-settings: 'kern' 1, 'liga' 1;
-}
-.ect-text-2xl.ect-font-display,
-.ect-text-3xl.ect-font-display,
-.ect-text-4xl.ect-font-display,
-.ect-text-5xl.ect-font-display {
-  line-height: 1.18;
-  letter-spacing: 0.025em;
+/* Type defaults live in the components layer so that per-element `tracking-*`
+   and `leading-*` utilities (emitted into the later utilities layer) can still
+   override them. Redefining them at top level would outrank every utility. */
+@layer components {
+  /* Fraunces is a variable face: `opsz` retunes contrast and detail for the
+     size it is actually rendered at, and SOFT/WONK are pinned to their crisp
+     settings so headings read refined rather than novelty. */
+  .ect-font-display {
+    font-optical-sizing: auto;
+    font-variation-settings: 'SOFT' 0, 'WONK' 0;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    letter-spacing: -0.012em;
+  }
+
+  /* Tracking tightens as display type grows — the single biggest tell of
+     typography that was set rather than defaulted. */
+  .ect-text-2xl.ect-font-display,
+  .ect-text-3xl.ect-font-display {
+    line-height: 1.14;
+    letter-spacing: -0.016em;
+  }
+  .ect-text-4xl.ect-font-display,
+  .ect-text-5xl.ect-font-display,
+  .ect-text-6xl.ect-font-display,
+  .ect-text-7xl.ect-font-display {
+    line-height: 1.04;
+    letter-spacing: -0.022em;
+  }
+
+  /* Body copy: comfortable reading */
+  .ect-font-body.ect-text-base,
+  .ect-font-body.ect-text-lg {
+    line-height: 1.65;
+  }
 }
 
-/* Body copy: comfortable reading */
-.ect-font-body.ect-text-base,
-.ect-font-body.ect-text-lg {
-  line-height: 1.6;
+/* The eyebrow/kicker treatment, defined once. Previously this was re-typed
+   inline in ~30 files at 19 different tracking values, which is why nothing
+   quite lined up. */
+.ect-eyebrow {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  /* Uppercase runs sit optically low against lowercase neighbours. */
+  font-feature-settings: 'kern' 1;
+}
+
+/* Italic Fraunces is a true drawn italic, not a slant — worth leaning on for
+   emphasis inside display lines. */
+.ect-font-display em,
+.ect-font-display .ect-italic {
+  font-synthesis: none;
 }
 
 /* Luxury detail: a fine gold rule used as a section accent */

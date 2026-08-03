@@ -33,14 +33,14 @@ async function handleSubmit() {
 
         <div class="ect-px-8 ect-pt-10 ect-pb-8 sm:ect-px-10 sm:ect-pt-12 sm:ect-pb-10">
           <header class="ect-text-center ect-mb-8">
-            <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.18em] ect-text-bluestone-700 ect-mb-3">Jewelet</p>
+            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-bluestone-700 ect-mb-3">Jewelet</p>
             <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal ect-tracking-wide ect-mb-2">Welcome back</h1>
             <p class="ect-font-body ect-text-base ect-text-charcoal/60">Sign in to continue to your account</p>
           </header>
 
           <form @submit.prevent="handleSubmit" class="ect-space-y-5">
             <label class="ect-block">
-              <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 ect-mb-1.5 ect-block">Email</span>
+              <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-1.5 ect-block">Email</span>
               <div class="ect-relative">
                 <span class="ect-absolute ect-left-4 ect-top-1/2 -ect-translate-y-1/2 ect-text-charcoal/30 ect-pointer-events-none">
                   <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -58,7 +58,7 @@ async function handleSubmit() {
             </label>
 
             <label class="ect-block">
-              <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/70 ect-mb-1.5 ect-block">Password</span>
+              <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-mb-1.5 ect-block">Password</span>
               <div class="ect-relative">
                 <span class="ect-absolute ect-left-4 ect-top-1/2 -ect-translate-y-1/2 ect-text-charcoal/30 ect-pointer-events-none">
                   <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -80,7 +80,7 @@ async function handleSubmit() {
             <button
               type="submit"
               :disabled="isLoading"
-              class="ect-w-full ect-py-4 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-[0.15em] ect-rounded-xl hover:ect-bg-noir focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400 focus:ect-ring-offset-2 focus:ect-ring-offset-white ect-transition-colors disabled:ect-opacity-50 disabled:ect-cursor-not-allowed ect-mt-6"
+              class="ect-w-full ect-py-4 ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-xl hover:ect-bg-noir focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400 focus:ect-ring-offset-2 focus:ect-ring-offset-white ect-transition-colors disabled:ect-opacity-50 disabled:ect-cursor-not-allowed ect-mt-6"
             >
               {{ isLoading ? 'Signing in…' : 'Sign in' }}
             </button>
@@ -92,7 +92,7 @@ async function handleSubmit() {
               Don't have an account?
               <RouterLink to="/signup" class="ect-text-gold-700 hover:ect-text-gold-800 ect-font-semibold ect-transition-colors">Create one</RouterLink>
             </p>
-            <p class="ect-mt-4 ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-[11px] ect-text-charcoal/40">
+            <p class="ect-mt-4 ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-charcoal/40">
               <svg class="ect-w-3.5 ect-h-3.5 ect-text-gold-600/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>

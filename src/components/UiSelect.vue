@@ -90,7 +90,7 @@ function onKeydown(e: KeyboardEvent) {
         @mousemove="activeIndex = i"
         class="ect-w-full ect-text-left ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-transition-colors"
         :class="[
-          activeIndex === i ? 'ect-bg-champagne' : '',
+ activeIndex === i ? 'ect-bg-champagne' : '',
           opt.value === modelValue ? 'ect-text-gold-700 ect-font-semibold' : 'ect-text-charcoal/80',
         ]"
       >{{ opt.label }}</button>

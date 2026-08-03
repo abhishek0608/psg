@@ -20,7 +20,7 @@ function paymentLabel(method: string) {
   <section class="ect-pt-28 ect-pb-24 ect-px-4 sm:ect-px-6 ect-bg-gradient-to-b ect-from-cream ect-via-champagne/40 ect-to-cream ect-min-h-screen">
     <article class="ect-max-w-3xl ect-mx-auto">
       <header class="ect-mb-8">
-        <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-gold-700 ect-mb-2">Account</p>
+        <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">Account</p>
         <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal">My Orders</h1>
         <p class="ect-font-body ect-text-sm ect-text-charcoal/60 ect-mt-1">View and track your orders</p>
       </header>
@@ -54,7 +54,7 @@ function paymentLabel(method: string) {
               <p class="ect-font-body ect-text-sm ect-text-charcoal/60">{{ order.itemCount }} {{ order.itemCount === 1 ? 'item' : 'items' }} · {{ paymentLabel(order.paymentMethod) }}</p>
               <p class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-mt-1 ect-truncate">{{ order.items.map((i) => i.title).join(', ') }}</p>
             </span>
-            <span class="ect-font-display ect-text-lg ect-font-medium ect-text-charcoal ect-shrink-0">{{ order.formattedTotal }}</span>
+            <span class="ect-font-display ect-tabular-nums ect-text-lg ect-font-medium ect-text-charcoal ect-shrink-0">{{ order.formattedTotal }}</span>
           </div>
           <section class="ect-px-5 sm:ect-px-6 ect-pb-5 sm:ect-pb-6 ect-pt-0">
             <span class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-champagne ect-font-body ect-text-xs ect-font-medium ect-text-gold-800">{{ order.status }}</span>

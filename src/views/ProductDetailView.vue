@@ -370,7 +370,7 @@ function handleAddToVideoCall() {
     <article class="ect-max-w-6xl ect-mx-auto">
       <button
         type="button"
-        class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.15em] ect-text-charcoal/45 hover:ect-text-gold-700 ect-transition-colors ect-mb-8"
+        class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/45 hover:ect-text-gold-700 ect-transition-colors ect-mb-8"
         @click="goBack"
       >
         <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -405,7 +405,7 @@ function handleAddToVideoCall() {
             />
             <span
               v-if="galleryImages[activeImage]"
-              class="product-detail-zoom-hint ect-pointer-events-none ect-absolute ect-bottom-4 ect-right-4 ect-inline-flex ect-items-center ect-gap-1.5 ect-rounded-full ect-bg-white/88 ect-px-3 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-text-charcoal ect-shadow-sm"
+              class="product-detail-zoom-hint ect-pointer-events-none ect-absolute ect-bottom-4 ect-right-4 ect-inline-flex ect-items-center ect-gap-1.5 ect-rounded-full ect-bg-white/88 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-text-charcoal ect-shadow-sm"
             >
               <svg class="ect-h-3.5 ect-w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
@@ -413,7 +413,7 @@ function handleAddToVideoCall() {
               Hover to zoom
             </span>
             <div v-if="galleryImages.length > 1" class="ect-pointer-events-none ect-absolute ect-inset-x-0 ect-top-0 ect-z-10 ect-flex ect-items-start ect-justify-between ect-p-4">
-              <span class="ect-pointer-events-auto ect-inline-flex ect-items-center ect-rounded-full ect-bg-white/88 ect-px-3 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-text-charcoal ect-shadow-sm">
+              <span class="ect-pointer-events-auto ect-inline-flex ect-items-center ect-rounded-full ect-bg-white/88 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-text-charcoal ect-shadow-sm">
                 {{ activeImage + 1 }} / {{ galleryImages.length }}
               </span>
             </div>
@@ -492,7 +492,7 @@ function handleAddToVideoCall() {
         </section>
 
         <section class="product-detail-content">
-          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-gold-700 ect-mb-2">
+          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">
             <span class="ect-w-6 ect-h-px ect-bg-gold-400" />
             {{ product.category }} · {{ product.material }}
           </p>
@@ -501,7 +501,7 @@ function handleAddToVideoCall() {
           </h1>
 
           <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-x-4 ect-gap-y-2 ect-mb-5">
-            <p v-if="hasRetailPrice" class="ect-font-display ect-text-2xl ect-text-charcoal">{{ product.price }}</p>
+            <p v-if="hasRetailPrice" class="ect-font-display ect-tabular-nums ect-text-2xl ect-text-charcoal">{{ product.price }}</p>
             <p v-else class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium">Price on request</p>
             <div v-if="reviewSummary" class="ect-inline-flex ect-items-center ect-gap-2 ect-text-charcoal/55">
               <StarRating :rating="product.rating || 0" size="sm" />
@@ -513,7 +513,7 @@ function handleAddToVideoCall() {
             <span
               v-for="badge in productBadges"
               :key="badge"
-              class="ect-inline-flex ect-items-center ect-rounded-full ect-bg-champagne ect-px-3 ect-py-1 ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-gold-700 ect-border ect-border-gold-200"
+              class="ect-inline-flex ect-items-center ect-rounded-full ect-bg-champagne ect-px-3 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-gold-700 ect-border ect-border-gold-200"
             >
               {{ badge }}
             </span>
@@ -521,7 +521,7 @@ function handleAddToVideoCall() {
 
           <p
             v-if="product.description"
-            class="ect-font-body ect-text-[15px] ect-leading-7 ect-text-charcoal/65 ect-mb-8"
+            class="ect-font-body ect-text-ui-lg ect-leading-7 ect-text-charcoal/65 ect-mb-8"
           >
             {{ product.description }}
           </p>
@@ -531,12 +531,12 @@ function handleAddToVideoCall() {
             class="ect-mb-8 ect-bg-white ect-rounded-2xl ect-border ect-border-sand ect-shadow-card ect-p-5 sm:ect-p-6"
           >
             <header class="ect-mb-5">
-              <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Specifications</h2>
+              <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50">Specifications</h2>
             </header>
 
             <dl class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-x-6 ect-gap-y-3">
               <div v-for="row in productDetailRows" :key="row.label" class="ect-flex ect-flex-col ect-gap-0.5">
-                <dt class="ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.14em] ect-text-charcoal/45">
+                <dt class="ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">
                   <span class="ect-inline-flex ect-items-center ect-gap-1">
                     <span>{{ row.label }}</span>
                     <span
@@ -552,7 +552,7 @@ function handleAddToVideoCall() {
                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
                         </svg>
                       </span>
-                      <span class="ect-pointer-events-none ect-absolute ect-bottom-full ect-left-1/2 ect-z-10 ect-mb-2 ect-w-52 -ect-translate-x-1/2 ect-rounded-xl ect-bg-charcoal ect-px-3 ect-py-2 ect-text-center ect-font-body ect-text-[11px] ect-font-normal ect-normal-case ect-leading-4 ect-tracking-normal ect-text-white ect-opacity-0 ect-shadow-lg ect-transition-opacity group-hover/disclaimer:ect-opacity-100">
+                      <span class="ect-pointer-events-none ect-absolute ect-bottom-full ect-left-1/2 ect-z-10 ect-mb-2 ect-w-52 -ect-translate-x-1/2 ect-rounded-xl ect-bg-charcoal ect-px-3 ect-py-2 ect-text-center ect-font-body ect-text-micro ect-font-normal ect-normal-case ect-leading-4 ect-tracking-normal ect-text-white ect-opacity-0 ect-shadow-lg ect-transition-opacity group-hover/disclaimer:ect-opacity-100">
                         Weights and stone measurements may vary slightly. Photos are for representation purposes only.
                       </span>
                     </span>
@@ -598,7 +598,7 @@ function handleAddToVideoCall() {
                 :disabled="addedToVideoCall || (videoCallListFull && !addedToVideoCall)"
                 class="ect-flex-1 ect-inline-flex ect-items-center ect-justify-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-full ect-border ect-font-body ect-text-sm ect-font-semibold ect-transition-colors disabled:ect-cursor-default"
                 :class="addedToVideoCall
-                  ? 'ect-border-emerald-200 ect-bg-emerald-50 ect-text-emerald-700'
+ ? 'ect-border-emerald-200 ect-bg-emerald-50 ect-text-emerald-700'
                   : videoCallListFull
                   ? 'ect-border-sand ect-bg-white ect-text-charcoal/35'
                   : 'ect-border-charcoal/15 ect-bg-white ect-text-charcoal hover:ect-border-gold-400 hover:ect-text-gold-700'"
@@ -639,7 +639,7 @@ function handleAddToVideoCall() {
         :class="product.details?.length && showBreakup ? 'md:ect-grid-cols-2' : ''"
       >
         <section v-if="product.details?.length" class="ect-bg-white ect-rounded-2xl ect-border ect-border-sand ect-shadow-card ect-p-5 sm:ect-p-6">
-          <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50 ect-mb-4">Product Details</h2>
+          <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50 ect-mb-4">Product Details</h2>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2.5">
             <li v-for="detail in product.details" :key="detail" class="ect-flex ect-gap-2.5">
               <span class="ect-mt-2 ect-w-1 ect-h-1 ect-rounded-full ect-bg-gold-400 ect-shrink-0" />
@@ -649,7 +649,7 @@ function handleAddToVideoCall() {
         </section>
 
         <section v-if="showBreakup" class="ect-bg-white ect-rounded-2xl ect-border ect-border-sand ect-shadow-card ect-p-5 sm:ect-p-6">
-          <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50 ect-mb-4">Price Breakup</h2>
+          <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50 ect-mb-4">Price Breakup</h2>
           <dl class="ect-space-y-2.5">
             <div v-for="row in breakupRows" :key="row.label" class="ect-flex ect-items-center ect-justify-between ect-gap-4">
               <dt class="ect-font-body ect-text-sm ect-text-charcoal/60">{{ row.label }}</dt>
@@ -665,7 +665,7 @@ function handleAddToVideoCall() {
 
       <section v-if="SITE_SETTINGS.enableReviews" class="ect-mt-16 ect-pt-12 ect-border-t ect-border-sand">
         <header class="ect-mb-6">
-          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-gold-700 ect-mb-2">
+          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">
             <span class="ect-w-6 ect-h-px ect-bg-gold-400" />
             Customer voices
           </p>
@@ -692,7 +692,7 @@ function handleAddToVideoCall() {
 
       <section v-if="relatedProducts.length" class="ect-mt-16 ect-pt-12 ect-border-t ect-border-sand">
         <header class="ect-mb-6 sm:ect-mb-8">
-          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-gold-700 ect-mb-2">
+          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">
             <span class="ect-w-6 ect-h-px ect-bg-gold-400" />
             Discover more
           </p>
@@ -717,7 +717,7 @@ function handleAddToVideoCall() {
 
   <section v-else-if="loading" class="ect-pt-28 sm:ect-pt-36 ect-pb-28 ect-px-6 ect-bg-cream ect-min-h-screen ect-flex ect-flex-col ect-items-center ect-justify-center ect-text-center">
     <span class="ect-inline-block ect-w-10 ect-h-10 ect-rounded-full ect-border-2 ect-border-sand ect-border-t-charcoal ect-animate-spin ect-mb-5" aria-hidden="true" />
-    <p class="ect-font-body ect-text-sm ect-uppercase ect-tracking-[0.15em] ect-text-charcoal/55">Loading product</p>
+    <p class="ect-font-body ect-text-sm ect-uppercase ect-tracking-label ect-text-charcoal/55">Loading product</p>
   </section>
 
   <section v-else class="ect-pt-28 sm:ect-pt-36 ect-pb-28 ect-px-6 ect-bg-cream ect-min-h-screen ect-flex ect-flex-col ect-items-center ect-justify-center ect-text-center">

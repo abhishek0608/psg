@@ -32,7 +32,7 @@ const activeMinQty = computed(() => {
   <span v-if="show" class="ect-relative ect-inline-flex ect-items-center ect-group/vdi ect-align-middle">
     <button
       type="button"
-      class="ect-inline-flex ect-items-center ect-gap-1 ect-font-body ect-text-[11px] ect-font-semibold ect-text-charcoal/55 hover:ect-text-charcoal focus:ect-outline-none focus-visible:ect-text-charcoal ect-transition-colors"
+      class="ect-inline-flex ect-items-center ect-gap-1 ect-font-body ect-text-micro ect-font-semibold ect-text-charcoal/55 hover:ect-text-charcoal focus:ect-outline-none focus-visible:ect-text-charcoal ect-transition-colors"
       aria-label="Volume discount details"
     >
       <svg class="ect-w-4 ect-h-4 ect-text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
@@ -45,7 +45,7 @@ const activeMinQty = computed(() => {
       class="ect-absolute ect-bottom-full ect-mb-2 ect-w-60 ect-bg-white ect-rounded-xl ect-shadow-xl ect-shadow-charcoal/10 ect-ring-1 ect-ring-charcoal/[0.06] ect-p-3 ect-opacity-0 ect-invisible group-hover/vdi:ect-opacity-100 group-hover/vdi:ect-visible group-focus-within/vdi:ect-opacity-100 group-focus-within/vdi:ect-visible ect-transition-all ect-duration-200 ect-z-20"
       :class="align === 'right' ? 'ect-right-0' : 'ect-left-0'"
     >
-      <span class="ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-block ect-mb-2">
+      <span class="ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-block ect-mb-2">
         Buy more, save more
       </span>
       <span class="ect-block ect-space-y-1">
@@ -62,7 +62,7 @@ const activeMinQty = computed(() => {
           >{{ t.percent }}% off</span>
         </span>
       </span>
-      <span class="ect-block ect-mt-2 ect-font-body ect-text-[10px] ect-leading-4 ect-text-charcoal/40">
+      <span class="ect-block ect-mt-2 ect-font-body ect-text-nano ect-leading-4 ect-text-charcoal/40">
         Discount applies automatically to your cart total based on quantity.
       </span>
     </span>

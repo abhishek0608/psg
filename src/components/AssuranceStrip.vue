@@ -33,7 +33,7 @@ const items: { icon: IconName; title: string; text: string }[] = [
           </svg>
         </span>
         <span class="ect-min-w-0">
-          <p class="ect-font-body ect-text-[13px] sm:ect-text-sm ect-font-semibold ect-text-charcoal ect-leading-tight">{{ item.title }}</p>
+          <p class="ect-font-body ect-text-ui sm:ect-text-sm ect-font-semibold ect-text-charcoal ect-leading-tight">{{ item.title }}</p>
           <p class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-mt-0.5 ect-leading-snug">{{ item.text }}</p>
         </span>
       </li>

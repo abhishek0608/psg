@@ -255,7 +255,7 @@ watch([activeTab, appliedFilters], () => {
   <section id="collections" class="ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-16 sm:ect-pb-24" :class="hideHeader ? 'ect-pt-5' : 'ect-pt-16 sm:ect-pt-24'">
     <header v-if="!hideHeader" class="ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-2 ect-mb-8">
       <section>
-        <p class="ect-inline-flex ect-items-center ect-gap-2.5 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-gold-700 ect-mb-3">
+        <p class="ect-eyebrow ect-inline-flex ect-items-center ect-gap-2.5 ect-text-gold-700 ect-mb-3">
           <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
           The Collection
         </p>
@@ -277,7 +277,7 @@ watch([activeTab, appliedFilters], () => {
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
         </svg>
         <span class="ect-hidden sm:ect-inline ect-font-body ect-text-sm ect-font-medium">Filter</span>
-        <span v-if="activeFilterCount > 0" class="ect-absolute -ect-top-0.5 -ect-right-0.5 sm:ect-static sm:ect-ml-0 ect-inline-flex ect-items-center ect-justify-center ect-min-w-[18px] ect-h-[18px] ect-rounded-full ect-bg-charcoal ect-text-white ect-text-[10px] ect-font-bold ect-px-1">{{ activeFilterCount }}</span>
+        <span v-if="activeFilterCount > 0" class="ect-absolute -ect-top-0.5 -ect-right-0.5 sm:ect-static sm:ect-ml-0 ect-inline-flex ect-items-center ect-justify-center ect-min-w-[18px] ect-h-[18px] ect-rounded-full ect-bg-charcoal ect-text-white ect-text-nano ect-font-bold ect-px-1">{{ activeFilterCount }}</span>
       </button>
 
       <!-- Result count (right of the filter icon) -->
@@ -322,7 +322,7 @@ watch([activeTab, appliedFilters], () => {
       <aside v-if="sidebar" class="ect-hidden lg:ect-block lg:ect-w-56 lg:ect-shrink-0 lg:ect-sticky lg:ect-top-28 lg:ect-self-start lg:ect-max-h-[calc(100vh-8rem)] lg:ect-overflow-y-auto lg:ect-pr-2 ect-no-scrollbar">
         <!-- Category -->
         <section v-if="!lockedCategory" class="ect-mb-6">
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Category</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Category</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="cat in CATEGORIES" :key="cat">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
@@ -339,7 +339,7 @@ watch([activeTab, appliedFilters], () => {
 
         <!-- Price -->
         <section class="ect-mb-6">
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Price</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Price</h3>
           <div class="jewelet-range">
             <span class="jewelet-range__track"></span>
             <span class="jewelet-range__fill" :style="{ left: minPct + '%', right: (100 - maxPct) + '%' }"></span>
@@ -355,7 +355,7 @@ watch([activeTab, appliedFilters], () => {
 
         <!-- Material -->
         <section class="ect-mb-6">
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Material</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Material</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="m in materialOptions" :key="m.id">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
@@ -372,7 +372,7 @@ watch([activeTab, appliedFilters], () => {
 
         <!-- Stone Type -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Stone</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Stone</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="stone in STONE_TYPE_OPTIONS" :key="stone.id">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
@@ -389,7 +389,7 @@ watch([activeTab, appliedFilters], () => {
 
         <!-- Color -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Color</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Color</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="c in COLORS" :key="c.id">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
@@ -407,7 +407,7 @@ watch([activeTab, appliedFilters], () => {
 
         <!-- Stone Shape -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Stone Shape</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Stone Shape</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="shape in CENTER_SHAPE_OPTIONS" :key="shape">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
@@ -424,7 +424,7 @@ watch([activeTab, appliedFilters], () => {
 
         <!-- Stone Size -->
         <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#8a8172] ect-mb-3.5">Stone Size</h3>
+          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Stone Size</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
             <li v-for="size in CENTER_STONE_SIZE_OPTIONS" :key="size">
               <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
