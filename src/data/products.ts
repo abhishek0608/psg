@@ -110,6 +110,7 @@ export interface Product {
   color: Color
   price: string
   priceValue: number
+  priceOnRequest?: boolean
   description: string
   aiDescription?: string
   details: string[]
