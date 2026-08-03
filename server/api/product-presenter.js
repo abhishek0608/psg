@@ -129,22 +129,6 @@ function normalizeProductAttributes(input) {
   return hasValues ? normalized : undefined
 }
 
-/**
- * A piece only reaches the storefront once it carries a real price. Products
- * priced at 0 (or with no priced variant at all) are usually half-finished
- * uploads, and showing them as "Price on request" reads as a broken listing —
- * they stay in the catalog and in the internal console, just not in front of
- * customers, and reappear the moment a price is set.
- */
-export function hasStorefrontPrice(product) {
-  return typeof product?.priceValue === 'number' && Number.isFinite(product.priceValue) && product.priceValue > 0
-}
-
-/** Drops unpriced pieces from a customer-facing product list. */
-export function withStorefrontPricesOnly(products) {
-  return Array.isArray(products) ? products.filter(hasStorefrontPrice) : []
-}
-
 /** Prefer a variant with a real list price; catalog query sorts by listPricePaise asc so a ₹0 stub would otherwise win. */
 export function pickVariantForPricing(activeVariants, preferredVariant) {
   if (preferredVariant) return preferredVariant
@@ -167,7 +151,11 @@ export function toApiProduct(dbProduct, preferredVariant = null) {
   const priceBookPrice = pickPriceFromPriceBook(dbProduct)
   const priceValue =
     priceBookPrice != null && priceBookPrice > 0 ? priceBookPrice : variantPrice
-  const price = formatInr(priceValue)
+  // An unpriced piece still belongs on the storefront — it just shows
+  // "Price on request" instead of a misleading ₹0. Leaving the price string
+  // empty lets the card fall back to that treatment.
+  const priceOnRequest = !(typeof priceValue === 'number' && Number.isFinite(priceValue) && priceValue > 0)
+  const price = priceOnRequest ? '' : formatInr(priceValue)
   const images = Array.isArray(dbProduct?.images)
     ? dbProduct.images
         .filter((img) => img?.active !== false && typeof img?.url === 'string' && img.url.trim())
@@ -185,6 +173,7 @@ export function toApiProduct(dbProduct, preferredVariant = null) {
     color: dbProduct.color || 'yellow',
     price,
     priceValue,
+    priceOnRequest,
     description: dbProduct.description || '',
     aiDescription: dbProduct.aiDescription || '',
     details: Array.isArray(dbProduct.details) ? dbProduct.details : [],
