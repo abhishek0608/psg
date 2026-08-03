@@ -93,6 +93,10 @@ model HomepageSlide {
   id          String   @id @default(cuid())
   imageUrl    String
   mobileImageUrl String?
+  // Optional S3-hosted video. When set, the hero plays it in place of the
+  // matching image, which stays on the slide and is used as the poster frame.
+  videoUrl    String?
+  mobileVideoUrl String?
   headline    String?
   subheadline String?
   ctaLabel    String?

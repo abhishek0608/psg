@@ -25,6 +25,11 @@ const ALLOWED_TYPES = {
   'image/png': 'png',
   'image/webp': 'webp',
   'image/avif': 'avif',
+  // Hero background videos. Only the two formats every current browser can play
+  // without a transcode step — anything else is rejected at presign time rather
+  // than uploaded and then silently unplayable.
+  'video/mp4': 'mp4',
+  'video/webm': 'webm',
 }
 
 let cachedClient = null
@@ -55,27 +60,36 @@ function publicUrlForKey(key) {
 }
 
 // Build a short, collision-resistant object key without leaking the original
-// filename. Desktop/mobile hero banners, the "Shop by Collection" tiles, and
-// About-page photos each live in their own subfolder so the bucket is easy to
-// browse and size-specific lifecycle rules can target each.
+// filename. Desktop/mobile hero banners, hero videos, the "Shop by Collection"
+// tiles, and About-page photos each live in their own subfolder so the bucket is
+// easy to browse and size-specific lifecycle rules can target each.
+const KEY_SLOTS = {
+  mobile: 'mobile',
+  collection: 'collection',
+  about: 'about',
+  video: 'video',
+  'mobile-video': 'mobile-video',
+}
+
 function buildKey({ target, ext, now, rand }) {
-  const slot =
-    target === 'mobile'
-      ? 'mobile'
-      : target === 'collection'
-        ? 'collection'
-        : target === 'about'
-          ? 'about'
-          : 'desktop'
+  const slot = KEY_SLOTS[target] || 'desktop'
   return `${HOMEPAGE_PREFIX}/${slot}/${now}-${rand}.${ext}`
 }
 
 // Create a presigned PUT URL the browser uploads to directly, plus the public
 // URL to persist on the slide. Throws on an unsupported content type.
 export async function createPresignedHomepageUpload({ contentType, target } = {}) {
-  const ext = ALLOWED_TYPES[String(contentType || '').toLowerCase()]
-  if (!ext) {
-    const err = new Error('Unsupported image type. Use JPG, PNG, WEBP, or AVIF.')
+  const type = String(contentType || '').toLowerCase()
+  const ext = ALLOWED_TYPES[type]
+  const wantsVideo = target === 'video' || target === 'mobile-video'
+  // Reject a mismatch outright: an image uploaded to the video slot (or the
+  // reverse) would store fine and then render as a broken element.
+  if (!ext || wantsVideo !== type.startsWith('video/')) {
+    const err = new Error(
+      wantsVideo
+        ? 'Unsupported video type. Use MP4 or WEBM.'
+        : 'Unsupported image type. Use JPG, PNG, WEBP, or AVIF.',
+    )
     err.code = 'UNSUPPORTED_TYPE'
     throw err
   }

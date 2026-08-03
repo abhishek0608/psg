@@ -5,6 +5,8 @@ function normalizeSlide(slide) {
     id: slide.id,
     imageUrl: slide.imageUrl,
     mobileImageUrl: slide.mobileImageUrl || '',
+    videoUrl: slide.videoUrl || '',
+    mobileVideoUrl: slide.mobileVideoUrl || '',
     headline: slide.headline || '',
     subheadline: slide.subheadline || '',
     ctaLabel: slide.ctaLabel || '',
