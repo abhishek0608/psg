@@ -32,7 +32,7 @@ const promise: { icon: 'pricing' | 'buyback' | 'quality' | 'returns'; title: str
 <template>
   <section id="about" class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-16 sm:ect-pt-20">
     <header class="ect-text-center ect-mb-9">
-      <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.24em] ect-text-[#b79a56]">The Jewelet promise</p>
+      <p class="ect-eyebrow ect-text-[#b79a56]">The Jewelet promise</p>
       <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
         Shop with total confidence
       </h2>
@@ -62,11 +62,11 @@ const promise: { icon: 'pricing' | 'buyback' | 'quality' | 'returns'; title: str
           </svg>
         </span>
         <h3 class="ect-font-body ect-text-base ect-font-medium ect-text-[#2b2723]">{{ p.title }}</h3>
-        <p class="ect-mt-2 ect-font-body ect-text-[13.5px] ect-leading-relaxed ect-text-[#7a7264]">{{ p.text }}</p>
+        <p class="ect-mt-2 ect-font-body ect-text-ui ect-leading-relaxed ect-text-[#7a7264]">{{ p.text }}</p>
       </article>
     </div>
 
-    <p class="ect-text-center ect-mt-6 ect-font-body ect-text-[13px] ect-text-[#8a8172]">
+    <p class="ect-text-center ect-mt-6 ect-font-body ect-text-ui ect-text-[#8a8172]">
       Full price breakup — metal rate, making charges &amp; taxes — shown on every product page.
       <RouterLink to="/about" class="ect-underline hover:ect-text-[#1f5c4d] ect-transition-colors">Read our trust promise</RouterLink>
     </p>

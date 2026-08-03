@@ -663,7 +663,7 @@ watch(
             <div class="ect-mt-2 ect-h-4 ect-w-[min(22rem,76vw)] ect-rounded ect-bg-rose-100 ect-animate-pulse"></div>
           </template>
           <template v-else>
-            <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-rose-600 ect-mb-2">
+            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-rose-600 ect-mb-2">
               {{ isNewProduct ? 'New product' : fieldsEditable ? 'Editing product' : 'Product' }}
             </p>
             <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal">
@@ -793,7 +793,7 @@ watch(
             <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-mb-4">Core fields</h2>
             <div class="ect-grid md:ect-grid-cols-2 ect-gap-4">
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Title</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Title</span>
                 <input
                   v-model="form.title"
                   type="text"
@@ -802,7 +802,7 @@ watch(
                 />
               </label>
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Slug</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Slug</span>
                 <input
                   v-model="form.slug"
                   type="text"
@@ -811,10 +811,10 @@ watch(
                   @input="handleSlugInput"
                   :class="['ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-px-3 ect-py-2.5 ect-font-body ect-text-sm focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-rose-300/40', !fieldsEditable ? 'ect-bg-charcoal/[0.04] ect-text-charcoal/90' : '']"
                 />
-                <span v-if="isNewProduct && !slugManuallyEdited" class="ect-mt-1 ect-block ect-font-body ect-text-[11px] ect-text-charcoal/40">Auto-generated from title.</span>
+                <span v-if="isNewProduct && !slugManuallyEdited" class="ect-mt-1 ect-block ect-font-body ect-text-micro ect-text-charcoal/40">Auto-generated from title.</span>
               </label>
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Category</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Category</span>
                 <select
                   v-model="form.category"
                   :disabled="!fieldsEditable"
@@ -825,7 +825,7 @@ watch(
                 </select>
               </label>
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Subtype</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Subtype</span>
                 <select
                   v-model="form.subtype"
                   :disabled="!fieldsEditable"
@@ -836,7 +836,7 @@ watch(
                 </select>
               </label>
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Material</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Material</span>
                 <select
                   v-model="form.material"
                   :disabled="!fieldsEditable"
@@ -847,7 +847,7 @@ watch(
                 </select>
               </label>
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Color</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Color</span>
                 <select
                   v-model="form.color"
                   :disabled="!fieldsEditable"
@@ -858,7 +858,7 @@ watch(
                 </select>
               </label>
               <label class="ect-block">
-                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Price (INR)</span>
+                <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Price (INR)</span>
                 <input
                   v-model="form.variantPricePaise"
                   type="number"
@@ -877,7 +877,7 @@ watch(
 
               <div class="ect-grid md:ect-grid-cols-2 ect-gap-4">
                 <label class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Gross weight</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Gross weight</span>
                   <input
                     v-model="form.grossWeight"
                     type="text"
@@ -887,7 +887,7 @@ watch(
                   />
                 </label>
                 <label class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Diamond carats</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Diamond carats</span>
                   <input
                     v-model="form.diamondCarats"
                     type="text"
@@ -897,7 +897,7 @@ watch(
                   />
                 </label>
                 <label class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Diamond quantity</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Diamond quantity</span>
                   <input
                     v-model="form.diamondQuantity"
                     type="text"
@@ -910,7 +910,7 @@ watch(
             </section>
 
             <label class="ect-block ect-mt-4">
-              <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Description</span>
+              <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Description</span>
               <textarea
                 v-model="form.description"
                 rows="5"
@@ -927,7 +927,7 @@ watch(
 
               <div class="ect-grid md:ect-grid-cols-2 ect-gap-4">
                 <label class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Diamond quality</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Diamond quality</span>
                   <select
                     v-model="form.diamondQuality"
                     :disabled="!fieldsEditable"
@@ -938,7 +938,7 @@ watch(
                   </select>
                 </label>
                 <label class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Metal purity</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Metal purity</span>
                   <select
                     v-model="form.metalPurity"
                     :disabled="!fieldsEditable"
@@ -949,7 +949,7 @@ watch(
                   </select>
                 </label>
                 <label v-if="supportsCenterStoneFields" class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Stone types</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Stone types</span>
                   <input
                     v-model="form.stoneTypes"
                     type="text"
@@ -957,10 +957,10 @@ watch(
                     :readonly="!fieldsEditable"
                     :class="['ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-px-3 ect-py-2.5 ect-font-body ect-text-sm focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-rose-300/40', !fieldsEditable ? 'ect-bg-charcoal/[0.04] ect-text-charcoal/90' : '']"
                   />
-                  <span class="ect-mt-1 ect-block ect-font-body ect-text-[11px] ect-text-charcoal/40">Comma-separated stone types, e.g. Natural Diamond, Moissanite, Ruby</span>
+                  <span class="ect-mt-1 ect-block ect-font-body ect-text-micro ect-text-charcoal/40">Comma-separated stone types, e.g. Natural Diamond, Moissanite, Ruby</span>
                 </label>
                 <label v-if="supportsCenterStoneFields" class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Center shape</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Center shape</span>
                   <select
                     v-model="form.centerShape"
                     :disabled="!fieldsEditable"
@@ -971,7 +971,7 @@ watch(
                   </select>
                 </label>
                 <label v-if="supportsCenterStoneFields" class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Center stone sizes</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Center stone sizes</span>
                   <input
                     v-model="form.centerStoneSizes"
                     type="text"
@@ -979,10 +979,10 @@ watch(
                     :readonly="!fieldsEditable"
                     :class="['ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-px-3 ect-py-2.5 ect-font-body ect-text-sm focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-rose-300/40', !fieldsEditable ? 'ect-bg-charcoal/[0.04] ect-text-charcoal/90' : '']"
                   />
-                  <span class="ect-mt-1 ect-block ect-font-body ect-text-[11px] ect-text-charcoal/40">Comma-separated dimensions, e.g. 6 mm, 7 mm, 8 mm</span>
+                  <span class="ect-mt-1 ect-block ect-font-body ect-text-micro ect-text-charcoal/40">Comma-separated dimensions, e.g. 6 mm, 7 mm, 8 mm</span>
                 </label>
                 <label v-if="isRingCategory" class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Ring size</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Ring size</span>
                   <select
                     v-model="form.ringSize"
                     :disabled="!fieldsEditable"
@@ -993,7 +993,7 @@ watch(
                   </select>
                 </label>
                 <label v-if="isBangleLikeProduct" class="ect-block">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Bangle size</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Bangle size</span>
                   <select
                     v-model="form.bangleSize"
                     :disabled="!fieldsEditable"
@@ -1004,7 +1004,7 @@ watch(
                   </select>
                 </label>
                 <label v-if="isNecklaceCategory" class="ect-block md:ect-col-span-2">
-                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Necklace size</span>
+                  <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Necklace size</span>
                   <select
                     v-model="form.necklaceSize"
                     :disabled="!fieldsEditable"
@@ -1054,7 +1054,7 @@ watch(
               readonly
               class="ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-bg-charcoal/[0.04] ect-px-3 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal/85 focus:ect-outline-none"
             />
-            <p class="ect-mt-2 ect-font-body ect-text-[11px] ect-text-charcoal/40">Manual description stays separate. Regenerate anytime from the header action.</p>
+            <p class="ect-mt-2 ect-font-body ect-text-micro ect-text-charcoal/40">Manual description stays separate. Regenerate anytime from the header action.</p>
           </article>
 
           <article class="ect-bg-white ect-border ect-border-rose-200/50 ect-rounded-lg ect-p-5">
@@ -1144,11 +1144,11 @@ watch(
                   <div class="ect-relative ect-aspect-square ect-rounded-lg ect-overflow-hidden ect-bg-charcoal/5">
                     <img v-if="image.url" :src="image.url" :alt="image.alt || form.title" class="ect-h-full ect-w-full ect-object-cover" />
                     <div v-else class="ect-flex ect-h-full ect-items-center ect-justify-center ect-font-body ect-text-xs ect-text-charcoal/35">Preview</div>
-                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-charcoal/80 ect-px-2 ect-py-0.5 ect-font-body ect-text-[10px] ect-font-semibold ect-text-white">Supabase</span>
+                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-charcoal/80 ect-px-2 ect-py-0.5 ect-font-body ect-text-nano ect-font-semibold ect-text-white">Supabase</span>
                   </div>
                   <div class="ect-space-y-3">
                     <label class="ect-block">
-                      <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Image URL</span>
+                      <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Image URL</span>
                       <input
                         v-model="image.url"
                         type="text"
@@ -1157,7 +1157,7 @@ watch(
                       />
                     </label>
                     <label class="ect-block">
-                      <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-2">Alt text</span>
+                      <span class="ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-2">Alt text</span>
                       <input
                         v-model="image.alt"
                         type="text"
@@ -1196,9 +1196,9 @@ watch(
                 <figure v-for="(img, i) in s3Images" :key="img.url || i" class="ect-rounded-lg ect-border ect-border-rose-100 ect-overflow-hidden">
                   <div class="ect-relative ect-aspect-square ect-bg-charcoal/5">
                     <img :src="img.url" :alt="img.sku || form.title" loading="lazy" class="ect-h-full ect-w-full ect-object-cover" />
-                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-indigo-600/90 ect-px-2 ect-py-0.5 ect-font-body ect-text-[10px] ect-font-semibold ect-text-white">S3</span>
+                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-indigo-600/90 ect-px-2 ect-py-0.5 ect-font-body ect-text-nano ect-font-semibold ect-text-white">S3</span>
                   </div>
-                  <figcaption v-if="img.sku" class="ect-px-2 ect-py-1.5 ect-font-body ect-text-[11px] ect-text-charcoal/55 ect-truncate">{{ img.sku }}</figcaption>
+                  <figcaption v-if="img.sku" class="ect-px-2 ect-py-1.5 ect-font-body ect-text-micro ect-text-charcoal/55 ect-truncate">{{ img.sku }}</figcaption>
                 </figure>
               </div>
             </div>
@@ -1211,7 +1211,7 @@ watch(
             <div v-if="previewImages.length" class="ect-space-y-3">
               <figure class="ect-relative ect-aspect-square ect-rounded-lg ect-overflow-hidden ect-bg-charcoal/5">
                 <img :src="previewImages[activePreviewImage]?.url" :alt="previewImages[activePreviewImage]?.alt || form.title" class="ect-h-full ect-w-full ect-object-cover" />
-                <span v-if="previewImages.length > 1" class="ect-absolute ect-top-2 ect-left-2 ect-inline-flex ect-items-center ect-rounded-full ect-bg-white/88 ect-px-2.5 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-text-charcoal ect-shadow-sm">
+                <span v-if="previewImages.length > 1" class="ect-absolute ect-top-2 ect-left-2 ect-inline-flex ect-items-center ect-rounded-full ect-bg-white/88 ect-px-2.5 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-text-charcoal ect-shadow-sm">
                   {{ activePreviewImage + 1 }} / {{ previewImages.length }}
                 </span>
               </figure>
@@ -1262,7 +1262,7 @@ watch(
             <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-mb-4">Core fields</h2>
             <dl class="ect-grid md:ect-grid-cols-2 ect-gap-x-6 ect-gap-y-4">
               <div v-for="row in coreDisplayRows" :key="row.label" class="ect-min-w-0">
-                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
+                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
                 <dd class="ect-font-body ect-text-sm ect-leading-6 ect-text-charcoal ect-break-words">{{ row.value }}</dd>
               </div>
             </dl>
@@ -1275,7 +1275,7 @@ watch(
             </div>
             <dl class="ect-grid md:ect-grid-cols-2 ect-gap-x-6 ect-gap-y-4">
               <div v-for="row in attributeDisplayRows" :key="row.label">
-                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
+                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
                 <dd class="ect-font-body ect-text-sm ect-leading-6 ect-text-charcoal">{{ row.value }}</dd>
               </div>
             </dl>
@@ -1295,7 +1295,7 @@ watch(
             </div>
             <dl class="ect-grid md:ect-grid-cols-2 ect-gap-x-6 ect-gap-y-4">
               <div v-for="row in customizationDisplayRows" :key="row.label">
-                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
+                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
                 <dd class="ect-font-body ect-text-sm ect-leading-6 ect-text-charcoal ect-break-words">{{ row.value }}</dd>
               </div>
             </dl>
@@ -1305,7 +1305,7 @@ watch(
             <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-mb-4">Status</h2>
             <dl class="ect-grid sm:ect-grid-cols-3 ect-gap-x-6 ect-gap-y-4">
               <div v-for="row in statusDisplayRows" :key="row.label">
-                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
+                <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-1.5">{{ row.label }}</dt>
                 <dd class="ect-font-body ect-text-sm ect-leading-6 ect-text-charcoal">{{ row.value }}</dd>
               </div>
             </dl>
@@ -1335,15 +1335,15 @@ watch(
                   <div class="ect-relative ect-aspect-square ect-rounded-lg ect-overflow-hidden ect-bg-charcoal/5">
                     <img v-if="image.url" :src="image.url" :alt="image.alt || form.title" class="ect-h-full ect-w-full ect-object-cover" />
                     <div v-else class="ect-flex ect-h-full ect-items-center ect-justify-center ect-font-body ect-text-xs ect-text-charcoal/35">Preview</div>
-                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-charcoal/80 ect-px-2 ect-py-0.5 ect-font-body ect-text-[10px] ect-font-semibold ect-text-white">Supabase</span>
+                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-charcoal/80 ect-px-2 ect-py-0.5 ect-font-body ect-text-nano ect-font-semibold ect-text-white">Supabase</span>
                   </div>
                   <dl class="ect-grid sm:ect-grid-cols-2 ect-gap-x-4 ect-gap-y-3">
                     <div>
-                      <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-1.5">Alt text</dt>
+                      <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-1.5">Alt text</dt>
                       <dd class="ect-font-body ect-text-sm ect-leading-6 ect-text-charcoal">{{ displayValue(image.alt) }}</dd>
                     </div>
                     <div>
-                      <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45 ect-mb-1.5">Active</dt>
+                      <dt class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-mb-1.5">Active</dt>
                       <dd class="ect-font-body ect-text-sm ect-leading-6 ect-text-charcoal">{{ displayBoolean(image.active) }}</dd>
                     </div>
                   </dl>
@@ -1366,9 +1366,9 @@ watch(
                 <figure v-for="(img, i) in s3Images" :key="img.url || i" class="ect-rounded-lg ect-border ect-border-rose-100 ect-overflow-hidden">
                   <div class="ect-relative ect-aspect-square ect-bg-charcoal/5">
                     <img :src="img.url" :alt="img.sku || form.title" loading="lazy" class="ect-h-full ect-w-full ect-object-cover" />
-                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-indigo-600/90 ect-px-2 ect-py-0.5 ect-font-body ect-text-[10px] ect-font-semibold ect-text-white">S3</span>
+                    <span class="ect-absolute ect-top-1.5 ect-left-1.5 ect-rounded-full ect-bg-indigo-600/90 ect-px-2 ect-py-0.5 ect-font-body ect-text-nano ect-font-semibold ect-text-white">S3</span>
                   </div>
-                  <figcaption v-if="img.sku" class="ect-px-2 ect-py-1.5 ect-font-body ect-text-[11px] ect-text-charcoal/55 ect-truncate">{{ img.sku }}</figcaption>
+                  <figcaption v-if="img.sku" class="ect-px-2 ect-py-1.5 ect-font-body ect-text-micro ect-text-charcoal/55 ect-truncate">{{ img.sku }}</figcaption>
                 </figure>
               </div>
             </div>
@@ -1381,7 +1381,7 @@ watch(
             <div v-if="previewImages.length" class="ect-space-y-3">
               <figure class="ect-relative ect-aspect-square ect-rounded-lg ect-overflow-hidden ect-bg-charcoal/5">
                 <img :src="previewImages[activePreviewImage]?.url" :alt="previewImages[activePreviewImage]?.alt || form.title" class="ect-h-full ect-w-full ect-object-cover" />
-                <span v-if="previewImages.length > 1" class="ect-absolute ect-top-2 ect-left-2 ect-inline-flex ect-items-center ect-rounded-full ect-bg-white/88 ect-px-2.5 ect-py-1 ect-font-body ect-text-[11px] ect-font-semibold ect-text-charcoal ect-shadow-sm">
+                <span v-if="previewImages.length > 1" class="ect-absolute ect-top-2 ect-left-2 ect-inline-flex ect-items-center ect-rounded-full ect-bg-white/88 ect-px-2.5 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-text-charcoal ect-shadow-sm">
                   {{ activePreviewImage + 1 }} / {{ previewImages.length }}
                 </span>
               </figure>

@@ -103,7 +103,7 @@ onMounted(() => {
         >
           Back to orders
         </RouterLink>
-        <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-rose-600 ect-mb-2">Order record</p>
+        <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-rose-600 ect-mb-2">Order record</p>
         <template v-if="loading && !targetOrder">
           <div class="ect-h-10 ect-w-56 ect-rounded ect-bg-rose-100 ect-animate-pulse"></div>
           <div class="ect-mt-2 ect-h-4 ect-w-64 ect-rounded ect-bg-rose-100 ect-animate-pulse"></div>
@@ -140,30 +140,30 @@ onMounted(() => {
 
       <section v-if="targetOrder" class="ect-grid lg:ect-grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] ect-gap-5">
         <article class="ect-bg-white ect-border ect-border-rose-200/50 ect-rounded-lg ect-p-5">
-          <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/40 ect-mb-3">Order</p>
+          <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-3">Order</p>
           <dl class="ect-space-y-4">
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Order No</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Order No</dt>
               <dd class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ targetOrder.orderNo }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Status</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Status</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal ect-capitalize">{{ targetOrder.status }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Total</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Total</dt>
               <dd class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ targetOrder.total }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Items</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Items</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ targetOrder.itemCount }}</dd>
             </div>
             <div v-if="targetOrder.paymentMethod">
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Payment</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Payment</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ targetOrder.paymentMethod }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Created</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Created</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ formatDate(targetOrder.createdAt) }}</dd>
             </div>
           </dl>
@@ -171,7 +171,7 @@ onMounted(() => {
 
         <article class="ect-bg-white ect-border ect-border-rose-200/50 ect-rounded-lg ect-overflow-hidden">
           <header class="ect-p-5 ect-border-b ect-border-rose-200/30">
-            <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-rose-600 ect-mb-1">Customer</p>
+            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-rose-600 ect-mb-1">Customer</p>
             <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ targetOrder.customer }}</h2>
             <p class="ect-font-body ect-text-xs ect-text-charcoal/45 ect-mt-1">{{ targetOrder.customerEmail || 'No email captured' }}</p>
           </header>
@@ -185,7 +185,7 @@ onMounted(() => {
             </RouterLink>
 
             <div v-if="targetOrder.items?.length" class="ect-mt-5">
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/40 ect-mb-3">Line items</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-3">Line items</p>
               <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
                 <li v-for="item in targetOrder.items" :key="item.slug" class="ect-flex ect-items-center ect-justify-between ect-gap-3 ect-rounded-lg ect-border ect-border-rose-100 ect-p-3">
                   <div>

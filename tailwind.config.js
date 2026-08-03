@@ -5,19 +5,36 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['Cormorant Garamond', 'Georgia', 'serif'],
-        body: ['DM Sans', 'system-ui', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        body: ['Instrument Sans', 'system-ui', 'sans-serif'],
       },
+      // Two semantic tracking tokens instead of the twenty-odd arbitrary
+      // `tracking-[0.13em]`-style values this file used to invite. Display type
+      // tracks negative (Fraunces is drawn generously and needs pulling in at
+      // size); uppercase runs track positive, and only at two strengths:
+      // `eyebrow` for standalone kickers, `label` for inline UI text.
       letterSpacing: {
-        'display-tight': '-0.02em',
-        'display-wide': '0.08em',
-        'body-wide': '0.04em',
+        'display': '-0.018em',
+        'display-sm': '-0.008em',
+        'eyebrow': '0.14em',
+        'label': '0.08em',
       },
       lineHeight: {
-        'display': '1.15',
-        'display-relaxed': '1.25',
+        'display': '1.06',
+        'display-relaxed': '1.18',
         'body-tight': '1.4',
-        'body-relaxed': '1.6',
+        'body-relaxed': '1.65',
+      },
+      // Named steps for the sizes that were previously hard-coded as
+      // `text-[11px]`, `text-[13.5px]`, `text-[15px]`, `text-[22px]`, etc.
+      // Deliberately sizes only — no letter-spacing is bundled in, so a
+      // `tracking-*` utility on the same element behaves predictably.
+      fontSize: {
+        'nano': ['0.625rem', { lineHeight: '1.2' }],
+        'micro': ['0.6875rem', { lineHeight: '1.35' }],
+        'ui': ['0.8125rem', { lineHeight: '1.45' }],
+        'ui-lg': ['0.9375rem', { lineHeight: '1.5' }],
+        'price': ['1.375rem', { lineHeight: '1.1' }],
       },
       colors: {
         gold: {

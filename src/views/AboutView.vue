@@ -152,7 +152,7 @@ onBeforeUnmount(() => {
 
       <div class="ect-relative">
         <p class="ect-font-display ect-italic ect-text-lg sm:ect-text-xl ect-text-gold-300 ect-mb-6">{{ heroEyebrow }}</p>
-        <h1 class="ect-font-display ect-font-light ect-text-5xl sm:ect-text-7xl ect-leading-[1.08] ect-tracking-display-tight ect-mb-7">
+        <h1 class="ect-font-display ect-font-light ect-text-5xl sm:ect-text-7xl ect-leading-[1.08] ect-tracking-display ect-mb-7">
           {{ heroHeadline }}
         </h1>
         <p class="ect-font-body ect-text-sm sm:ect-text-base ect-text-cream/60 ect-max-w-md ect-mx-auto ect-leading-relaxed">
@@ -180,7 +180,7 @@ onBeforeUnmount(() => {
       <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_70%_80%_at_50%_0%,rgba(201,162,39,0.13),transparent)]" />
       <div class="ect-relative">
         <p class="ect-font-display ect-italic ect-text-lg ect-text-gold-300 ect-mb-4">{{ activeTab === 'contact' ? 'Get in touch' : 'Join the team' }}</p>
-        <h1 class="ect-font-display ect-font-light ect-text-4xl sm:ect-text-6xl ect-tracking-display-tight">
+        <h1 class="ect-font-display ect-font-light ect-text-4xl sm:ect-text-6xl ect-tracking-display">
           {{ activeTab === 'contact' ? "Let's talk." : 'Work with us.' }}
         </h1>
       </div>
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
         <li v-for="tab in (['about', 'contact', 'careers'] as const)" :key="tab">
           <button
             @click="setTab(tab)"
-            class="ect-relative ect-px-4 sm:ect-px-1 ect-py-5 ect-font-body ect-text-[12px] ect-font-medium ect-uppercase ect-tracking-[0.18em] ect-transition-colors ect-duration-200 ect-bg-transparent"
+            class="ect-relative ect-px-4 sm:ect-px-1 ect-py-5 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-eyebrow ect-transition-colors ect-duration-200 ect-bg-transparent"
             :class="activeTab === tab ? 'ect-text-charcoal' : 'ect-text-charcoal/35 hover:ect-text-charcoal/70'"
           >
             {{ tab === 'about' ? 'Our Story' : tab === 'contact' ? 'Contact' : 'Careers' }}
@@ -250,12 +250,12 @@ onBeforeUnmount(() => {
           </figure>
 
           <div :class="i % 2 === 1 ? 'lg:ect-order-1' : ''">
-            <p v-if="step.place" class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-charcoal/40 ect-mb-4">{{ step.place }}</p>
+            <p v-if="step.place" class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-charcoal/40 ect-mb-4">{{ step.place }}</p>
             <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-mb-6">{{ step.title }}</h2>
             <p class="ect-font-body ect-text-base ect-text-charcoal/60 ect-leading-body-relaxed ect-mb-8">{{ step.desc }}</p>
             <RouterLink
               to="/collections"
-              class="ect-inline-flex ect-items-center ect-gap-3 ect-font-body ect-text-[12px] ect-font-semibold ect-uppercase ect-tracking-[0.2em] ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
+              class="ect-inline-flex ect-items-center ect-gap-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
             >
               Explore
               <span class="ect-w-10 ect-h-px ect-bg-charcoal/40" />
@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
                 <template v-if="s.target !== null">{{ counts[i] }}{{ 'suffix' in s ? s.suffix : '' }}</template>
                 <template v-else>{{ s.text }}</template>
               </p>
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-cream/40">{{ s.label }}</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-cream/40">{{ s.label }}</p>
             </li>
           </ul>
         </div>
@@ -300,7 +300,7 @@ onBeforeUnmount(() => {
               </div>
             </figure>
             <h3 class="ect-font-display ect-text-xl ect-font-light ect-text-charcoal ect-mb-1">{{ member.name }}</h3>
-            <p v-if="member.role" class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-charcoal/45">{{ member.role }}</p>
+            <p v-if="member.role" class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-charcoal/45">{{ member.role }}</p>
           </li>
         </ul>
       </section>
@@ -311,7 +311,7 @@ onBeforeUnmount(() => {
         <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">Designed around the wearer</h2>
         <ul class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-3 ect-gap-10 sm:ect-gap-12 ect-list-none ect-m-0 ect-p-0">
           <li v-for="v in values" :key="v.title" class="ect-border-t ect-border-charcoal/15 ect-pt-8">
-            <p class="ect-font-body ect-text-[11px] ect-tracking-[0.22em] ect-text-gold-700 ect-mb-5">{{ v.n }}</p>
+            <p class="ect-font-body ect-text-micro ect-tracking-eyebrow ect-text-gold-700 ect-mb-5">{{ v.n }}</p>
             <h3 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal ect-mb-3">{{ v.title }}</h3>
             <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-leading-body-relaxed">{{ v.desc }}</p>
           </li>
@@ -330,7 +330,7 @@ onBeforeUnmount(() => {
           </p>
           <RouterLink
             to="/collections"
-            class="ect-inline-flex ect-items-center ect-gap-2.5 ect-px-8 ect-py-4 ect-bg-cream ect-text-charcoal ect-font-body ect-text-[12px] ect-font-semibold ect-uppercase ect-tracking-[0.18em] hover:ect-bg-champagne ect-transition-colors"
+            class="ect-inline-flex ect-items-center ect-gap-2.5 ect-px-8 ect-py-4 ect-bg-cream ect-text-charcoal ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-eyebrow hover:ect-bg-champagne ect-transition-colors"
           >
             Explore our collections
             <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
@@ -349,7 +349,7 @@ onBeforeUnmount(() => {
               <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
             </span>
             <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Visit us</p>
+              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Visit us</p>
               <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">Bangkok, Thailand<br />Visits by appointment</p>
             </div>
           </li>
@@ -358,7 +358,7 @@ onBeforeUnmount(() => {
               <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
             </span>
             <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Email</p>
+              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Email</p>
               <a href="mailto:hello@psg.example" class="ect-font-body ect-text-sm ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors">hello@psg.example</a>
             </div>
           </li>
@@ -367,7 +367,7 @@ onBeforeUnmount(() => {
               <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a11.285 11.285 0 01-3.256-3.137c-.111-.184-.006-.418.19-.6l1.13-.936c.32-.266.475-.714.407-1.146l-.382-2.26a1.125 1.125 0 00-1.09-.932H2.25z"/></svg>
             </span>
             <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Phone</p>
+              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Phone</p>
               <p class="ect-font-body ect-text-sm ect-text-charcoal">Available on request</p>
             </div>
           </li>
@@ -376,7 +376,7 @@ onBeforeUnmount(() => {
               <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </span>
             <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-mb-1">Hours</p>
+              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Hours</p>
               <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">Appointments are arranged<br />in advance</p>
             </div>
           </li>
@@ -388,17 +388,17 @@ onBeforeUnmount(() => {
             <h3 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal ect-mb-7">Send a message</h3>
             <form @submit.prevent="handleSubmit" class="ect-space-y-5">
               <label class="ect-block">
-                <span class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.15em] ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Name</span>
+                <span class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Name</span>
                 <input v-model="name" type="text" required placeholder="Your full name"
                   class="ect-w-full ect-px-4 ect-py-3.5 ect-rounded-xl ect-bg-cream/60 ect-border ect-border-charcoal/[0.08] ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/25 focus:ect-outline-none focus:ect-border-charcoal/30 focus:ect-ring-2 focus:ect-ring-charcoal/[0.06] ect-transition-all" />
               </label>
               <label class="ect-block">
-                <span class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.15em] ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Email</span>
+                <span class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Email</span>
                 <input v-model="email" type="email" required placeholder="you@example.com"
                   class="ect-w-full ect-px-4 ect-py-3.5 ect-rounded-xl ect-bg-cream/60 ect-border ect-border-charcoal/[0.08] ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/25 focus:ect-outline-none focus:ect-border-charcoal/30 focus:ect-ring-2 focus:ect-ring-charcoal/[0.06] ect-transition-all" />
               </label>
               <label class="ect-block">
-                <span class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.15em] ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Message</span>
+                <span class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Message</span>
                 <textarea v-model="message" required rows="5" placeholder="How can we help?"
                   class="ect-w-full ect-px-4 ect-py-3.5 ect-rounded-xl ect-bg-cream/60 ect-border ect-border-charcoal/[0.08] ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/25 focus:ect-outline-none focus:ect-border-charcoal/30 focus:ect-ring-2 focus:ect-ring-charcoal/[0.06] ect-transition-all ect-resize-none" />
               </label>
@@ -433,8 +433,8 @@ onBeforeUnmount(() => {
             <div class="ect-flex-1">
               <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-2.5 ect-mb-2">
                 <h3 class="ect-font-display ect-text-lg ect-font-medium ect-text-charcoal">{{ job.title }}</h3>
-                <span class="ect-font-body ect-text-[11px] ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-champagne/60 ect-text-gold-700 ect-font-semibold ect-uppercase ect-tracking-wider">{{ job.type }}</span>
-                <span class="ect-font-body ect-text-[11px] ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-charcoal/[0.04] ect-text-charcoal/50 ect-uppercase ect-tracking-wider">{{ job.location }}</span>
+                <span class="ect-font-body ect-text-micro ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-champagne/60 ect-text-gold-700 ect-font-semibold ect-uppercase ect-tracking-label">{{ job.type }}</span>
+                <span class="ect-font-body ect-text-micro ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-charcoal/[0.04] ect-text-charcoal/50 ect-uppercase ect-tracking-label">{{ job.location }}</span>
               </div>
               <p class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-leading-relaxed">{{ job.desc }}</p>
             </div>

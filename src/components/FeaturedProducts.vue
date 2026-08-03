@@ -56,7 +56,7 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
       </h2>
       <RouterLink
         to="/collections"
-        class="ect-shrink-0 ect-font-body ect-text-[13.5px] ect-tracking-[0.05em] ect-text-[#2b2723] ect-border-b ect-border-[#cdbfa6] ect-pb-0.5 hover:ect-text-[#1f5c4d] ect-transition-colors"
+        class="ect-shrink-0 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#2b2723] ect-border-b ect-border-[#cdbfa6] ect-pb-0.5 hover:ect-text-[#1f5c4d] ect-transition-colors"
       >
         View all jewellery
       </RouterLink>
@@ -68,9 +68,9 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
         v-for="f in FILTERS"
         :key="f"
         type="button"
-        class="ect-font-body ect-text-[13px] ect-tracking-[0.03em] ect-px-[18px] ect-py-[9px] ect-rounded-full ect-border ect-transition-colors"
+        class="ect-font-body ect-text-ui ect-tracking-wide ect-px-[18px] ect-py-[9px] ect-rounded-full ect-border ect-transition-colors"
         :class="
-          activeFilter === f
+ activeFilter === f
             ? 'ect-border-[#1f3f37] ect-bg-[#1f3f37] ect-text-[#f4ecd9]'
             : 'ect-border-[#d8ccb5] ect-bg-white ect-text-[#5c5648] hover:ect-bg-[#efe7d6]'
         "

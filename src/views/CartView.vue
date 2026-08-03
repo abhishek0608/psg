@@ -106,7 +106,7 @@ function customizationEntries(item: CartItem) {
 
       <!-- Page heading -->
       <header class="ect-mb-8 sm:ect-mb-10">
-        <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.15em] ect-text-gold-700 ect-mb-2">
+        <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-2">
           <span class="ect-w-5 ect-h-px ect-bg-gold-400" /> Shopping
         </p>
         <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal">Your Cart
@@ -151,7 +151,7 @@ function customizationEntries(item: CartItem) {
           <!-- Left: Items list -->
           <section class="lg:ect-col-span-2 ect-space-y-4">
             <header class="ect-flex ect-items-center ect-justify-between ect-mb-1">
-              <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Items</h2>
+              <h2 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50">Items</h2>
               <button type="button" @click="clearCart" class="ect-font-body ect-text-xs ect-text-charcoal/40 hover:ect-text-red-500 ect-transition-colors ect-flex ect-items-center ect-gap-1">
                 <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
                 Clear all
@@ -184,10 +184,10 @@ function customizationEntries(item: CartItem) {
               <section class="ect-flex-1 ect-flex ect-flex-col ect-justify-between ect-min-w-0">
                 <section class="ect-flex ect-items-start ect-justify-between ect-gap-2">
                   <section>
-                    <RouterLink :to="`/product/${item.product.slug}`" class="ect-font-display ect-text-base sm:ect-text-lg ect-font-medium ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors ect-leading-snug ect-block">{{ item.product.title }}</RouterLink>
+                    <RouterLink :to="`/product/${item.product.slug}`" class="ect-font-display ect-tabular-nums ect-text-base sm:ect-text-lg ect-font-medium ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors ect-leading-snug ect-block">{{ item.product.title }}</RouterLink>
                     <p class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-mt-0.5 ect-capitalize">{{ item.product.category }} · {{ item.product.material }}</p>
                     <dl v-if="customizationEntries(item).length" class="ect-mt-2 ect-grid ect-gap-1">
-                      <div v-for="entry in customizationEntries(item)" :key="`${item.id}-${entry.label}`" class="ect-flex ect-flex-wrap ect-gap-1.5 ect-font-body ect-text-[11px] ect-text-charcoal/55">
+                      <div v-for="entry in customizationEntries(item)" :key="`${item.id}-${entry.label}`" class="ect-flex ect-flex-wrap ect-gap-1.5 ect-font-body ect-text-micro ect-text-charcoal/55">
                         <dt class="ect-font-semibold ect-text-charcoal/65">{{ entry.label }}:</dt>
                         <dd class="ect-m-0">{{ entry.value }}</dd>
                       </div>
@@ -196,7 +196,7 @@ function customizationEntries(item: CartItem) {
                   <!-- Price (desktop) -->
                   <p v-if="isItemCustomized(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium ect-hidden sm:ect-block">Quote</p>
                   <p v-else-if="isItemPriceOnRequest(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium ect-whitespace-nowrap ect-hidden sm:ect-block">Price on request</p>
-                  <p v-else class="ect-font-display ect-text-base sm:ect-text-lg ect-font-medium ect-text-charcoal ect-whitespace-nowrap ect-hidden sm:ect-block">{{ itemSubtotal(item) }}</p>
+                  <p v-else class="ect-font-display ect-tabular-nums ect-text-base sm:ect-text-lg ect-font-medium ect-text-charcoal ect-whitespace-nowrap ect-hidden sm:ect-block">{{ itemSubtotal(item) }}</p>
                 </section>
 
                 <section class="ect-flex ect-items-center ect-justify-between ect-mt-3 ect-gap-3">
@@ -222,7 +222,7 @@ function customizationEntries(item: CartItem) {
                     <!-- Price (mobile) -->
                     <p v-if="isItemCustomized(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium sm:ect-hidden">Quote</p>
                     <p v-else-if="isItemPriceOnRequest(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium sm:ect-hidden">Price on request</p>
-                    <p v-else class="ect-font-display ect-text-base ect-font-medium ect-text-charcoal sm:ect-hidden">{{ itemSubtotal(item) }}</p>
+                    <p v-else class="ect-font-display ect-tabular-nums ect-text-base ect-font-medium ect-text-charcoal sm:ect-hidden">{{ itemSubtotal(item) }}</p>
                     <svg
                       v-if="isRowLoading(item.id)"
                       class="ect-w-4 ect-h-4 ect-text-gold-600 ect-animate-spin"
@@ -248,9 +248,9 @@ function customizationEntries(item: CartItem) {
 
                 <!-- Price breakup tooltip -->
                 <span v-if="!isItemCustomized(item) && !isItemPriceOnRequest(item)" class="ect-relative ect-inline-block ect-group/tip ect-mt-2 ect-self-start">
-                  <span class="ect-font-body ect-text-[11px] ect-text-gold-600 ect-cursor-default ect-border-b ect-border-dashed ect-border-gold-400/60">View price breakup</span>
+                  <span class="ect-font-body ect-text-micro ect-text-gold-600 ect-cursor-default ect-border-b ect-border-dashed ect-border-gold-400/60">View price breakup</span>
                   <span class="ect-absolute ect-left-0 ect-bottom-full ect-mb-2 ect-w-56 ect-bg-white ect-rounded-xl ect-shadow-xl ect-shadow-charcoal/10 ect-ring-1 ect-ring-charcoal/[0.06] ect-p-3 ect-opacity-0 ect-invisible group-hover/tip:ect-opacity-100 group-hover/tip:ect-visible ect-transition-all ect-duration-200 ect-z-10">
-                    <span class="ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-block ect-mb-2">Price Breakup</span>
+                    <span class="ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-block ect-mb-2">Price Breakup</span>
                     <span class="ect-flex ect-justify-between ect-py-1 ect-border-b ect-border-charcoal/[0.04]"><span class="ect-font-body ect-text-xs ect-text-charcoal/60">Gold ({{ item.product.breakup.goldWeight }})</span><span class="ect-font-body ect-text-xs ect-text-charcoal">{{ item.product.breakup.goldValue }}</span></span>
                     <span class="ect-flex ect-justify-between ect-py-1 ect-border-b ect-border-charcoal/[0.04]"><span class="ect-font-body ect-text-xs ect-text-charcoal/60">Stone ({{ item.product.breakup.stoneWeight }})</span><span class="ect-font-body ect-text-xs ect-text-charcoal">{{ item.product.breakup.stoneValue }}</span></span>
                     <span class="ect-flex ect-justify-between ect-py-1 ect-border-b ect-border-charcoal/[0.04]"><span class="ect-font-body ect-text-xs ect-text-charcoal/60">Making &amp; Labour</span><span class="ect-font-body ect-text-xs ect-text-charcoal">{{ item.product.breakup.labour }}</span></span>
@@ -309,7 +309,7 @@ function customizationEntries(item: CartItem) {
                   <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-gold-600">− {{ formattedDiscount }}</span>
                 </article>
                 <article v-else-if="nextVolumeDiscountTier" class="ect-flex">
-                  <span class="ect-font-body ect-text-[11px] ect-text-charcoal/45">
+                  <span class="ect-font-body ect-text-micro ect-text-charcoal/45">
                     Add {{ nextVolumeDiscountTier.minQty - totalItems }} more item{{ nextVolumeDiscountTier.minQty - totalItems !== 1 ? 's' : '' }} to save {{ nextVolumeDiscountTier.percent }}%
                   </span>
                 </article>
@@ -336,9 +336,9 @@ function customizationEntries(item: CartItem) {
               <article class="ect-flex ect-justify-between ect-items-baseline ect-mb-5">
                 <span class="ect-font-display ect-text-lg ect-text-charcoal">Total</span>
                 <section class="ect-text-right">
-                  <span class="ect-font-display ect-text-2xl ect-text-charcoal ect-block">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
-                  <span v-if="volumeDiscountTier" class="ect-font-body ect-text-[11px] ect-text-gold-600">You save {{ formattedDiscount }} ({{ discountPercent }}%)</span>
-                  <span v-if="quoteNote" class="ect-font-body ect-text-[11px] ect-text-gold-600 ect-block">{{ quoteNote }}</span>
+                  <span class="ect-font-display ect-tabular-nums ect-text-2xl ect-text-charcoal ect-block">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
+                  <span v-if="volumeDiscountTier" class="ect-font-body ect-text-micro ect-text-gold-600">You save {{ formattedDiscount }} ({{ discountPercent }}%)</span>
+                  <span v-if="quoteNote" class="ect-font-body ect-text-micro ect-text-gold-600 ect-block">{{ quoteNote }}</span>
                 </section>
               </article>
 
@@ -357,7 +357,7 @@ function customizationEntries(item: CartItem) {
                   </span>
                   <section>
                     <p class="ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal">100% Secure Checkout</p>
-                    <p class="ect-font-body ect-text-[11px] ect-text-charcoal/50">SSL encrypted payment</p>
+                    <p class="ect-font-body ect-text-micro ect-text-charcoal/50">SSL encrypted payment</p>
                   </section>
                 </li>
                 <li class="ect-flex ect-items-center ect-gap-3">
@@ -366,7 +366,7 @@ function customizationEntries(item: CartItem) {
                   </span>
                   <section>
                     <p class="ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal">Free Insured Shipping</p>
-                    <p class="ect-font-body ect-text-[11px] ect-text-charcoal/50">On all orders above ₹25,000</p>
+                    <p class="ect-font-body ect-text-micro ect-text-charcoal/50">On all orders above ₹25,000</p>
                   </section>
                 </li>
                 <li class="ect-flex ect-items-center ect-gap-3">
@@ -375,7 +375,7 @@ function customizationEntries(item: CartItem) {
                   </span>
                   <section>
                     <p class="ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal">Easy 7-Day Returns</p>
-                    <p class="ect-font-body ect-text-[11px] ect-text-charcoal/50">Hassle-free exchange policy</p>
+                    <p class="ect-font-body ect-text-micro ect-text-charcoal/50">Hassle-free exchange policy</p>
                   </section>
                 </li>
                 <li class="ect-flex ect-items-center ect-gap-3">
@@ -384,7 +384,7 @@ function customizationEntries(item: CartItem) {
                   </span>
                   <section>
                     <p class="ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal">BIS Hallmarked</p>
-                    <p class="ect-font-body ect-text-[11px] ect-text-charcoal/50">Certified purity guaranteed</p>
+                    <p class="ect-font-body ect-text-micro ect-text-charcoal/50">Certified purity guaranteed</p>
                   </section>
                 </li>
               </ul>

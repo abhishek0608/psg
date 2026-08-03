@@ -267,7 +267,7 @@ onUnmounted(() => {
             <div class="ect-max-w-7xl ect-mx-auto">
               <p
                 v-if="currentSlide.subheadline"
-                class="ect-font-body ect-text-[11px] ect-font-medium ect-uppercase ect-tracking-[0.24em] ect-text-[#f4ecd9]/85"
+                class="ect-eyebrow ect-text-[#f4ecd9]/85"
               >
                 {{ currentSlide.subheadline }}
               </p>
@@ -280,7 +280,7 @@ onUnmounted(() => {
               <button
                 v-if="currentSlide.ctaLabel && currentSlide.ctaHref"
                 type="button"
-                class="ect-mt-5 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-[#f4ecd9] ect-px-7 ect-py-3.5 ect-font-body ect-text-[13px] ect-tracking-[0.05em] ect-text-[#1f3f37] hover:ect-bg-white ect-transition-colors"
+                class="ect-mt-5 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-[#f4ecd9] ect-px-7 ect-py-3.5 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#1f3f37] hover:ect-bg-white ect-transition-colors"
                 @click="handleSlideCta"
               >
                 {{ currentSlide.ctaLabel }}
@@ -301,7 +301,7 @@ onUnmounted(() => {
         />
         <div class="ect-absolute ect-inset-x-0 ect-bottom-0 ect-p-6 sm:ect-p-10 lg:ect-p-14">
           <div class="ect-max-w-7xl ect-mx-auto">
-            <p class="ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.24em] ect-text-[#b79a56]">
+            <p class="ect-eyebrow ect-text-[#b79a56]">
               New diamond arrivals
             </p>
             <h1 class="ect-mt-2 ect-font-display ect-text-4xl sm:ect-text-5xl lg:ect-text-6xl ect-font-medium ect-leading-[1.06] ect-text-[#2b2723]">
@@ -312,7 +312,7 @@ onUnmounted(() => {
             </p>
             <button
               type="button"
-              class="ect-mt-6 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-[#1f3f37] ect-px-7 ect-py-3.5 ect-font-body ect-text-[13px] ect-tracking-[0.05em] ect-text-[#f4ecd9] hover:ect-bg-[#163029] ect-transition-colors"
+              class="ect-mt-6 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-[#1f3f37] ect-px-7 ect-py-3.5 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#f4ecd9] hover:ect-bg-[#163029] ect-transition-colors"
               @click="navigateTo('#collections')"
             >
               Shop Now

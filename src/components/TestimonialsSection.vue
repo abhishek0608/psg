@@ -10,7 +10,7 @@ const reviews = [
   <section class="ect-py-16 sm:ect-py-24 ect-px-6 ect-bg-pearl">
     <article class="ect-max-w-7xl ect-mx-auto">
       <header class="ect-text-center ect-mb-12">
-        <p class="ect-inline-flex ect-items-center ect-gap-2.5 ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.22em] ect-text-gold-700 ect-mb-3">
+        <p class="ect-eyebrow ect-inline-flex ect-items-center ect-gap-2.5 ect-text-gold-700 ect-mb-3">
           <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
           Testimonials
           <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
@@ -26,7 +26,7 @@ const reviews = [
         >
           <span class="ect-font-display ect-text-5xl ect-leading-none ect-text-gold-300 ect-select-none" aria-hidden="true">&ldquo;</span>
           <p class="ect-font-body ect-text-base ect-text-charcoal/75 ect-leading-relaxed ect-mt-1 ect-mb-5">{{ review.text }}</p>
-          <p class="ect-text-sm ect-text-gold-400 ect-tracking-[0.15em] ect-mb-3">{{ '★'.repeat(review.rating) }}</p>
+          <p class="ect-text-sm ect-text-gold-400 ect-tracking-label ect-mb-3">{{ '★'.repeat(review.rating) }}</p>
           <footer class="ect-pt-4 ect-border-t ect-border-sand">
             <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ review.name }}</p>
             <p class="ect-font-body ect-text-xs ect-text-charcoal/45 ect-mt-0.5">{{ review.location }}</p>

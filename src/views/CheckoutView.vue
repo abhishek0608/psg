@@ -334,7 +334,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
 
       <!-- Page header -->
       <header class="ect-mb-8 sm:ect-mb-10">
-        <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.15em] ect-text-gold-700 ect-mb-2">
+        <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-2">
           <span class="ect-w-5 ect-h-px ect-bg-gold-400" /> Secure Checkout
         </p>
         <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal">Complete Your Order</h1>
@@ -371,7 +371,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                 </svg>
               </span>
-              <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/70">Contact Details</h2>
+              <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70">Contact Details</h2>
             </header>
             <section class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
               <div v-if="savedAddresses.length" role="radiogroup" aria-label="Saved shipping address" class="ect-block sm:ect-col-span-2">
@@ -382,7 +382,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                     :key="a.id"
                     class="ect-flex ect-items-start ect-gap-3 ect-p-3.5 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
                     :class="selectedSavedId === a.id
-                      ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
+ ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
                       : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
                   >
                     <input v-model="selectedSavedId" type="radio" :value="a.id" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
@@ -398,7 +398,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <label
                     class="ect-flex ect-items-start ect-gap-3 ect-p-3.5 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
                     :class="selectedSavedId === ''
-                      ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
+ ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
                       : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
                   >
                     <input v-model="selectedSavedId" type="radio" value="" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
@@ -411,7 +411,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                     </span>
                   </label>
                 </div>
-                <span class="ect-mt-1.5 ect-block ect-font-body ect-text-[11px] ect-text-charcoal/40">Selecting a saved address fills your contact details and shipping address.</span>
+                <span class="ect-mt-1.5 ect-block ect-font-body ect-text-micro ect-text-charcoal/40">Selecting a saved address fills your contact details and shipping address.</span>
               </div>
               <label class="ect-block">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Full Name *</span>
@@ -436,7 +436,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                 </svg>
               </span>
-              <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/70">Shipping Address</h2>
+              <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70">Shipping Address</h2>
             </header>
             <section class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
               <label class="ect-block sm:ect-col-span-2">
@@ -490,7 +490,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
                 </svg>
               </span>
-              <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/70">Payment Method</h2>
+              <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70">Payment Method</h2>
             </header>
 
             <section class="ect-space-y-3">
@@ -499,7 +499,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                 :key="opt.id"
                 class="ect-flex ect-items-center ect-gap-4 ect-p-4 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
                 :class="form.payment === opt.id
-                  ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
+ ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
                   : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
               >
                 <input v-model="form.payment" type="radio" :value="opt.id" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0" />
@@ -585,7 +585,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <span v-else class="ect-w-full ect-h-full ect-flex ect-items-center ect-justify-center">
                     <svg class="ect-w-5 ect-h-5 ect-text-gold-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>
                   </span>
-                  <span class="ect-absolute -ect-top-1.5 -ect-right-1.5 ect-w-5 ect-h-5 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-[10px] ect-font-bold ect-flex ect-items-center ect-justify-center">{{ item.qty }}</span>
+                  <span class="ect-absolute -ect-top-1.5 -ect-right-1.5 ect-w-5 ect-h-5 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center">{{ item.qty }}</span>
                 </span>
                 <section class="ect-flex-1 ect-min-w-0">
                   <p class="ect-font-body ect-text-sm ect-font-medium ect-text-charcoal ect-truncate">{{ item.product.title }}</p>
@@ -625,14 +625,14 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
 
             <article class="ect-flex ect-justify-between ect-items-baseline ect-mb-1">
               <span class="ect-font-display ect-text-lg ect-text-charcoal">Total</span>
-              <span class="ect-font-display ect-text-2xl ect-text-charcoal">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
+              <span class="ect-font-display ect-tabular-nums ect-text-2xl ect-text-charcoal">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
             </article>
             <p class="ect-font-body ect-text-xs ect-text-charcoal/40 ect-text-right">GST included in price</p>
           </section>
 
           <!-- Hallmark & assurance -->
           <section class="ect-bg-gradient-to-br ect-from-champagne/60 ect-to-cream ect-rounded-2xl ect-p-5 ect-border ect-border-sand">
-            <p class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wider ect-text-gold-700 ect-mb-3">Our Promise</p>
+            <p class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-3">Our Promise</p>
             <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2.5">
               <li v-for="promise in [
                 'BIS Hallmarked & certified purity',

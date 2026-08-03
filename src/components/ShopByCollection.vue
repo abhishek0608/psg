@@ -40,14 +40,14 @@ function goToCollection(slug: string) {
   <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-14 sm:ect-pt-16">
     <header class="ect-flex ect-items-end ect-justify-between ect-gap-4 ect-mb-7">
       <div>
-        <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.24em] ect-text-[#b79a56]">Shop by category</p>
+        <p class="ect-eyebrow ect-text-[#b79a56]">Shop by category</p>
         <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
           Find your everyday favorite
         </h2>
       </div>
       <RouterLink
         to="/collections"
-        class="ect-shrink-0 ect-font-body ect-text-[13.5px] ect-tracking-[0.05em] ect-text-[#2b2723] ect-border-b ect-border-[#cdbfa6] ect-pb-0.5 hover:ect-text-[#1f5c4d] ect-transition-colors"
+        class="ect-shrink-0 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#2b2723] ect-border-b ect-border-[#cdbfa6] ect-pb-0.5 hover:ect-text-[#1f5c4d] ect-transition-colors"
       >
         View all categories
       </RouterLink>
@@ -74,7 +74,7 @@ function goToCollection(slug: string) {
             class="ect-pointer-events-none ect-absolute ect-inset-0 ect-w-full ect-h-full ect-object-cover"
           />
         </span>
-        <span class="ect-font-body ect-text-sm ect-tracking-[0.02em] ect-text-[#2b2723] group-hover:ect-text-[#1f5c4d] ect-transition-colors">
+        <span class="ect-font-body ect-text-sm ect-tracking-wide ect-text-[#2b2723] group-hover:ect-text-[#1f5c4d] ect-transition-colors">
           {{ item.title }}
         </span>
       </button>

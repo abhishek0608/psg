@@ -64,7 +64,7 @@ function onCardGroupChange(product: Product, value: string) {
     <article class="ect-max-w-7xl ect-mx-auto">
       <header class="ect-mb-8 ect-flex ect-flex-wrap ect-items-end ect-justify-between ect-gap-4">
         <div>
-          <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.15em] ect-text-gold-700 ect-mb-2">
+          <p class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-2">
             <span class="ect-w-5 ect-h-px ect-bg-gold-400" /> Saved
           </p>
           <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal">Your Wishlist</h1>
@@ -83,13 +83,13 @@ function onCardGroupChange(product: Product, value: string) {
               class="ect-w-52 ect-px-4 ect-py-2.5 ect-rounded-xl ect-border ect-border-charcoal/20 ect-bg-white ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40 focus:ect-border-gold-400 ect-transition-all"
               @keydown.esc="newGroupOpen = false"
             />
-            <button type="submit" class="ect-px-4 ect-py-2.5 ect-bg-charcoal ect-text-white ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.08em] ect-rounded-xl hover:ect-bg-noir ect-transition-colors">Create</button>
+            <button type="submit" class="ect-px-4 ect-py-2.5 ect-bg-charcoal ect-text-white ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-xl hover:ect-bg-noir ect-transition-colors">Create</button>
             <button type="button" class="ect-px-2 ect-py-2.5 ect-font-body ect-text-xs ect-text-charcoal/50 hover:ect-text-charcoal ect-transition-colors" @click="newGroupOpen = false">Cancel</button>
           </form>
           <button
             v-else
             type="button"
-            class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-4 ect-py-2.5 ect-border ect-border-charcoal/25 ect-bg-white ect-text-charcoal ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.08em] ect-rounded-xl hover:ect-border-charcoal hover:ect-bg-charcoal hover:ect-text-white ect-transition-colors"
+            class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-4 ect-py-2.5 ect-border ect-border-charcoal/25 ect-bg-white ect-text-charcoal ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-xl hover:ect-border-charcoal hover:ect-bg-charcoal hover:ect-text-white ect-transition-colors"
             @click="openNewGroup"
           >
             <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -124,7 +124,7 @@ function onCardGroupChange(product: Product, value: string) {
                 class="ect-w-52 ect-px-3 ect-py-1.5 ect-rounded-lg ect-border ect-border-charcoal/20 ect-bg-white ect-font-display ect-text-xl ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40 focus:ect-border-gold-400"
                 @keydown.esc="renamingGroup = null"
               />
-              <button type="submit" class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.08em] ect-text-gold-700 hover:ect-text-charcoal ect-transition-colors">Save</button>
+              <button type="submit" class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-gold-700 hover:ect-text-charcoal ect-transition-colors">Save</button>
             </form>
             <template v-else>
               <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">{{ section.name }}</h2>

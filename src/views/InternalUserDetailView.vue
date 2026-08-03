@@ -145,7 +145,7 @@ onMounted(() => {
           <div class="ect-mt-2 ect-h-4 ect-w-64 ect-rounded ect-bg-rose-100 ect-animate-pulse"></div>
         </template>
         <template v-else>
-          <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.2em] ect-text-rose-600 ect-mb-2">User record</p>
+          <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-rose-600 ect-mb-2">User record</p>
           <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal">{{ targetUser?.name || 'User detail' }}</h1>
           <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">{{ targetUser?.email || '' }}</p>
         </template>
@@ -176,36 +176,36 @@ onMounted(() => {
 
       <section v-if="targetUser" class="ect-grid lg:ect-grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] ect-gap-5">
         <article class="ect-bg-white ect-border ect-border-rose-200/50 ect-rounded-lg ect-p-5">
-          <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/40 ect-mb-3">Profile</p>
+          <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-3">Profile</p>
           <dl class="ect-space-y-4">
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Name</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Name</dt>
               <dd class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ targetUser.name }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Email</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Email</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ targetUser.email }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Role</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Role</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ roleLabel }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Channel</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Channel</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ targetUser.channel }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Orders</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Orders</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ targetUser.orderCount }}</dd>
             </div>
             <div>
-              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/35">Joined</dt>
+              <dt class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/35">Joined</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal">{{ formatDate(targetUser.createdAt) }}</dd>
             </div>
           </dl>
 
           <div v-if="isAdminUser" class="ect-mt-6 ect-pt-5 ect-border-t ect-border-rose-200/40">
-            <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-charcoal/40 ect-mb-3">Manage access</p>
+            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-3">Manage access</p>
             <div class="ect-flex ect-flex-wrap ect-gap-2.5">
               <button
                 type="button"
@@ -213,7 +213,7 @@ onMounted(() => {
                 @click="updateRole({ isInternal: !targetUser.isInternal })"
                 class="ect-rounded-full ect-px-4 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-border ect-transition disabled:ect-opacity-50"
                 :class="targetUser.isInternal
-                  ? 'ect-border-rose-200 ect-text-charcoal/70 hover:ect-bg-rose-50'
+ ? 'ect-border-rose-200 ect-text-charcoal/70 hover:ect-bg-rose-50'
                   : 'ect-border-charcoal ect-bg-charcoal ect-text-white hover:ect-opacity-90'"
               >
                 {{ targetUser.isInternal ? 'Revoke internal access' : 'Grant internal access' }}
@@ -224,7 +224,7 @@ onMounted(() => {
                 @click="updateRole({ isAdmin: !targetUser.isAdmin })"
                 class="ect-rounded-full ect-px-4 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-border ect-transition disabled:ect-opacity-50 disabled:ect-cursor-not-allowed"
                 :class="targetUser.isAdmin
-                  ? 'ect-border-rose-200 ect-text-charcoal/70 hover:ect-bg-rose-50'
+ ? 'ect-border-rose-200 ect-text-charcoal/70 hover:ect-bg-rose-50'
                   : 'ect-border-charcoal ect-bg-charcoal ect-text-white hover:ect-opacity-90'"
               >
                 {{ targetUser.isAdmin ? 'Remove full admin' : 'Make full admin' }}
@@ -240,7 +240,7 @@ onMounted(() => {
         <article class="ect-bg-white ect-border ect-border-rose-200/50 ect-rounded-lg ect-overflow-hidden">
           <header class="ect-flex ect-items-end ect-justify-between ect-gap-3 ect-p-5 ect-border-b ect-border-rose-200/30">
             <div>
-              <p class="ect-font-body ect-text-[11px] ect-uppercase ect-tracking-[0.16em] ect-text-rose-600 ect-mb-1">Related orders</p>
+              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-rose-600 ect-mb-1">Related orders</p>
               <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Orders placed by this account</h2>
             </div>
             <span class="ect-font-body ect-text-xs ect-text-charcoal/45">{{ matchingOrders.length }} found</span>

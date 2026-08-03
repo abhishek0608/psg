@@ -126,7 +126,7 @@ const productTag = computed(() => {
         <span class="ect-absolute ect-inset-0 ect-bg-charcoal/0 group-hover:ect-bg-charcoal/[0.035] ect-transition-colors ect-duration-300" />
 
         <!-- Listing badge (top-left) -->
-        <span v-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-px-2.5 ect-py-1 ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-[0.12em]" :class="productTag === 'Bestseller' ? 'ect-bg-[#1f3f37] ect-text-[#f4ecd9]' : 'ect-bg-[#b79a56] ect-text-[#2b2723]'">
+        <span v-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label" :class="productTag === 'Bestseller' ? 'ect-bg-[#1f3f37] ect-text-[#f4ecd9]' : 'ect-bg-[#b79a56] ect-text-[#2b2723]'">
           {{ productTag }}
         </span>
 
@@ -159,9 +159,9 @@ const productTag = computed(() => {
       </figure>
 
       <section class="ect-flex ect-flex-1 ect-flex-col ect-px-4 ect-pt-4 ect-pb-0">
-        <p class="ect-font-body ect-text-[11px] ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-[#a2987f]">{{ category }}</p>
+        <p class="ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#a2987f]">{{ category }}</p>
         <h3
-          class="ect-mt-1.5 ect-font-body ect-text-[15px] ect-font-normal ect-leading-snug ect-text-charcoal group-hover:ect-text-[#1f3f37] ect-transition-colors ect-line-clamp-2"
+          class="ect-mt-1.5 ect-font-body ect-text-ui-lg ect-font-normal ect-leading-snug ect-text-charcoal group-hover:ect-text-[#1f3f37] ect-transition-colors ect-line-clamp-2"
         >
           {{ title }}
         </h3>
@@ -175,8 +175,8 @@ const productTag = computed(() => {
     <!-- Price + Add to Cart -->
     <section class="ect-px-4 ect-pb-4 ect-pt-3">
       <div class="ect-flex ect-min-h-[30px] ect-items-baseline ect-gap-2 ect-flex-wrap">
-        <p v-if="hasRetailPrice" class="ect-font-display ect-text-[22px] ect-font-medium ect-leading-none ect-text-charcoal">{{ price }}</p>
-        <p v-else class="ect-font-body ect-text-sm ect-font-medium ect-tracking-[0.02em] ect-text-charcoal/55">Price on request</p>
+        <p v-if="hasRetailPrice" class="ect-font-display ect-tabular-nums ect-text-price ect-font-medium ect-leading-none ect-tracking-display-sm ect-text-charcoal">{{ price }}</p>
+        <p v-else class="ect-font-body ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
         <span v-if="hasRetailPrice" class="ect-font-body ect-text-xs ect-font-medium ect-text-[#1f5c4d]">Price breakup</span>
       </div>
       <div class="ect-mt-3 ect-flex ect-gap-2">
@@ -186,9 +186,9 @@ const productTag = computed(() => {
         @click="handleAddToCart"
         :aria-label="cartLoading ? 'Adding to cart' : inCart ? 'Added to cart' : 'Add to cart'"
         :disabled="cartLoading"
-        class="ect-min-w-0 ect-flex-1 ect-h-11 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-[13px] ect-font-semibold ect-uppercase ect-tracking-[0.05em] ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
+        class="ect-min-w-0 ect-flex-1 ect-h-11 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
         :class="cartLoading
-          ? 'ect-bg-[#1f3f37]/70 ect-text-[#f4ecd9] ect-cursor-wait'
+ ? 'ect-bg-[#1f3f37]/70 ect-text-[#f4ecd9] ect-cursor-wait'
           : inCart
           ? 'ect-bg-[#1f3f37] ect-text-[#f4ecd9]'
           : 'ect-bg-[#1f3f37] ect-text-[#f4ecd9] hover:ect-bg-[#17342d]'"

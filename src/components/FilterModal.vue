@@ -264,7 +264,7 @@ function formatPrice(val: number) {
           <section class="ect-px-6 ect-py-4 ect-space-y-4">
             <!-- Material -->
             <section>
-              <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50 ect-mb-2">Material</h3>
+              <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50 ect-mb-2">Material</h3>
               <section class="ect-flex ect-gap-2.5 ect-flex-wrap">
                 <button
                   v-for="m in (['gold', 'silver'] as Material[])"
@@ -291,7 +291,7 @@ function formatPrice(val: number) {
                 :aria-expanded="stoneTypeOpen"
                 @click="stoneTypeOpen = !stoneTypeOpen"
               >
-                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Stone Type</h3>
+                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50">Stone Type</h3>
                 <span class="ect-flex ect-items-center ect-gap-2">
                   <span v-if="local.stoneTags.length" class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/70">{{ local.stoneTags.length }} selected</span>
                   <svg class="ect-w-4 ect-h-4 ect-text-charcoal/40 ect-transition-transform" :class="stoneTypeOpen ? 'ect-rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -321,7 +321,7 @@ function formatPrice(val: number) {
                  Hidden when the page locks a single category. -->
             <template v-if="!lockedCategory">
               <section>
-                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50 ect-mb-2">Category</h3>
+                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50 ect-mb-2">Category</h3>
                 <section class="ect-flex ect-flex-wrap ect-gap-2">
                   <button
                     v-for="cat in CATEGORIES"
@@ -329,7 +329,7 @@ function formatPrice(val: number) {
                     type="button"
                     :aria-pressed="local.categories.includes(cat)"
                     :class="local.categories.includes(cat) ? 'ect-bg-gold-50 ect-text-gold-700 ect-border-gold-400' : 'ect-border-sand ect-text-charcoal/80 hover:ect-border-gold-400/60'"
-                    class="ect-flex-none ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-[13px] ect-font-medium ect-px-3 ect-py-2.5 ect-rounded-full ect-border ect-whitespace-nowrap ect-transition-colors"
+                    class="ect-flex-none ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-ui ect-font-medium ect-px-3 ect-py-2.5 ect-rounded-full ect-border ect-whitespace-nowrap ect-transition-colors"
                     @click="toggleCategory(cat)"
                   >
                     {{ cat }}
@@ -343,16 +343,16 @@ function formatPrice(val: number) {
 
             <!-- Price Range -->
             <section>
-              <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50 ect-mb-2">Price Range</h3>
+              <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50 ect-mb-2">Price Range</h3>
               <section>
                 <!-- MIN / MAX value boxes -->
                 <section class="ect-flex ect-items-stretch ect-gap-3 ect-mb-4">
                   <div class="ect-flex-1 ect-bg-white ect-border ect-border-sand ect-rounded-xl ect-px-4 ect-py-2.5">
-                    <span class="ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-block">Min</span>
+                    <span class="ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-block">Min</span>
                     <span class="ect-font-body ect-text-base ect-font-medium ect-text-charcoal">{{ formatPrice(local.priceMin) }}</span>
                   </div>
                   <div class="ect-flex-1 ect-bg-white ect-border ect-border-sand ect-rounded-xl ect-px-4 ect-py-2.5">
-                    <span class="ect-font-body ect-text-[10px] ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/40 ect-block">Max</span>
+                    <span class="ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-block">Max</span>
                     <span class="ect-font-body ect-text-base ect-font-medium ect-text-charcoal">{{ formatPrice(local.priceMax) }}{{ local.priceMax >= maxPrice ? '+' : '' }}</span>
                   </div>
                 </section>
@@ -371,7 +371,7 @@ function formatPrice(val: number) {
 
             <!-- Color -->
             <section>
-              <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50 ect-mb-2">Metal Tone</h3>
+              <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50 ect-mb-2">Metal Tone</h3>
               <section class="ect-flex ect-gap-5 ect-flex-wrap">
                 <button
                   v-for="c in COLORS"
@@ -406,7 +406,7 @@ function formatPrice(val: number) {
                 :aria-expanded="stoneShapeOpen"
                 @click="stoneShapeOpen = !stoneShapeOpen"
               >
-                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Stone Shape</h3>
+                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50">Stone Shape</h3>
                 <span class="ect-flex ect-items-center ect-gap-2">
                   <span v-if="local.centerShapes.length" class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/70">{{ local.centerShapes.length }} selected</span>
                   <svg class="ect-w-4 ect-h-4 ect-text-charcoal/40 ect-transition-transform" :class="stoneShapeOpen ? 'ect-rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -440,7 +440,7 @@ function formatPrice(val: number) {
                 :aria-expanded="stoneSizeOpen"
                 @click="stoneSizeOpen = !stoneSizeOpen"
               >
-                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-widest ect-text-charcoal/50">Stone Size</h3>
+                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50">Stone Size</h3>
                 <span class="ect-flex ect-items-center ect-gap-2">
                   <span v-if="local.centerStoneSizes.length" class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/70">{{ local.centerStoneSizes.length }} selected</span>
                   <svg class="ect-w-4 ect-h-4 ect-text-charcoal/40 ect-transition-transform" :class="stoneSizeOpen ? 'ect-rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -481,7 +481,7 @@ function formatPrice(val: number) {
               type="button"
               @click="apply"
               :disabled="previewCount === 0"
-              class="ect-flex-[1.6] ect-py-3.5 ect-bg-rose-500 ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-wider ect-rounded-full hover:ect-bg-rose-600 ect-transition-colors disabled:ect-opacity-40 disabled:ect-cursor-not-allowed"
+              class="ect-flex-[1.6] ect-py-3.5 ect-bg-rose-500 ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-full hover:ect-bg-rose-600 ect-transition-colors disabled:ect-opacity-40 disabled:ect-cursor-not-allowed"
             >
               <template v-if="previewCount !== null">{{ previewCount === 0 ? 'No pieces match' : `Show ${previewCount} ${previewCount === 1 ? 'piece' : 'pieces'}` }}</template>
               <template v-else>Apply Filters{{ activeCount > 0 ? ` (${activeCount})` : '' }}</template>

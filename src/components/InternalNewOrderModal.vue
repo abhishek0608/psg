@@ -194,7 +194,7 @@ async function submit() {
 
       <!-- Customer -->
       <div class="ect-mt-5">
-        <p class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Customer</p>
+        <p class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Customer</p>
         <div v-if="selectedCustomer" class="ect-mt-1 ect-flex ect-items-center ect-justify-between ect-rounded-lg ect-border ect-border-sand ect-bg-cream ect-px-3 ect-py-2">
           <div>
             <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ selectedCustomer.name }}</p>
@@ -228,7 +228,7 @@ async function submit() {
 
       <!-- Products -->
       <div class="ect-mt-5">
-        <p class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Products *</p>
+        <p class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Products *</p>
         <div class="ect-relative ect-mt-1">
           <input
             v-model="productQuery"
@@ -275,11 +275,11 @@ async function submit() {
 
       <div class="ect-mt-5 ect-grid ect-grid-cols-2 ect-gap-3">
         <label class="ect-block">
-          <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Status</span>
+          <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Status</span>
           <UiSelect v-model="status" :options="statusOptions" class="ect-mt-1" />
         </label>
         <label class="ect-col-span-2 ect-block">
-          <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Notes</span>
+          <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Notes</span>
           <textarea v-model="notes" rows="2" class="ect-mt-1 ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-bg-white ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-border-gold-400 focus:ect-outline-none"></textarea>
         </label>
       </div>
