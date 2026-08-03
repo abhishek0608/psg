@@ -66,6 +66,8 @@ interface HomepageSlideRecord {
   id?: string
   imageUrl: string
   mobileImageUrl?: string
+  videoUrl?: string
+  mobileVideoUrl?: string
   headline?: string
   subheadline?: string
   ctaLabel?: string
@@ -686,6 +688,8 @@ function createHomepageSlide(): HomepageSlideRecord {
   return {
     imageUrl: '',
     mobileImageUrl: '',
+    videoUrl: '',
+    mobileVideoUrl: '',
     headline: '',
     subheadline: '',
     ctaLabel: '',
@@ -702,6 +706,8 @@ function normalizeHomepageSlidesForView(slides: any[]) {
         id: slide?.id ? String(slide.id) : undefined,
         imageUrl: String(slide?.imageUrl || ''),
         mobileImageUrl: String(slide?.mobileImageUrl || ''),
+        videoUrl: String(slide?.videoUrl || ''),
+        mobileVideoUrl: String(slide?.mobileVideoUrl || ''),
         headline: String(slide?.headline || ''),
         subheadline: String(slide?.subheadline || ''),
         ctaLabel: String(slide?.ctaLabel || ''),
@@ -800,10 +806,11 @@ async function compressImageFile(file: File) {
 
 // Upload the original (full-resolution) file straight to S3 via a presigned
 // URL and return its public URL. Returns null when uploads aren't configured
-// (e.g. local dev without S3) so the caller can fall back to inline storage.
+// (e.g. local dev without S3) so the caller can fall back to inline storage —
+// image callers only; video has no inline fallback and must surface the error.
 async function uploadHomepageImageToS3(
   file: File,
-  target: 'desktop' | 'mobile' | 'collection' | 'about',
+  target: 'desktop' | 'mobile' | 'collection' | 'about' | 'video' | 'mobile-video',
 ): Promise<string | null> {
   const userId = user.value?.id
   if (!userId) return null
@@ -876,6 +883,53 @@ async function onHomepageSlideFileChange(index: number, event: Event, target: 'd
     applyUrl(dataUrl)
   } catch (error) {
     homepageMessage.value = error instanceof Error ? error.message : 'Unable to read image.'
+  } finally {
+    homepageUploading.value = false
+    if (input) input.value = ''
+  }
+}
+
+// Hero videos are S3-only: they're far too large to inline as base64 the way
+// the image fallback does, so an unconfigured bucket is a hard error here
+// rather than a silent downgrade.
+const MAX_HOMEPAGE_VIDEO_BYTES = 12 * 1024 * 1024
+
+async function onHomepageSlideVideoChange(
+  index: number,
+  event: Event,
+  target: 'desktop' | 'mobile',
+) {
+  const input = event.target as HTMLInputElement | null
+  const file = input?.files?.[0]
+  homepageMessage.value = ''
+  if (!file) return
+  if (file.type !== 'video/mp4' && file.type !== 'video/webm') {
+    homepageMessage.value = 'Please choose an MP4 or WEBM video.'
+    if (input) input.value = ''
+    return
+  }
+  if (file.size > MAX_HOMEPAGE_VIDEO_BYTES) {
+    homepageMessage.value =
+      'Please choose a video smaller than 12 MB — a hero clip should be a few seconds, muted, and compressed.'
+    if (input) input.value = ''
+    return
+  }
+
+  const field = target === 'desktop' ? 'videoUrl' : 'mobileVideoUrl'
+  homepageUploading.value = true
+  try {
+    const publicUrl = await uploadHomepageImageToS3(file, target === 'desktop' ? 'video' : 'mobile-video')
+    if (!publicUrl) {
+      homepageMessage.value =
+        'Video uploads need S3 storage configured. Paste a hosted video URL instead.'
+      return
+    }
+    const nextSlides = [...homepageSlides.value]
+    if (!nextSlides[index]) return
+    nextSlides[index] = { ...nextSlides[index], [field]: publicUrl }
+    homepageSlides.value = nextSlides
+  } catch (error) {
+    homepageMessage.value = error instanceof Error ? error.message : 'Unable to upload video.'
   } finally {
     homepageUploading.value = false
     if (input) input.value = ''
@@ -1828,7 +1882,34 @@ onBeforeUnmount(() => {
                       @change="onHomepageSlideFileChange(index, $event, 'mobile')"
                     />
                   </label>
+                  <label class="ect-inline-flex ect-cursor-pointer ect-items-center ect-justify-center ect-rounded-full ect-border ect-border-charcoal/20 ect-px-3 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 hover:ect-border-gold-400 hover:ect-text-gold-700 hover:ect-bg-cream">
+                    Upload desktop video
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm"
+                      class="ect-hidden"
+                      @change="onHomepageSlideVideoChange(index, $event, 'desktop')"
+                    />
+                  </label>
+                  <label class="ect-inline-flex ect-cursor-pointer ect-items-center ect-justify-center ect-rounded-full ect-border ect-border-charcoal/20 ect-px-3 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 hover:ect-border-gold-400 hover:ect-text-gold-700 hover:ect-bg-cream">
+                    Upload mobile video
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm"
+                      class="ect-hidden"
+                      @change="onHomepageSlideVideoChange(index, $event, 'mobile')"
+                    />
+                  </label>
                 </div>
+
+                <p
+                  v-if="slide.videoUrl || slide.mobileVideoUrl"
+                  class="ect-rounded-xl ect-bg-cream ect-px-3 ect-py-2 ect-font-body ect-text-[11px] ect-leading-5 ect-text-charcoal/60"
+                >
+                  This slide plays a video. The image above is still used as its
+                  poster frame — keep one set so the banner paints instantly while
+                  the video loads. Videos play muted and cannot carry audio.
+                </p>
 
                 <label class="ect-block">
                   <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Desktop image URL</span>
@@ -1839,6 +1920,17 @@ onBeforeUnmount(() => {
                   <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Mobile image URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
                   <input v-model="slide.mobileImageUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
+
+                <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
+                  <label class="ect-block">
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Desktop video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
+                    <input v-model="slide.videoUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                  </label>
+                  <label class="ect-block">
+                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-[0.12em] ect-text-charcoal/45">Mobile video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
+                    <input v-model="slide.mobileVideoUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                  </label>
+                </div>
 
                 <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
                   <label class="ect-block">

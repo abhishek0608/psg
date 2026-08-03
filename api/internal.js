@@ -1611,6 +1611,8 @@ function normalizeSlides(input) {
       id: String(slide?.id || '').trim() || null,
       imageUrl: String(slide?.imageUrl || '').trim(),
       mobileImageUrl: String(slide?.mobileImageUrl || '').trim() || null,
+      videoUrl: String(slide?.videoUrl || '').trim() || null,
+      mobileVideoUrl: String(slide?.mobileVideoUrl || '').trim() || null,
       headline: String(slide?.headline || '').trim() || null,
       subheadline: String(slide?.subheadline || '').trim() || null,
       ctaLabel: String(slide?.ctaLabel || '').trim() || null,
@@ -1623,10 +1625,14 @@ function normalizeSlides(input) {
           : index,
       active: slide?.active !== false,
     }))
-    // Keep any slide that has a usable image for at least one device. A
+    // Keep any slide that has usable media for at least one device. A
     // mobile-only banner has an empty desktop `imageUrl` but a `mobileImageUrl`,
-    // and must not be dropped on save.
-    .filter((slide) => slide.imageUrl || slide.mobileImageUrl)
+    // and must not be dropped on save. A video alone is enough too — the image
+    // is only its poster frame, so it's optional.
+    .filter(
+      (slide) =>
+        slide.imageUrl || slide.mobileImageUrl || slide.videoUrl || slide.mobileVideoUrl,
+    )
 }
 
 async function handleSlidesResource(req, res, body) {
@@ -1655,6 +1661,8 @@ async function handleSlidesResource(req, res, body) {
             data: slides.map((slide) => ({
               imageUrl: slide.imageUrl,
               mobileImageUrl: slide.mobileImageUrl,
+              videoUrl: slide.videoUrl,
+              mobileVideoUrl: slide.mobileVideoUrl,
               headline: slide.headline,
               subheadline: slide.subheadline,
               ctaLabel: slide.ctaLabel,
@@ -1821,14 +1829,8 @@ async function handleUploadImageResource(req, res, body) {
   }
 
   const contentType = String(body?.contentType || '').trim()
-  const target =
-    body?.target === 'mobile'
-      ? 'mobile'
-      : body?.target === 'collection'
-        ? 'collection'
-        : body?.target === 'about'
-          ? 'about'
-          : 'desktop'
+  const UPLOAD_TARGETS = ['mobile', 'collection', 'about', 'video', 'mobile-video']
+  const target = UPLOAD_TARGETS.includes(body?.target) ? body.target : 'desktop'
 
   try {
     const result = await createPresignedHomepageUpload({ contentType, target })

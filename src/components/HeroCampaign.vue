@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHeaderOffset } from '../composables/useHeaderOffset'
 import { useHomepageSlides } from '../composables/useHomepageSlides'
@@ -17,9 +18,19 @@ function syncIsMobile(event: MediaQueryList | MediaQueryListEvent) {
   isMobile.value = event.matches
 }
 
-// Resolve the image a slide should show on the current device. On mobile we use
+// Some visitors ask the OS to minimise animation; for them the hero video is
+// rendered but never auto-played, so they get a still poster frame instead.
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+const prefersReducedMotion = ref(false)
+let reducedMotionQuery: MediaQueryList | null = null
+function syncReducedMotion(event: MediaQueryList | MediaQueryListEvent) {
+  prefersReducedMotion.value = event.matches
+}
+
+// Resolve the asset a slide should show on the current device. On mobile we use
 // the dedicated mobile asset (a mobile-only slide stores it in `imageUrl`); we
-// never fall back to the desktop image there.
+// never fall back to the desktop image there, because a landscape banner cropped
+// to a portrait frame looks broken.
 function resolveImageUrl(slide: { imageUrl?: string; mobileImageUrl?: string; device?: string } | null) {
   if (!slide) return ''
   if (isMobile.value) {
@@ -30,7 +41,21 @@ function resolveImageUrl(slide: { imageUrl?: string; mobileImageUrl?: string; de
   return String(slide.imageUrl || '')
 }
 
-// Every active slide that has a usable image for the current device, in order.
+// Same per-device rules as the image, so a portrait hero video can be uploaded
+// for mobile without it also being stretched across the desktop banner.
+function resolveVideoUrl(slide: { videoUrl?: string; mobileVideoUrl?: string; device?: string } | null) {
+  if (!slide) return ''
+  if (isMobile.value) {
+    if (String(slide.mobileVideoUrl || '').trim()) return String(slide.mobileVideoUrl)
+    if ((slide.device || 'all') === 'mobile') return String(slide.videoUrl || '')
+    return ''
+  }
+  return String(slide.videoUrl || '')
+}
+
+// Every active slide that has usable media for the current device, in order. A
+// slide qualifies on either an image or a video — the image is only the poster
+// frame when a video is present, so it's optional.
 const activeSlides = computed(() =>
   slides.value
     .filter((slide) => {
@@ -39,7 +64,7 @@ const activeSlides = computed(() =>
       if (device !== 'all' && (isMobile.value ? device !== 'mobile' : device !== 'desktop')) {
         return false
       }
-      return Boolean(resolveImageUrl(slide).trim())
+      return Boolean(resolveImageUrl(slide).trim() || resolveVideoUrl(slide).trim())
     })
     .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0)),
 )
@@ -77,6 +102,17 @@ function showPreviousSlide() {
   goToSlide(activeSlideIndex.value - 1)
 }
 
+// The <video> element for each slide index, so playback can follow the carousel
+// instead of every slide streaming at once.
+const slideVideos = ref<(HTMLVideoElement | null)[]>([])
+function setVideoRef(el: Element | ComponentPublicInstance | null, index: number) {
+  slideVideos.value[index] = (el as HTMLVideoElement) || null
+}
+
+// A video slide is timed by its own duration (we advance on `ended`) rather than
+// the 5s image timer, so a clip is never cut off mid-shot.
+const currentSlideIsVideo = computed(() => Boolean(resolveVideoUrl(currentSlide.value).trim()))
+
 function stopAutoRotate() {
   if (autoRotateHandle != null) {
     window.clearInterval(autoRotateHandle)
@@ -86,7 +122,35 @@ function stopAutoRotate() {
 function startAutoRotate() {
   stopAutoRotate()
   if (activeSlides.value.length <= 1) return
+  // Videos drive their own advance via @ended. Fall back to the timer if the
+  // visitor has reduced motion on, since nothing will be playing to end.
+  if (currentSlideIsVideo.value && !prefersReducedMotion.value) return
   autoRotateHandle = window.setInterval(showNextSlide, 5000)
+}
+
+// Play only the slide on screen; rewind and pause the rest.
+function syncVideoPlayback() {
+  slideVideos.value.forEach((video, index) => {
+    if (!video) return
+    if (index !== activeSlideIndex.value) {
+      video.pause()
+      // Restart next time it comes around rather than resuming mid-shot.
+      if (video.currentTime) video.currentTime = 0
+      return
+    }
+    if (prefersReducedMotion.value) {
+      video.pause()
+      return
+    }
+    // Autoplay can still be refused (e.g. low-power mode); the poster stays up.
+    void video.play().catch(() => {})
+  })
+}
+
+function handleVideoEnded(index: number) {
+  if (index !== activeSlideIndex.value) return
+  if (activeSlides.value.length <= 1) return
+  showNextSlide()
 }
 
 function navigateTo(href: string) {
@@ -107,13 +171,29 @@ function handleSlideCta() {
   navigateTo(String(currentSlide.value?.ctaHref || ''))
 }
 
-watch(activeSlides, (next) => {
+watch(activeSlides, async (next) => {
   if (!next.length) {
     activeSlideIndex.value = 0
     stopAutoRotate()
     return
   }
   if (activeSlideIndex.value >= next.length) activeSlideIndex.value = 0
+  // Drop refs for slides that no longer exist (e.g. after a breakpoint change).
+  slideVideos.value.length = next.length
+  await nextTick()
+  syncVideoPlayback()
+  startAutoRotate()
+})
+
+// Each advance re-points playback and re-arms the timer, because whether the
+// timer is used at all depends on the incoming slide being a video or an image.
+watch(activeSlideIndex, () => {
+  syncVideoPlayback()
+  startAutoRotate()
+})
+
+watch(prefersReducedMotion, () => {
+  syncVideoPlayback()
   startAutoRotate()
 })
 
@@ -122,6 +202,9 @@ onMounted(async () => {
     mobileQuery = window.matchMedia(MOBILE_QUERY)
     syncIsMobile(mobileQuery)
     mobileQuery.addEventListener('change', syncIsMobile)
+    reducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY)
+    syncReducedMotion(reducedMotionQuery)
+    reducedMotionQuery.addEventListener('change', syncReducedMotion)
   }
   await ensureHomepageSlidesLoaded()
   startAutoRotate()
@@ -130,6 +213,7 @@ onMounted(async () => {
 onUnmounted(() => {
   stopAutoRotate()
   mobileQuery?.removeEventListener('change', syncIsMobile)
+  reducedMotionQuery?.removeEventListener('change', syncReducedMotion)
 })
 </script>
 
@@ -144,16 +228,35 @@ onUnmounted(() => {
         <!-- All slides stay mounted; the active one cross-fades in via opacity.
              (A <transition mode="out-in"> here left images stuck at opacity 0
              when auto-rotation interrupted an in-flight fade.) -->
-        <img
-          v-for="(slide, index) in activeSlides"
-          :key="slide.id || `${slide.imageUrl}-${index}`"
-          :src="resolveImageUrl(slide)"
-          :alt="slide.headline || 'Homepage campaign image'"
-          :fetchpriority="index === 0 ? 'high' : undefined"
-          decoding="async"
-          class="ect-absolute ect-inset-0 ect-h-full ect-w-full ect-object-cover ect-transition-opacity ect-duration-500"
-          :class="index === activeSlideIndex ? 'ect-opacity-100' : 'ect-opacity-0'"
-        />
+        <template v-for="(slide, index) in activeSlides" :key="slide.id || `${slide.imageUrl}-${index}`">
+          <!-- Video slide: muted + playsinline so mobile browsers will autoplay
+               it, with the slide's image as the poster so something paints
+               immediately instead of a black box while the file streams. -->
+          <video
+            v-if="resolveVideoUrl(slide)"
+            :ref="(el) => setVideoRef(el, index)"
+            :src="resolveVideoUrl(slide)"
+            :poster="resolveImageUrl(slide) || undefined"
+            :aria-label="slide.headline || 'Homepage campaign video'"
+            muted
+            playsinline
+            :loop="activeSlides.length <= 1"
+            :autoplay="!prefersReducedMotion"
+            :preload="index === 0 ? 'auto' : 'metadata'"
+            class="ect-absolute ect-inset-0 ect-h-full ect-w-full ect-object-cover ect-transition-opacity ect-duration-500"
+            :class="index === activeSlideIndex ? 'ect-opacity-100' : 'ect-opacity-0'"
+            @ended="handleVideoEnded(index)"
+          />
+          <img
+            v-else
+            :src="resolveImageUrl(slide)"
+            :alt="slide.headline || 'Homepage campaign image'"
+            :fetchpriority="index === 0 ? 'high' : undefined"
+            decoding="async"
+            class="ect-absolute ect-inset-0 ect-h-full ect-w-full ect-object-cover ect-transition-opacity ect-duration-500"
+            :class="index === activeSlideIndex ? 'ect-opacity-100' : 'ect-opacity-0'"
+          />
+        </template>
 
         <!-- Legibility scrim + editorial copy, only when the slide has copy -->
         <template v-if="hasOverlayContent">
