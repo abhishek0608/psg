@@ -299,7 +299,7 @@ onUnmounted(() => {
       <section>
         <p class="ect-eyebrow ect-inline-flex ect-items-center ect-gap-2.5 ect-text-gold-700 ect-mb-5">
           <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
-          Handcrafted in Jaipur
+          Handcrafted fine jewellery
         </p>
         <h1 class="ect-font-display ect-text-4xl sm:ect-text-6xl ect-font-light ect-mb-5 ect-leading-display ect-tracking-display ect-text-charcoal">
           Crafted for<br /><span class="ect-italic ect-text-gold-600">the moment</span> that matters

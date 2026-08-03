@@ -48,7 +48,7 @@ function inferStyleTags(dbProduct) {
   const text = `${dbProduct?.title || ''} ${dbProduct?.description || ''}`.toLowerCase()
   const tags = []
   if (/\bbridal\b|\bengagement\b/.test(text)) tags.push('bridal')
-  if (/\btraditional\b|\bheritage\b|\bjaipur\b|\bfiligree\b/.test(text)) tags.push('traditional')
+  if (/\btraditional\b|\bheritage\b|\bfiligree\b/.test(text)) tags.push('traditional')
   if (/\bmodern\b|\bcontemporary\b|\bgeometric\b/.test(text)) tags.push('modern')
   if (/\bminimal\b|\bdelicate\b|\beveryday\b/.test(text)) tags.push('minimal')
   if (/\bstatement\b|\bchandelier\b|\bcollar\b/.test(text)) tags.push('statement')

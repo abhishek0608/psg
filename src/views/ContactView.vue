@@ -34,7 +34,7 @@ function handleSubmit() {
             </span>
             <span>
               <h2 class="ect-font-display ect-text-lg ect-font-medium ect-text-charcoal ect-mb-1">Visit us</h2>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal/60 ect-leading-relaxed">SEZ-2, Sitapura Industrial Area<br />Jaipur, Rajasthan 302022, India</p>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal/60 ect-leading-relaxed">Bangkok, Thailand<br />Visits by appointment</p>
             </span>
           </article>
           <article class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-sand ect-shadow-sm ect-flex ect-items-start ect-gap-4">

@@ -2109,7 +2109,7 @@ onBeforeUnmount(() => {
             <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
               <label class="ect-block">
                 <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Eyebrow</span>
-                <input v-model="aboutHeroEyebrow" type="text" placeholder="Jewelet · Jaipur" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                <input v-model="aboutHeroEyebrow" type="text" placeholder="PSG · Bangkok" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
               </label>
               <label class="ect-block">
                 <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Headline</span>
@@ -2126,7 +2126,7 @@ onBeforeUnmount(() => {
           <div class="ect-mb-3 ect-flex ect-items-center ect-justify-between">
             <div>
               <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-charcoal/45">Journey milestones</p>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Shown as alternating photo + story rows. Add your group photos here — until a milestone is added, the page shows the built-in three (2004 Mumbai → 2010 New York → 2024 Jaipur).</p>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Shown as alternating photo + story rows. Add your group photos here — until a milestone is added, the page shows the built-in three (Bangkok → Our craft → The PSG experience).</p>
             </div>
             <button
               type="button"
@@ -2170,7 +2170,7 @@ onBeforeUnmount(() => {
                   </label>
                   <label class="ect-block">
                     <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Place</span>
-                    <input v-model="step.place" type="text" placeholder="Jaipur" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                    <input v-model="step.place" type="text" placeholder="Bangkok" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </label>
                 </div>
                 <label class="ect-block">

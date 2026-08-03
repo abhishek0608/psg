@@ -2,7 +2,7 @@ import type { Product } from '../data/products'
 
 const SITE_NAME = 'Jewelet — Fine Jewellery'
 const DEFAULT_DESCRIPTION =
-  'Jewelet — handcrafted fine jewellery from Jaipur. Shop gold and silver rings, earrings, pendants, bracelets and necklaces.'
+  'Jewelet — handcrafted fine jewellery. Shop gold and silver rings, earrings, pendants, bracelets and necklaces.'
 
 const PRODUCT_JSONLD_ID = 'seo-product-jsonld'
 
