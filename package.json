@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:migrate-products": "node --env-file=.env scripts/migrate-products-from-supabase.mjs",
+    "db:price-unpriced": "node --env-file=.env scripts/price-unpriced-products.mjs",
     "db:seed:embeddings": "node --env-file=.env scripts/seed-embeddings.mjs",
     "db:seed:image-embeddings": "node --env-file=.env scripts/seed-image-embeddings.mjs"
   },
