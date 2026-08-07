@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Material, Product } from '../data/products'
-import { useCart } from '../composables/useCart'
+import { isCustomizedCartItem, useCart } from '../composables/useCart'
 import { useWishlist } from '../composables/useWishlist'
 import { useVideoCallList } from '../composables/useVideoCallList'
 import ImageWatermark from './ImageWatermark.vue'
@@ -17,27 +17,41 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ addToCart: [] }>()
-const { addToCart, items } = useCart()
+const { addToCart, removeFromCart, items } = useCart()
 const { isWishlisted, toggle: toggleWishlist } = useWishlist()
 const cartLoading = ref(false)
 
 const wishlisted = computed(() => props.product ? isWishlisted(props.product.slug) : false)
 
-const inCart = computed(() => {
-  if (!props.product) return false
-  return items.some((i) => i.product.slug === props.product!.slug)
+// The listing card only ever adds a plain (uncustomised) piece, so that's the
+// line it toggles off again; a customised line of the same product is left
+// alone and stays removable from the cart page.
+const cartEntry = computed(() => {
+  if (!props.product) return null
+  const slug = props.product.slug
+  return items.find((i) => i.product.slug === slug && !isCustomizedCartItem(i)) ?? null
 })
 
-async function handleAddToCart(e: Event) {
+const inCart = computed(() => Boolean(cartEntry.value))
+
+// The button is a toggle: tapping it again takes the piece back out of the
+// bag. On mobile the label is hidden and only the tick icon shows, so a
+// second tap has to undo the first rather than silently bump the quantity.
+async function handleCartToggle(e: Event) {
   e.preventDefault()
   e.stopPropagation()
   if (!props.product || cartLoading.value) return
+  const entry = cartEntry.value
   cartLoading.value = true
   try {
-    await addToCart(props.product)
-    emit('addToCart')
+    if (entry) {
+      await removeFromCart(entry.id, props.product.slug)
+    } else {
+      await addToCart(props.product)
+      emit('addToCart')
+    }
   } catch (err) {
-    console.error('Add to cart failed:', err)
+    console.error(entry ? 'Remove from cart failed:' : 'Add to cart failed:', err)
   } finally {
     cartLoading.value = false
   }
@@ -187,14 +201,18 @@ const productTag = computed(() => {
       <button
         v-if="product"
         type="button"
-        @click="handleAddToCart"
-        :aria-label="cartLoading ? 'Adding to cart' : inCart ? 'Added to cart' : 'Add to cart'"
+        @click="handleCartToggle"
+        :aria-pressed="inCart"
+        :aria-label="cartLoading
+          ? inCart ? 'Removing from cart' : 'Adding to cart'
+          : inCart ? 'Remove from cart' : 'Add to cart'"
+        :title="inCart ? 'Remove from bag' : 'Add to bag'"
         :disabled="cartLoading"
         class="ect-min-w-0 ect-flex-1 ect-h-11 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
         :class="cartLoading
  ? 'ect-bg-[#1f3f37]/70 ect-text-[#f4ecd9] ect-cursor-wait'
           : inCart
-          ? 'ect-bg-[#1f3f37] ect-text-[#f4ecd9]'
+          ? 'ect-bg-[#f4ecd9] ect-text-[#1f3f37] ect-ring-1 ect-ring-inset ect-ring-[#1f3f37]/35 hover:ect-bg-[#ece0c4]'
           : 'ect-bg-[#1f3f37] ect-text-[#f4ecd9] hover:ect-bg-[#17342d]'"
       >
         <svg v-if="cartLoading" class="ect-w-4 ect-h-4 ect-shrink-0 ect-animate-spin" fill="none" viewBox="0 0 24 24">
@@ -207,7 +225,11 @@ const productTag = computed(() => {
         <svg v-else class="ect-w-[18px] ect-h-[18px] ect-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
         </svg>
-        <span class="ect-hidden sm:ect-inline">{{ cartLoading ? 'Adding...' : inCart ? 'Added' : 'Add to Bag' }}</span>
+        <span class="ect-hidden sm:ect-inline">{{
+          cartLoading
+            ? inCart ? 'Removing...' : 'Adding...'
+            : inCart ? 'Added' : 'Add to Bag'
+        }}</span>
       </button>
       </div>
     </section>
