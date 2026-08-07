@@ -617,8 +617,10 @@ function toggleNotifications() {
           </span>
         </header>
 
-        <!-- Scrollable body -->
-        <div class="ect-flex-1 ect-overflow-y-auto ect-px-5 ect-pb-10">
+        <!-- Scrollable body. Flex column so the account/sign-in block can take
+             ect-mt-auto and sit against the bottom of the panel — the menu is
+             short enough that it otherwise floated in a sea of white. -->
+        <div class="ect-flex-1 ect-overflow-y-auto ect-px-5 ect-pb-10 ect-flex ect-flex-col">
           <!-- Search -->
           <form
             v-if="!isInternalPath"
@@ -678,8 +680,10 @@ function toggleNotifications() {
                   decoding="async"
                   class="ect-pointer-events-none ect-absolute ect-inset-0 ect-w-full ect-h-full ect-object-cover"
                 />
-                <span class="ect-pointer-events-none ect-absolute ect-inset-0 ect-bg-[linear-gradient(180deg,transparent_45%,rgba(20,17,15,0.35)_100%)]" />
-                <span class="ect-relative ect-font-display ect-text-lg ect-font-light ect-leading-tight ect-text-cream ect-tracking-wide [text-shadow:0_1px_3px_rgba(27,25,23,0.35)]">{{ item.label }}</span>
+                <!-- The product shots are near-white ivory, so a light scrim leaves
+                     the label unreadable. Start it higher and land much darker. -->
+                <span class="ect-pointer-events-none ect-absolute ect-inset-0 ect-bg-[linear-gradient(180deg,transparent_25%,rgba(20,17,15,0.45)_65%,rgba(20,17,15,0.8)_100%)]" />
+                <span class="ect-relative ect-font-display ect-text-lg ect-font-light ect-leading-tight ect-text-white ect-tracking-wide [text-shadow:0_1px_4px_rgba(20,17,15,0.75)]">{{ item.label }}</span>
               </button>
             </div>
 
@@ -697,9 +701,9 @@ function toggleNotifications() {
                 decoding="async"
                 class="ect-pointer-events-none ect-absolute ect-inset-0 ect-w-full ect-h-full ect-object-cover"
               />
-              <span class="ect-pointer-events-none ect-absolute ect-inset-0 ect-bg-[linear-gradient(180deg,transparent_40%,rgba(20,17,15,0.45)_100%)]" />
-              <span class="ect-relative ect-font-display ect-text-2xl ect-font-light ect-leading-tight ect-text-cream ect-tracking-wide [text-shadow:0_1px_3px_rgba(27,25,23,0.4)]">{{ signatureCollection.label }}</span>
-              <span class="ect-relative ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-cream/70 ect-mt-1">The Signature Line</span>
+              <span class="ect-pointer-events-none ect-absolute ect-inset-0 ect-bg-[linear-gradient(180deg,transparent_20%,rgba(20,17,15,0.5)_60%,rgba(20,17,15,0.82)_100%)]" />
+              <span class="ect-relative ect-font-display ect-text-2xl ect-font-light ect-leading-tight ect-text-white ect-tracking-wide [text-shadow:0_1px_4px_rgba(20,17,15,0.75)]">{{ signatureCollection.label }}</span>
+              <span class="ect-relative ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-white/85 ect-mt-1 [text-shadow:0_1px_3px_rgba(20,17,15,0.7)]">The Signature Line</span>
             </button>
           </section>
 
@@ -727,11 +731,11 @@ function toggleNotifications() {
           </nav>
 
           <!-- Account -->
-          <template v-if="isLoggedIn">
+          <div v-if="isLoggedIn" class="ect-mt-auto ect-pt-6">
             <RouterLink
               to="/account"
               @click="mobileNavOpen = false"
-              class="ect-mt-6 ect-flex ect-items-center ect-gap-3.5 ect-rounded-2xl ect-bg-white ect-border ect-border-charcoal/[0.08] ect-shadow-card ect-px-4 ect-py-4 hover:ect-border-gold-300 hover:ect-shadow-luxe-sm ect-transition-all ect-duration-200"
+              class="ect-flex ect-items-center ect-gap-3.5 ect-rounded-2xl ect-bg-white ect-border ect-border-charcoal/[0.08] ect-shadow-card ect-px-4 ect-py-4 hover:ect-border-gold-300 hover:ect-shadow-luxe-sm ect-transition-all ect-duration-200"
             >
               <span class="ect-inline-flex ect-items-center ect-justify-center ect-w-11 ect-h-11 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-bold ect-uppercase ect-shrink-0">{{ user?.name?.charAt(0) }}</span>
               <span class="ect-min-w-0 ect-flex-1">
@@ -791,16 +795,17 @@ function toggleNotifications() {
             <button @click="handleLogout" class="ect-w-full ect-mt-6 ect-py-3.5 ect-px-4 ect-rounded-full ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70 ect-bg-transparent ect-border ect-border-charcoal/15 hover:ect-bg-charcoal hover:ect-text-white hover:ect-border-charcoal ect-transition-colors">
               Sign out
             </button>
-          </template>
+          </div>
 
-          <RouterLink
-            v-else
-            to="/login"
-            @click="mobileNavOpen = false"
-            class="ect-mt-6 ect-flex ect-items-center ect-justify-center ect-gap-2 ect-w-full ect-py-3.5 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label hover:ect-bg-noir ect-transition-colors"
-          >
-            Sign in
-          </RouterLink>
+          <div v-else class="ect-mt-auto ect-pt-6">
+            <RouterLink
+              to="/login"
+              @click="mobileNavOpen = false"
+              class="ect-flex ect-items-center ect-justify-center ect-gap-2 ect-w-full ect-py-3.5 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label hover:ect-bg-noir ect-transition-colors"
+            >
+              Sign in
+            </RouterLink>
+          </div>
         </div>
           </section>
       </section>
