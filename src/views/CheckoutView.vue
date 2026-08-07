@@ -6,6 +6,7 @@ import { useOrders } from '../composables/useOrders'
 import { useQuotes } from '../composables/useQuotes'
 import { useRazorpay } from '../composables/useRazorpay'
 import { useSavedAddresses, COUNTRY_OPTIONS, countryDisplayName } from '../composables/useSavedAddresses'
+import { useAuth } from '../composables/useAuth'
 import { notifyTransaction } from '../composables/notifyTransactionEmail'
 import { formatInr } from '../utils/currency'
 
@@ -23,8 +24,9 @@ const {
 } = useCart()
 const { addOrder } = useOrders()
 const { addQuote } = useQuotes()
-const { createOrder, openCheckout, isConfigured } = useRazorpay()
+const { createOrder, openCheckout } = useRazorpay()
 const { addresses: savedAddresses, getById, save: saveAddress } = useSavedAddresses()
+const { user } = useAuth()
 const isProcessing = ref(false)
 const paymentError = ref('')
 
@@ -119,6 +121,20 @@ const hasPriceOnRequestItems = computed(() =>
   items.some((item) => !isCustomizedCartItem(item) && isPriceOnRequestCartItem(item)),
 )
 
+// Only priced, non-customized pieces can be charged now: customized ones become
+// a quote and price-on-request ones are quoted by the team. A cart made up
+// entirely of those has nothing to pay for online.
+const payableItems = computed(() =>
+  items.filter((item) => !isCustomizedCartItem(item) && !isPriceOnRequestCartItem(item)),
+)
+const canPayOnline = computed(() => payableItems.value.length > 0 && discountedTotal.value > 0)
+
+// Removing the last priced piece from an all-custom cart would otherwise leave
+// an online method selected that the gateway has nothing to charge for.
+watch(canPayOnline, (payable) => {
+  if (!payable && isOnlinePayment.value) form.value.payment = 'cod'
+})
+
 function buildCustomizationMap(customization: Record<string, unknown> | null | undefined): Record<string, string> | null {
   if (!customization) return null
   const labelMap: Record<string, string> = {
@@ -140,9 +156,9 @@ function buildCustomizationMap(customization: Record<string, unknown> | null | u
   return Object.keys(map).length ? map : null
 }
 
-function finalizeStandardOrder() {
+function finalizeStandardOrder(referenceNo?: string) {
   const snapshot = [...items]
-  const order = addOrder(snapshot, discountedTotal.value, form.value.payment)
+  const order = addOrder(snapshot, discountedTotal.value, form.value.payment, referenceNo)
   void notifyTransaction({
     kind: 'order',
     orderId: order.id,
@@ -199,8 +215,8 @@ function finalizeQuote() {
   return { query: { quoteId: quote.id, kind: 'quote' as const } }
 }
 
-function finalizeCheckout() {
-  if (!hasCustomizedItems.value) return finalizeStandardOrder()
+function finalizeCheckout(referenceNo?: string) {
+  if (!hasCustomizedItems.value) return finalizeStandardOrder(referenceNo)
 
   const nonCustomized = items.filter(
     (item) => !isCustomizedCartItem(item),
@@ -215,7 +231,7 @@ function finalizeCheckout() {
     // Same volume-discount percentage the cart advertised, applied to the
     // priced (non-customized) portion of a mixed order.
     const nonCustomTotal = nonCustomGross - Math.round((nonCustomGross * discountPercent.value) / 100)
-    const order = addOrder(snapshot, nonCustomTotal, form.value.payment)
+    const order = addOrder(snapshot, nonCustomTotal, form.value.payment, referenceNo)
     void notifyTransaction({
       kind: 'order',
       orderId: order.id,
@@ -265,39 +281,74 @@ const paymentOptions = [
   },
 ]
 
+function completeCheckout(referenceNo?: string) {
+  const destination = finalizeCheckout(referenceNo)
+  clearCart()
+  router.push({ path: '/order-confirmation', query: destination.query })
+}
+
 async function handleSubmit() {
   paymentError.value = ''
   isProcessing.value = true
   try {
     if (isOnlinePayment.value) {
-      if (!isConfigured.value) {
-        paymentError.value = 'Online payment is not configured. Use Cash on Delivery or add public/config.json (see config.example.json) or set VITE_RAZORPAY_KEY_ID.'
+      // No client-side key check here: the key id now comes back from
+      // /api/create-order, so a deployment that only sets the server env vars
+      // is a valid setup. An unconfigured server answers with its own message.
+      if (!canPayOnline.value) {
+        paymentError.value = 'Nothing in this cart can be paid for online — customized and price-on-request pieces are quoted by our team. Choose Cash on Delivery to submit your request.'
         isProcessing.value = false
         return
       }
-      const amountPaise = Math.round(discountedTotal.value * 100)
-      const { orderId } = await createOrder(amountPaise)
-      await openCheckout({
-        amountPaise,
-        orderId,
+
+      // The server prices the cart and returns the amount; the browser only
+      // says what it wants to buy.
+      const order = await createOrder({
+        items: payableItems.value.map((item) => ({ slug: item.product.slug, qty: item.qty })),
+        cartItems: items.map((item) => ({ slug: item.product.slug, qty: item.qty })),
+        customer: {
+          name: form.value.name.trim(),
+          email: form.value.email.trim(),
+          phone: form.value.phone.trim(),
+        },
+        shipping: {
+          address: form.value.address.trim(),
+          city: form.value.city.trim(),
+          state: form.value.state.trim(),
+          country: countryDisplayName(form.value.country),
+          pincode: form.value.pincode.trim(),
+        },
+        method: form.value.payment,
+        userId: user.value?.id,
+      })
+
+      // The catalog is the authority on price, so a stale cart can be quoted
+      // one amount and charged another. Say so instead of letting the gateway
+      // surprise the customer.
+      const serverTotal = Math.round(order.amountPaise / 100)
+      if (serverTotal !== discountedTotal.value) {
+        paymentError.value = `Prices changed while you were checking out — this order now comes to ${formatInr(serverTotal)}. Review your cart, then pay again to confirm.`
+        isProcessing.value = false
+        return
+      }
+
+      // Resolves only after the server has verified Razorpay's signature, so
+      // the confirmation page is never reached on an unpaid order.
+      const result = await openCheckout({
+        order,
         customerName: form.value.name,
         customerEmail: form.value.email,
         customerPhone: form.value.phone,
-        onSuccess: () => {
-          const destination = finalizeCheckout()
-          clearCart()
-          router.push({ path: '/order-confirmation', query: destination.query })
-        },
+        preferredMethod: form.value.payment,
         onDismiss: () => {
           isProcessing.value = false
         },
       })
+      completeCheckout(result.orderNo || order.orderNo)
       isProcessing.value = false
     } else {
       setTimeout(() => {
-        const destination = finalizeCheckout()
-        clearCart()
-        router.push({ path: '/order-confirmation', query: destination.query })
+        completeCheckout()
       }, 1200)
     }
   } catch (e) {
@@ -497,12 +548,17 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
               <label
                 v-for="opt in paymentOptions"
                 :key="opt.id"
-                class="ect-flex ect-items-center ect-gap-4 ect-p-4 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
-                :class="form.payment === opt.id
- ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
-                  : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
+                class="ect-flex ect-items-center ect-gap-4 ect-p-4 ect-rounded-xl ect-border ect-transition-all ect-duration-200"
+                :class="[
+                  opt.id !== 'cod' && !canPayOnline
+                    ? 'ect-border-sand ect-opacity-50 ect-cursor-not-allowed'
+                    : 'ect-cursor-pointer',
+                  form.payment === opt.id
+                    ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
+                    : (opt.id !== 'cod' && !canPayOnline ? '' : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'),
+                ]"
               >
-                <input v-model="form.payment" type="radio" :value="opt.id" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0" />
+                <input v-model="form.payment" type="radio" :value="opt.id" :disabled="opt.id !== 'cod' && !canPayOnline" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 disabled:ect-cursor-not-allowed" />
                 <span class="ect-w-9 ect-h-9 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-shrink-0"
                   :class="form.payment === opt.id ? 'ect-bg-champagne' : 'ect-bg-charcoal/[0.05]'">
                   <svg class="ect-w-4.5 ect-h-4.5" :class="form.payment === opt.id ? 'ect-text-gold-700' : 'ect-text-charcoal/40'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" v-html="opt.icon" />
@@ -515,6 +571,9 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <svg class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
                 </span>
               </label>
+              <p v-if="!canPayOnline" class="ect-font-body ect-text-xs ect-text-charcoal/50">
+                Online payment needs at least one priced, ready-to-ship piece. Customized and price-on-request items are quoted by our team first.
+              </p>
             </section>
           </section>
 
