@@ -7,12 +7,14 @@ import { ref } from 'vue'
 export interface PaymentConfig {
   razorpayKeyId: string
   orderApiUrl: string
+  verifyApiUrl: string
 }
 
 const env = import.meta.env
 const paymentConfig = ref<PaymentConfig>({
   razorpayKeyId: (env.VITE_RAZORPAY_KEY_ID as string) || '',
   orderApiUrl: (env.VITE_ORDER_API_URL as string) || '/api/create-order',
+  verifyApiUrl: (env.VITE_VERIFY_PAYMENT_URL as string) || '/api/payment?action=verify',
 })
 
 export { paymentConfig }
@@ -27,6 +29,7 @@ export function loadPaymentConfig(): Promise<void> {
       if (json) {
         if (json.razorpayKeyId) paymentConfig.value.razorpayKeyId = json.razorpayKeyId
         if (json.orderApiUrl) paymentConfig.value.orderApiUrl = json.orderApiUrl
+        if (json.verifyApiUrl) paymentConfig.value.verifyApiUrl = json.verifyApiUrl
       }
     })
     .catch(() => {})

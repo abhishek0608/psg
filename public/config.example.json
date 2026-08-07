@@ -1,4 +1,5 @@
 {
   "razorpayKeyId": "rzp_test_xxxxxxxxxxxx",
-  "orderApiUrl": "/api/create-order"
+  "orderApiUrl": "/api/create-order",
+  "verifyApiUrl": "/api/payment?action=verify"
 }

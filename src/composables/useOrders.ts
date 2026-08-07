@@ -60,7 +60,13 @@ const orders = reactive<Order[]>(loadStoredOrders())
 export function useOrders() {
   const list = computed(() => [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
 
-  function addOrder(cartItems: CartItem[], total: number, paymentMethod: string) {
+  /**
+   * `referenceNo` lets an online payment reuse the ORD- number the server
+   * allocated, so the customer's copy and the database agree on one reference.
+   * Cash-on-delivery orders have no server record yet and fall back to the
+   * local counter.
+   */
+  function addOrder(cartItems: CartItem[], total: number, paymentMethod: string, referenceNo?: string) {
     const items: OrderItem[] = cartItems.map(({ product, qty, customization }) => ({
       slug: product.slug,
       title: product.title,
@@ -72,7 +78,7 @@ export function useOrders() {
     }))
     const itemCount = items.reduce((s, i) => s + i.qty, 0)
     const order: Order = {
-      id: generateId(),
+      id: referenceNo || generateId(),
       createdAt: new Date().toISOString(),
       items,
       total,

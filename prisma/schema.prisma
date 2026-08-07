@@ -382,7 +382,11 @@ model Payment {
   id          String        @id @default(cuid())
   orderId     String
   provider    String?
+  // providerRef is the gateway's payment id. providerOrderRef is the gateway's
+  // order id — the only handle the Checkout callback and the webhook both
+  // carry, so it is what a payment gets looked up by.
   providerRef String?
+  providerOrderRef String?
   method      PaymentMethod
   status      PaymentStatus @default(PENDING)
   amountPaise Int
@@ -390,6 +394,8 @@ model Payment {
   paidAt      DateTime?
   createdAt   DateTime      @default(now())
   order       Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([providerOrderRef])
 }
 
 model Shipment {
