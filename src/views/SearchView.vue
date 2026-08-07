@@ -59,9 +59,11 @@ onMounted(async () => {
 <template>
   <main class="ect-min-h-screen ect-bg-[#faf7f2] ect-pt-32 ect-pb-20 ect-px-5">
     <section class="ect-max-w-5xl ect-mx-auto">
+      <!-- Shown at every width: the mobile top bar only carries the search icon,
+           so this is where a phone actually types its query. -->
       <form
         @submit.prevent="handleSubmit"
-        class="ect-hidden lg:ect-flex ect-items-center ect-mb-10"
+        class="ect-flex ect-items-center ect-mb-8 lg:ect-mb-10"
       >
         <section class="ect-flex-1 ect-flex ect-items-center ect-gap-3 ect-bg-white ect-rounded-2xl ect-shadow-sm ect-ring-1 ect-ring-charcoal/[0.07] focus-within:ect-ring-gold-400/40 ect-px-4 ect-py-3 ect-transition-all">
           <button

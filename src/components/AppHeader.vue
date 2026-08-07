@@ -125,11 +125,6 @@ async function handleSearch() {
   }
 }
 
-function clearSearch() {
-  query.value = ''
-  if (route.path === '/search') router.replace('/search')
-}
-
 function toggleInternalUi() {
   if (!isInternalUser.value) return
   menuOpen.value = false
@@ -172,44 +167,13 @@ function toggleNotifications() {
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          <!-- On mobile the logo lives inside the search pill; internal pages have
-               no search so the logo stays here at every width. -->
           <RouterLink
             :to="isInternalPath ? { path: '/internal', query: { tab: 'orders' } } : '/'"
-            class="ect-items-center ect-gap-2.5 ect-shrink-0"
-            :class="isInternalPath ? 'ect-flex' : 'ect-hidden lg:ect-flex'"
+            class="ect-flex ect-items-center ect-gap-2.5 ect-shrink-0"
           >
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[180px] ect-object-contain" />
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-10 ect-w-auto ect-max-w-[140px] lg:ect-max-w-[180px] ect-object-contain" />
           </RouterLink>
         </section>
-
-        <!-- Mobile search pill in the top bar; the logo doubles as the home link -->
-        <form
-          v-if="!isInternalPath"
-          @submit.prevent="handleSearch"
-          class="lg:ect-hidden ect-flex-1 ect-min-w-0 ect-mx-2.5 ect-flex ect-items-center ect-rounded-full ect-bg-cream ect-ring-1 ect-ring-charcoal/[0.08] focus-within:ect-ring-gold-400/50 focus-within:ect-bg-white ect-transition-all ect-duration-200"
-        >
-          <RouterLink to="/" :aria-label="`${brandName} home`" class="ect-ml-1 ect-p-0.5 ect-shrink-0">
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 ect-w-auto ect-max-w-[120px] ect-object-contain" />
-          </RouterLink>
-          <input
-            v-model="query"
-            type="text"
-            placeholder="Search jewellery…"
-            class="ect-flex-1 ect-min-w-0 ect-px-2 ect-py-2 ect-bg-transparent ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none"
-          />
-          <button
-            v-if="query"
-            type="button"
-            aria-label="Clear search"
-            class="ect-p-1.5 ect-rounded-full ect-text-charcoal/35 hover:ect-text-charcoal ect-transition-colors ect-shrink-0"
-            @click="clearSearch"
-          >
-            <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </form>
 
         <!-- Desktop: internal workspace link (category links live in the dark bar below) -->
         <ul v-if="isInternalPath" class="ect-hidden lg:ect-flex ect-items-center ect-gap-6 ect-list-none ect-m-0 ect-p-0">
@@ -393,8 +357,15 @@ function toggleNotifications() {
           </RouterLink>
         </section>
 
-        <!-- Mobile right: video call, wishlist, cart (sign-in lives in the drawer) -->
+        <!-- Mobile right: search, video call, wishlist, cart (sign-in lives in the drawer).
+             Search is icon-only here — the text field lives on /search and in the drawer,
+             so the top bar stays a single row of icons. -->
         <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-1.5">
+          <RouterLink v-if="!isInternalPath" to="/search" class="ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Search">
+            <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+          </RouterLink>
           <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Video consultation">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
