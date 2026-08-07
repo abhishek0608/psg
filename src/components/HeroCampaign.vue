@@ -9,7 +9,7 @@ const router = useRouter()
 // The header is fixed; offset the hero by its live height so the image is
 // never clipped behind it.
 const { headerOffset } = useHeaderOffset()
-const { slides, ensureHomepageSlidesLoaded } = useHomepageSlides()
+const { slides, loaded, ensureHomepageSlidesLoaded } = useHomepageSlides()
 
 const MOBILE_QUERY = '(max-width: 767px)'
 const isMobile = ref(false)
@@ -74,18 +74,11 @@ let autoRotateHandle: number | null = null
 
 const currentSlide = computed(() => activeSlides.value[activeSlideIndex.value] || null)
 
-// Overlay copy per slide. A slide with no copy shows its image clean (so banners
-// with text baked in aren't doubled up); the editorial placeholder copy is only
-// used when there are no slides at all.
-const hasOverlayContent = computed(() => {
-  const s = currentSlide.value
-  if (!s) return false
-  return Boolean(
-    String(s.headline || '').trim() ||
-      String(s.subheadline || '').trim() ||
-      (String(s.ctaLabel || '').trim() && String(s.ctaHref || '').trim()),
-  )
-})
+// Hold a plain frame until the first slides fetch settles. Without this the
+// editorial placeholder — headline, supporting copy and all — paints for as long
+// as the request is in flight and is then yanked away by the real banner, which
+// reads as stray text sitting on top of the hero video.
+const showSkeleton = computed(() => !loaded.value)
 
 function goToSlide(index: number) {
   const total = activeSlides.value.length
@@ -167,10 +160,6 @@ function navigateTo(href: string) {
   void router.push(target)
 }
 
-function handleSlideCta() {
-  navigateTo(String(currentSlide.value?.ctaHref || ''))
-}
-
 watch(activeSlides, async (next) => {
   if (!next.length) {
     activeSlideIndex.value = 0
@@ -224,7 +213,15 @@ onUnmounted(() => {
     :style="{ marginTop: headerOffset + 'px' }"
   >
     <div class="ect-relative ect-h-[420px] sm:ect-h-[520px] lg:ect-h-[600px]">
-      <template v-if="activeSlides.length && currentSlide">
+      <!-- Loading frame: same height as the banner, deliberately wordless. -->
+      <div
+        v-if="showSkeleton"
+        class="ect-absolute ect-inset-0 ect-animate-pulse ect-bg-[linear-gradient(110deg,#efe7d6_0%,#faf7f2_45%,#efe7d6_90%)]"
+        aria-busy="true"
+        aria-label="Loading homepage banner"
+      />
+
+      <template v-else-if="activeSlides.length && currentSlide">
         <!-- All slides stay mounted; the active one cross-fades in via opacity.
              (A <transition mode="out-in"> here left images stuck at opacity 0
              when auto-rotation interrupted an in-flight fade.) -->
@@ -257,43 +254,11 @@ onUnmounted(() => {
             :class="index === activeSlideIndex ? 'ect-opacity-100' : 'ect-opacity-0'"
           />
         </template>
-
-        <!-- Legibility scrim + editorial copy, only when the slide has copy -->
-        <template v-if="hasOverlayContent">
-          <div
-            class="ect-pointer-events-none ect-absolute ect-inset-0 ect-bg-[linear-gradient(180deg,rgba(20,18,15,0.02)_0%,rgba(20,18,15,0.08)_45%,rgba(20,18,15,0.55)_100%)]"
-          />
-          <div class="ect-absolute ect-inset-x-0 ect-bottom-0 ect-p-6 sm:ect-p-10 lg:ect-p-14">
-            <div class="ect-max-w-7xl ect-mx-auto">
-              <p
-                v-if="currentSlide.subheadline"
-                class="ect-eyebrow ect-text-[#f4ecd9]/85"
-              >
-                {{ currentSlide.subheadline }}
-              </p>
-              <h1
-                v-if="currentSlide.headline"
-                class="ect-mt-2 ect-font-display ect-text-4xl sm:ect-text-5xl lg:ect-text-6xl ect-font-medium ect-leading-[1.06] ect-text-[#faf7f2] [text-shadow:0_2px_12px_rgba(20,18,15,0.35)]"
-              >
-                {{ currentSlide.headline }}
-              </h1>
-              <button
-                v-if="currentSlide.ctaLabel && currentSlide.ctaHref"
-                type="button"
-                class="ect-mt-5 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-[#f4ecd9] ect-px-7 ect-py-3.5 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#1f3f37] hover:ect-bg-white ect-transition-colors"
-                @click="handleSlideCta"
-              >
-                {{ currentSlide.ctaLabel }}
-                <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </template>
+        <!-- No copy overlay: an uploaded banner or hero video carries its own
+             artwork and typography, so nothing is drawn on top of it. -->
       </template>
 
-      <!-- Editorial placeholder when no campaign slides are configured -->
+      <!-- Editorial placeholder, only once we know no slides are configured -->
       <template v-else>
         <div
           class="ect-absolute ect-inset-0"
