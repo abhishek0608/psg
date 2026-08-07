@@ -182,7 +182,6 @@ const productTag = computed(() => {
       <div class="ect-flex ect-min-h-[30px] ect-items-baseline ect-gap-2 ect-flex-wrap">
         <p v-if="hasRetailPrice" class="ect-font-display ect-tabular-nums ect-text-price ect-font-medium ect-leading-none ect-tracking-display-sm ect-text-charcoal">{{ price }}</p>
         <p v-else class="ect-font-body ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
-        <span v-if="hasRetailPrice" class="ect-font-body ect-text-xs ect-font-medium ect-text-[#1f5c4d]">Price breakup</span>
       </div>
       <div class="ect-mt-3 ect-flex ect-gap-2">
       <button
