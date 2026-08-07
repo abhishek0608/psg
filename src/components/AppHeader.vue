@@ -393,8 +393,14 @@ function toggleNotifications() {
           </RouterLink>
         </section>
 
-        <!-- Mobile right: wishlist, cart (sign-in lives in the drawer) -->
+        <!-- Mobile right: video call, wishlist, cart (sign-in lives in the drawer) -->
         <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-1.5">
+          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Video consultation">
+            <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            <span v-if="videoCallCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ videoCallCount }}</span>
+          </RouterLink>
           <RouterLink v-if="!isInternalPath" to="/wishlist" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-rose-500 ect-transition-colors" aria-label="Wishlist">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
