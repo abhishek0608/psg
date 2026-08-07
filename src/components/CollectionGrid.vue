@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import ProductCard from './ProductCard.vue'
 import FilterModal from './FilterModal.vue'
-import { CATEGORIES, STONE_TYPE_OPTIONS, COLORS, CENTER_SHAPE_OPTIONS, CENTER_STONE_SIZE_OPTIONS, type Category, type Material, type Color, type ProductSubtype } from '../data/products'
+import { CATEGORIES, STONE_TYPE_OPTIONS, COLORS, CENTER_SHAPE_OPTIONS, type Category, type Material, type Color, type ProductSubtype } from '../data/products'
 import { useCollectionPreset } from '../composables/useCollectionPreset'
 import { useProductsApi } from '../composables/useProductsApi'
 import { API_BASE } from '../config-api'
@@ -19,7 +19,6 @@ interface Filters {
   stoneTags: string[]
   subtypes: ProductSubtype[]
   centerShapes: string[]
-  centerStoneSizes: string[]
 }
 
 defineProps<{ hideHeader?: boolean; sidebar?: boolean }>()
@@ -37,14 +36,14 @@ const filterOpen = ref(false)
 // When a collection preset locks a single category (e.g. the Rings page),
 // the Category section is hidden in the filter — the page already conveys it.
 const lockedCategory = ref<Category | null>(null)
-const appliedFilters = ref<Filters>({ categories: [], materials: [], colors: [], priceMin: 0, priceMax: 0, stoneTags: [], subtypes: [], centerShapes: [], centerStoneSizes: [] })
+const appliedFilters = ref<Filters>({ categories: [], materials: [], colors: [], priceMin: 0, priceMax: 0, stoneTags: [], subtypes: [], centerShapes: [] })
 const filteredProducts = ref<any[]>([])
 const listLoading = ref(false)
 const firstLoadDone = ref(false)
 const readyForFilterFetch = ref(false)
 
 function applyPreset(p: NonNullable<typeof preset.value>) {
-  const f: Filters = { categories: [], materials: [], colors: [], priceMin: 0, priceMax: maxPrice.value, stoneTags: [], subtypes: [], centerShapes: [], centerStoneSizes: [] }
+  const f: Filters = { categories: [], materials: [], colors: [], priceMin: 0, priceMax: maxPrice.value, stoneTags: [], subtypes: [], centerShapes: [] }
   if (p.category) f.categories = [p.category]
   if (p.material) f.materials = [p.material]
   if (p.color) f.colors = [p.color]
@@ -155,12 +154,6 @@ function toggleCenterShape(s: string) {
   if (i === -1) arr.push(s)
   else arr.splice(i, 1)
 }
-function toggleCenterStoneSize(s: string) {
-  const arr = appliedFilters.value.centerStoneSizes
-  const i = arr.indexOf(s)
-  if (i === -1) arr.push(s)
-  else arr.splice(i, 1)
-}
 function onPriceMinInput() {
   if (appliedFilters.value.priceMin > appliedFilters.value.priceMax) appliedFilters.value.priceMax = appliedFilters.value.priceMin
 }
@@ -186,7 +179,6 @@ function applyClientFilters() {
   if (f.stoneTags?.length) list = list.filter((p) => f.stoneTags.some((tag) => p.stoneTags?.includes(tag)))
   if (f.subtypes?.length) list = list.filter((p) => f.subtypes.includes(p.subtype as ProductSubtype))
   if (f.centerShapes?.length) list = list.filter((p) => f.centerShapes.some((s) => p.customizationOptions?.centerShapes?.includes(s)))
-  if (f.centerStoneSizes?.length) list = list.filter((p) => f.centerStoneSizes.some((s) => p.customizationOptions?.centerStoneSizes?.includes(s)))
   return list
 }
 
@@ -216,10 +208,6 @@ async function loadFilteredProducts() {
     if (shapes?.length) {
       list = list.filter((p: any) => shapes.some((s) => Array.isArray(p.customizationOptions?.centerShapes) && p.customizationOptions.centerShapes.includes(s)))
     }
-    const sizes = appliedFilters.value.centerStoneSizes
-    if (sizes?.length) {
-      list = list.filter((p: any) => sizes.some((s) => Array.isArray(p.customizationOptions?.centerStoneSizes) && p.customizationOptions.centerStoneSizes.includes(s)))
-    }
     filteredProducts.value = list
   } catch (err) {
     console.error('Filter API error:', err)
@@ -240,7 +228,6 @@ const activeFilterCount = computed(() => {
   if (f.stoneTags?.length) count++
   if (f.subtypes?.length) count++
   if (f.centerShapes?.length) count++
-  if (f.centerStoneSizes?.length) count++
   if (f.priceMin > 0 || f.priceMax < maxPrice.value) count++
   return count
 })
@@ -420,23 +407,6 @@ watch([activeTab, appliedFilters], () => {
             </li>
           </ul>
         </section>
-        <hr class="ect-border-[#e6ddce] ect-my-6" />
-
-        <!-- Stone Size -->
-        <section>
-          <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#8a8172] ect-mb-3.5">Stone Size</h3>
-          <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
-            <li v-for="size in CENTER_STONE_SIZE_OPTIONS" :key="size">
-              <label class="ect-flex ect-items-center ect-gap-2.5 ect-cursor-pointer ect-group">
-                <input type="checkbox" class="ect-sr-only" :checked="appliedFilters.centerStoneSizes.includes(size)" @change="toggleCenterStoneSize(size)" />
-                <span class="ect-w-[18px] ect-h-[18px] ect-rounded ect-border ect-flex ect-items-center ect-justify-center ect-transition-colors" :class="appliedFilters.centerStoneSizes.includes(size) ? 'ect-bg-[#1f3f37] ect-border-[#1f3f37]' : 'ect-border-[#d8ccb5] group-hover:ect-border-[#1f3f37]/60'">
-                  <svg v-if="appliedFilters.centerStoneSizes.includes(size)" class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-                </span>
-                <span class="ect-font-body ect-text-sm ect-text-charcoal/80 group-hover:ect-text-charcoal ect-transition-colors">{{ size }}</span>
-              </label>
-            </li>
-          </ul>
-        </section>
       </aside>
 
       <!-- Main column -->
@@ -498,10 +468,6 @@ watch([activeTab, appliedFilters], () => {
         {{ shape }}
         <button type="button" @click="appliedFilters.centerShapes = appliedFilters.centerShapes.filter(s => s !== shape)" class="hover:ect-text-charcoal/70">×</button>
       </span>
-      <span v-for="size in appliedFilters.centerStoneSizes" :key="'size-'+size" class="ect-inline-flex ect-items-center ect-gap-1 ect-px-3 ect-py-1 ect-rounded-full ect-bg-charcoal/10 ect-text-charcoal ect-font-body ect-text-xs ect-font-medium">
-        {{ size }}
-        <button type="button" @click="appliedFilters.centerStoneSizes = appliedFilters.centerStoneSizes.filter(s => s !== size)" class="hover:ect-text-charcoal/70">×</button>
-      </span>
       <span v-if="appliedFilters.priceMin > 0 || appliedFilters.priceMax < maxPrice" class="ect-inline-flex ect-items-center ect-gap-1 ect-px-3 ect-py-1 ect-rounded-full ect-bg-charcoal/10 ect-text-charcoal ect-font-body ect-text-xs ect-font-medium">
         {{ formatPrice(appliedFilters.priceMin) }} – {{ formatPrice(appliedFilters.priceMax) }}
         <button type="button" @click="appliedFilters.priceMin = 0; appliedFilters.priceMax = maxPrice" class="hover:ect-text-charcoal/70">×</button>
@@ -538,7 +504,7 @@ watch([activeTab, appliedFilters], () => {
       <p class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-mb-5">Try adjusting or clearing your filters to see more.</p>
       <button
         type="button"
-        @click="appliedFilters = { categories: lockedCategory ? [lockedCategory] : [], materials: [], colors: [], priceMin: 0, priceMax: maxPrice, stoneTags: [], subtypes: [], centerShapes: [], centerStoneSizes: [] }"
+        @click="appliedFilters = { categories: lockedCategory ? [lockedCategory] : [], materials: [], colors: [], priceMin: 0, priceMax: maxPrice, stoneTags: [], subtypes: [], centerShapes: [] }"
         class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-5 ect-py-2.5 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-sm ect-font-semibold hover:ect-bg-noir ect-transition-colors"
       >
         Clear all filters
