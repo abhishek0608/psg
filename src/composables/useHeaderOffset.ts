@@ -1,8 +1,9 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 
-// The site header is fixed and its height varies (mobile adds a search bar, and
-// the announcement bar can wrap on narrow screens). Full-bleed pages measure it
-// live and offset their content by exactly that, so nothing hides behind it.
+// The site header is fixed and its height varies (mobile adds an announcement
+// bar, desktop adds the category bar, and the announcement text can wrap on
+// narrow screens). Full-bleed pages measure it live and offset their content by
+// exactly that, so nothing hides behind it.
 export function useHeaderOffset() {
   const headerOffset = ref(94)
   let observer: ResizeObserver | null = null
