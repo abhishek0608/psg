@@ -5,6 +5,7 @@ import ProductCard from '../components/ProductCard.vue'
 import StarRating from '../components/StarRating.vue'
 import VolumeDiscountInfo from '../components/VolumeDiscountInfo.vue'
 import ImageWatermark from '../components/ImageWatermark.vue'
+import ImageZoomViewer from '../components/ImageZoomViewer.vue'
 import { useCart } from '../composables/useCart'
 import { useVideoCallList } from '../composables/useVideoCallList'
 import { useProductsApi } from '../composables/useProductsApi'
@@ -47,6 +48,16 @@ const lensStyle = ref<Record<string, string>>({})
 
 function canHover() {
   return typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
+}
+
+// Full-screen pinch/double-tap zoom — the only way to inspect a piece up close
+// on a phone, where the hover lens above can never fire.
+const viewerOpen = ref(false)
+
+function openViewer() {
+  if (!galleryImages.value[activeImage.value]) return
+  stopZoom()
+  viewerOpen.value = true
 }
 
 function startZoom() {
@@ -325,11 +336,23 @@ watch(galleryImages, (images) => {
   if (activeImage.value >= images.length) activeImage.value = images.length - 1
 })
 
-watch(activeImage, async (index) => {
+async function scrollActiveThumbIntoView() {
   await nextTick()
   const container = thumbsRef.value
-  const activeThumb = container?.querySelector<HTMLElement>(`[data-thumb-index="${index}"]`)
+  const activeThumb = container?.querySelector<HTMLElement>(`[data-thumb-index="${activeImage.value}"]`)
   activeThumb?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+}
+
+watch(activeImage, () => {
+  // While the full-screen viewer is up, the rail behind it is out of sight —
+  // and a smooth scroll running underneath swallows the next tap on the
+  // viewer's own controls. Catch the rail up once the viewer closes.
+  if (viewerOpen.value) return
+  scrollActiveThumbIntoView()
+})
+
+watch(viewerOpen, (open) => {
+  if (!open) scrollActiveThumbIntoView()
 })
 
 async function handleAddToCart() {
@@ -389,13 +412,20 @@ function handleAddToVideoCall() {
             @mouseleave="stopZoom"
             @mousemove="moveZoom"
           >
-            <img
+            <button
               v-if="galleryImages[activeImage]"
-              :src="galleryImages[activeImage]"
-              :alt="product.title"
-              decoding="async"
-              class="ect-w-full ect-h-full ect-object-cover"
-            />
+              type="button"
+              class="product-detail-trigger ect-block ect-w-full ect-h-full focus:ect-outline-none focus-visible:ect-ring-2 focus-visible:ect-ring-gold-300 focus-visible:ect-ring-inset"
+              :aria-label="`Zoom into ${product.title}`"
+              @click="openViewer"
+            >
+              <img
+                :src="galleryImages[activeImage]"
+                :alt="product.title"
+                decoding="async"
+                class="ect-w-full ect-h-full ect-object-cover"
+              />
+            </button>
             <ImageWatermark v-if="galleryImages[activeImage]" :opacity="0.5" :scale="0.1" />
             <div
               v-if="zoomActive && galleryImages[activeImage]"
@@ -412,16 +442,27 @@ function handleAddToVideoCall() {
               </svg>
               Hover to zoom
             </span>
+            <span
+              v-if="galleryImages[activeImage]"
+              class="product-detail-zoom-hint-touch ect-pointer-events-none ect-absolute ect-bottom-4 ect-right-4 ect-inline-flex ect-items-center ect-gap-1.5 ect-rounded-full ect-bg-white/88 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-text-charcoal ect-shadow-sm"
+            >
+              <svg class="ect-h-3.5 ect-w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607zM10.5 7.5v6m3-3h-6" />
+              </svg>
+              Tap to zoom
+            </span>
             <div v-if="galleryImages.length > 1" class="ect-pointer-events-none ect-absolute ect-inset-x-0 ect-top-0 ect-z-10 ect-flex ect-items-start ect-justify-between ect-p-4">
               <span class="ect-pointer-events-auto ect-inline-flex ect-items-center ect-rounded-full ect-bg-white/88 ect-px-3 ect-py-1 ect-font-body ect-text-micro ect-font-semibold ect-text-charcoal ect-shadow-sm">
                 {{ activeImage + 1 }} / {{ galleryImages.length }}
               </span>
             </div>
-            <div v-if="galleryImages.length > 1" class="ect-absolute ect-inset-x-0 ect-top-1/2 ect-z-10 ect-flex ect--translate-y-1/2 ect-items-center ect-justify-between ect-px-3">
+            <!-- The rail spans the full width, so it must not swallow taps
+                 between the two arrows — that band is the middle of the photo. -->
+            <div v-if="galleryImages.length > 1" class="ect-pointer-events-none ect-absolute ect-inset-x-0 ect-top-1/2 ect-z-10 ect-flex ect--translate-y-1/2 ect-items-center ect-justify-between ect-px-3">
               <button
                 type="button"
                 aria-label="Show previous image"
-                class="ect-inline-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-white/88 ect-text-charcoal ect-shadow-md ect-transition hover:ect-bg-white"
+                class="ect-pointer-events-auto ect-inline-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-white/88 ect-text-charcoal ect-shadow-md ect-transition hover:ect-bg-white"
                 @click="showPreviousImage"
               >
                 <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -431,7 +472,7 @@ function handleAddToVideoCall() {
               <button
                 type="button"
                 aria-label="Show next image"
-                class="ect-inline-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-white/88 ect-text-charcoal ect-shadow-md ect-transition hover:ect-bg-white"
+                class="ect-pointer-events-auto ect-inline-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-white/88 ect-text-charcoal ect-shadow-md ect-transition hover:ect-bg-white"
                 @click="showNextImage"
               >
                 <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -713,6 +754,15 @@ function handleAddToVideoCall() {
         </ul>
       </section>
     </article>
+
+    <ImageZoomViewer
+      :open="viewerOpen"
+      :images="galleryImages"
+      :index="activeImage"
+      :alt="product.title"
+      @update:index="setActiveImage"
+      @close="viewerOpen = false"
+    />
   </section>
 
   <section v-else-if="loading" class="ect-pt-28 sm:ect-pt-36 ect-pb-28 ect-px-6 ect-bg-cream ect-min-h-screen ect-flex ect-flex-col ect-items-center ect-justify-center ect-text-center">
@@ -751,10 +801,29 @@ function handleAddToVideoCall() {
   transition: opacity 0.2s ease;
 }
 
+/* The hover lens is a pointer-fine affordance; touch devices get the
+   tap-to-open full-screen viewer instead, and each is told only about the
+   gesture its device can actually perform. */
+.product-detail-zoom-hint-touch {
+  display: none;
+}
+
 @media (hover: none), (pointer: coarse) {
   .product-detail-zoom-hint {
     display: none;
   }
+
+  .product-detail-zoom-hint-touch {
+    display: inline-flex;
+  }
+}
+
+.product-detail-trigger {
+  cursor: zoom-in;
+}
+
+.product-detail-stage--zooming .product-detail-trigger {
+  cursor: crosshair;
 }
 
 .product-detail-lens {
