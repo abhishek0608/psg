@@ -5,7 +5,12 @@ import { useCart, isCustomizedCartItem, isPriceOnRequestCartItem } from '../comp
 import { useOrders } from '../composables/useOrders'
 import { useQuotes } from '../composables/useQuotes'
 import { useRazorpay } from '../composables/useRazorpay'
-import { useSavedAddresses, COUNTRY_OPTIONS, countryDisplayName } from '../composables/useSavedAddresses'
+import {
+  useSavedAddresses,
+  COUNTRY_OPTIONS,
+  countryDisplayName,
+  type SavedAddressEntry,
+} from '../composables/useSavedAddresses'
 import { useAuth } from '../composables/useAuth'
 import { notifyTransaction } from '../composables/notifyTransactionEmail'
 import { formatInr } from '../utils/currency'
@@ -25,7 +30,14 @@ const {
 const { addOrder } = useOrders()
 const { addQuote } = useQuotes()
 const { createOrder, openCheckout } = useRazorpay()
-const { addresses: savedAddresses, getById, save: saveAddress } = useSavedAddresses()
+const {
+  recentAddresses: savedAddresses,
+  getById,
+  findMatching,
+  uniqueLabel,
+  save: saveAddress,
+  touch: touchAddress,
+} = useSavedAddresses()
 const { user } = useAuth()
 const isProcessing = ref(false)
 const paymentError = ref('')
@@ -42,30 +54,23 @@ const form = ref({
   payment: 'cod',
 })
 
-const selectedSavedId = ref('')
+// Returning shoppers start on their most recent address instead of a blank
+// form; first-time shoppers (no saved addresses) fall through to manual entry.
+const selectedSavedId = ref(savedAddresses.value[0]?.id ?? '')
+const isEditingDetails = ref(false)
 const saveAsLabel = ref('')
 const saveAddressMessage = ref('')
 
+const selectedAddress = computed(() =>
+  selectedSavedId.value ? getById(selectedSavedId.value) : undefined,
+)
+// The full contact/shipping form only appears when there is nothing chosen, or
+// when the shopper asked to tweak the chosen address for this order.
+const showDetailFields = computed(() => !selectedAddress.value || isEditingDetails.value)
 
 const knownCountryCodes = new Set<string>(COUNTRY_OPTIONS.map((c) => c.code))
 
-watch(selectedSavedId, (id, prevId) => {
-  if (!id) {
-    if (prevId) {
-      form.value.name = ''
-      form.value.email = ''
-      form.value.phone = ''
-      form.value.address = ''
-      form.value.city = ''
-      form.value.state = ''
-      form.value.country = 'IN'
-      form.value.pincode = ''
-      saveAddressMessage.value = ''
-    }
-    return
-  }
-  const a = getById(id)
-  if (!a) return
+function applySavedAddress(a: SavedAddressEntry) {
   form.value.name = a.name
   form.value.email = a.email
   form.value.phone = a.phone
@@ -76,7 +81,77 @@ watch(selectedSavedId, (id, prevId) => {
   if (c === 'India') c = 'IN'
   form.value.country = knownCountryCodes.has(c) ? c : 'OTHER'
   form.value.pincode = a.pincode
-})
+}
+
+function prefillFromAccount() {
+  if (!user.value) return
+  if (!form.value.name) form.value.name = user.value.name
+  if (!form.value.email) form.value.email = user.value.email
+}
+
+watch(
+  selectedSavedId,
+  (id, prevId) => {
+    isEditingDetails.value = false
+    if (!id) {
+      if (prevId) {
+        form.value.name = ''
+        form.value.email = ''
+        form.value.phone = ''
+        form.value.address = ''
+        form.value.city = ''
+        form.value.state = ''
+        form.value.country = 'IN'
+        form.value.pincode = ''
+        saveAddressMessage.value = ''
+      }
+      prefillFromAccount()
+      return
+    }
+    const a = getById(id)
+    if (!a) return
+    applySavedAddress(a)
+  },
+  { immediate: true },
+)
+
+function editSelectedDetails() {
+  isEditingDetails.value = true
+}
+
+function restoreSelectedAddress() {
+  const a = selectedAddress.value
+  if (a) applySavedAddress(a)
+  isEditingDetails.value = false
+}
+
+/**
+ * Keeps the address used for an order available in the picker next time —
+ * either by bumping the saved entry that was chosen, or by saving the details
+ * that were typed in (unless the same destination is already saved).
+ */
+function rememberAddressForNextTime() {
+  const details = {
+    name: form.value.name.trim(),
+    email: form.value.email.trim(),
+    phone: form.value.phone.trim(),
+    address: form.value.address.trim(),
+    city: form.value.city.trim(),
+    state: form.value.state.trim(),
+    country: form.value.country,
+    pincode: form.value.pincode.trim(),
+  }
+  if (!details.address || !details.pincode) return
+  const existing =
+    (selectedSavedId.value && !isEditingDetails.value ? selectedAddress.value : undefined) ??
+    findMatching(details)
+  if (existing) {
+    touchAddress(existing.id)
+    return
+  }
+  const id = saveAddress({ label: uniqueLabel(details.city), ...details })
+  touchAddress(id)
+}
 
 function saveCurrentAddress() {
   saveAddressMessage.value = ''
@@ -216,6 +291,7 @@ function finalizeQuote() {
 }
 
 function finalizeCheckout(referenceNo?: string) {
+  rememberAddressForNextTime()
   if (!hasCustomizedItems.value) return finalizeStandardOrder(referenceNo)
 
   const nonCustomized = items.filter(
@@ -287,8 +363,19 @@ function completeCheckout(referenceNo?: string) {
   router.push({ path: '/order-confirmation', query: destination.query })
 }
 
+// Native `required` validation cannot run on the collapsed form, so a saved
+// address that predates a required field is checked here instead.
+function hasIncompleteDetails(): boolean {
+  const f = form.value
+  return ![f.name, f.email, f.phone, f.address, f.city, f.state, f.pincode].every((v) => v.trim())
+}
+
 async function handleSubmit() {
   paymentError.value = ''
+  if (!showDetailFields.value && hasIncompleteDetails()) {
+    paymentError.value = 'This saved address is missing some details. Choose “Edit for this order” to complete them.'
+    return
+  }
   isProcessing.value = true
   try {
     if (isOnlinePayment.value) {
@@ -414,8 +501,77 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
         <!-- ── Left: Form ── -->
         <form @submit.prevent="handleSubmit" class="lg:ect-col-span-2 ect-space-y-6">
 
+          <!-- Saved details picker: shown before any manual entry is asked for -->
+          <section v-if="savedAddresses.length" class="ect-bg-white ect-rounded-2xl ect-p-5 sm:ect-p-6 ect-border ect-border-sand ect-shadow-card">
+            <header class="ect-flex ect-items-center ect-gap-2.5 ect-mb-1.5">
+              <span class="ect-w-8 ect-h-8 ect-rounded-full ect-bg-champagne/50 ect-flex ect-items-center ect-justify-center ect-shrink-0">
+                <svg class="ect-w-4 ect-h-4 ect-text-gold-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+                </svg>
+              </span>
+              <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70">Deliver To</h2>
+            </header>
+            <p class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-mb-5">Pick one of your saved addresses, or enter new details for this order.</p>
+
+            <div role="radiogroup" aria-label="Saved delivery details" class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-2.5">
+              <label
+                v-for="a in savedAddresses"
+                :key="a.id"
+                class="ect-flex ect-items-start ect-gap-3 ect-p-3.5 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
+                :class="selectedSavedId === a.id
+ ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
+                  : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
+              >
+                <input v-model="selectedSavedId" type="radio" :value="a.id" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
+                <span class="ect-flex-1 ect-min-w-0">
+                  <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-block ect-truncate">{{ a.label }}</span>
+                  <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block ect-truncate">{{ a.name }} · {{ a.phone }}</span>
+                  <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block ect-truncate">{{ a.address }}</span>
+                  <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block ect-truncate">{{ a.city }}, {{ a.state }} {{ a.pincode }} · {{ countryDisplayName(a.country) }}</span>
+                </span>
+                <span v-if="selectedSavedId === a.id" class="ect-w-5 ect-h-5 ect-rounded-full ect-bg-gold-600 ect-flex ect-items-center ect-justify-center ect-shrink-0">
+                  <svg class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                </span>
+              </label>
+              <label
+                class="ect-flex ect-items-start ect-gap-3 ect-p-3.5 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
+                :class="selectedSavedId === ''
+ ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
+                  : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
+              >
+                <input v-model="selectedSavedId" type="radio" value="" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
+                <span class="ect-flex-1 ect-min-w-0">
+                  <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-block">Use a new address</span>
+                  <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block">Enter contact and shipping details below</span>
+                </span>
+                <span v-if="selectedSavedId === ''" class="ect-w-5 ect-h-5 ect-rounded-full ect-bg-gold-600 ect-flex ect-items-center ect-justify-center ect-shrink-0">
+                  <svg class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+                </span>
+              </label>
+            </div>
+
+            <!-- Chosen address recap, so nothing has to be re-typed -->
+            <section v-if="selectedAddress && !isEditingDetails" class="ect-mt-4 ect-rounded-xl ect-border ect-border-sand ect-bg-cream/60 ect-p-4">
+              <div class="ect-flex ect-items-start ect-justify-between ect-gap-4">
+                <div class="ect-min-w-0">
+                  <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1.5">Order will be sent to</p>
+                  <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ selectedAddress.name }}</p>
+                  <p class="ect-font-body ect-text-sm ect-text-charcoal/65 ect-mt-0.5">{{ selectedAddress.address }}, {{ selectedAddress.city }}, {{ selectedAddress.state }} {{ selectedAddress.pincode }}, {{ countryDisplayName(selectedAddress.country) }}</p>
+                  <p class="ect-font-body ect-text-xs ect-text-charcoal/45 ect-mt-1">{{ selectedAddress.email }} · {{ selectedAddress.phone }}</p>
+                </div>
+                <button type="button" class="ect-shrink-0 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-gold-700 hover:ect-text-gold-800" @click="editSelectedDetails">
+                  Edit for this order
+                </button>
+              </div>
+            </section>
+            <p v-else-if="selectedAddress" class="ect-mt-4 ect-font-body ect-text-xs ect-text-charcoal/50">
+              Editing “{{ selectedAddress.label }}” for this order only.
+              <button type="button" class="ect-font-semibold ect-text-gold-700 hover:ect-text-gold-800 ect-underline" @click="restoreSelectedAddress">Undo changes</button>
+            </p>
+          </section>
+
           <!-- Contact card -->
-          <section class="ect-bg-white ect-rounded-2xl ect-p-5 sm:ect-p-6 ect-border ect-border-sand ect-shadow-card">
+          <section v-if="showDetailFields" class="ect-bg-white ect-rounded-2xl ect-p-5 sm:ect-p-6 ect-border ect-border-sand ect-shadow-card">
             <header class="ect-flex ect-items-center ect-gap-2.5 ect-mb-5">
               <span class="ect-w-8 ect-h-8 ect-rounded-full ect-bg-champagne/50 ect-flex ect-items-center ect-justify-center ect-shrink-0">
                 <svg class="ect-w-4 ect-h-4 ect-text-gold-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -425,45 +581,6 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
               <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70">Contact Details</h2>
             </header>
             <section class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
-              <div v-if="savedAddresses.length" role="radiogroup" aria-label="Saved shipping address" class="ect-block sm:ect-col-span-2">
-                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Saved shipping address</span>
-                <div class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-2.5">
-                  <label
-                    v-for="a in savedAddresses"
-                    :key="a.id"
-                    class="ect-flex ect-items-start ect-gap-3 ect-p-3.5 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
-                    :class="selectedSavedId === a.id
- ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
-                      : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
-                  >
-                    <input v-model="selectedSavedId" type="radio" :value="a.id" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
-                    <span class="ect-flex-1 ect-min-w-0">
-                      <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-block ect-truncate">{{ a.label }}</span>
-                      <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block ect-truncate">{{ a.address }}</span>
-                      <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block ect-truncate">{{ a.city }}, {{ a.state }} {{ a.pincode }} · {{ countryDisplayName(a.country) }}</span>
-                    </span>
-                    <span v-if="selectedSavedId === a.id" class="ect-w-5 ect-h-5 ect-rounded-full ect-bg-champagne/500 ect-flex ect-items-center ect-justify-center ect-shrink-0">
-                      <svg class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                    </span>
-                  </label>
-                  <label
-                    class="ect-flex ect-items-start ect-gap-3 ect-p-3.5 ect-rounded-xl ect-cursor-pointer ect-border ect-transition-all ect-duration-200"
-                    :class="selectedSavedId === ''
- ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
-                      : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
-                  >
-                    <input v-model="selectedSavedId" type="radio" value="" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
-                    <span class="ect-flex-1 ect-min-w-0">
-                      <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-block">Use a new address</span>
-                      <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block">Enter details manually below</span>
-                    </span>
-                    <span v-if="selectedSavedId === ''" class="ect-w-5 ect-h-5 ect-rounded-full ect-bg-champagne/500 ect-flex ect-items-center ect-justify-center ect-shrink-0">
-                      <svg class="ect-w-3 ect-h-3 ect-text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
-                    </span>
-                  </label>
-                </div>
-                <span class="ect-mt-1.5 ect-block ect-font-body ect-text-micro ect-text-charcoal/40">Selecting a saved address fills your contact details and shipping address.</span>
-              </div>
               <label class="ect-block">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Full Name *</span>
                 <input v-model="form.name" type="text" required placeholder="Priya Sharma" :class="inputClass" />
@@ -480,7 +597,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
           </section>
 
           <!-- Shipping card -->
-          <section class="ect-bg-white ect-rounded-2xl ect-p-5 sm:ect-p-6 ect-border ect-border-sand ect-shadow-card">
+          <section v-if="showDetailFields" class="ect-bg-white ect-rounded-2xl ect-p-5 sm:ect-p-6 ect-border ect-border-sand ect-shadow-card">
             <header class="ect-flex ect-items-center ect-gap-2.5 ect-mb-5">
               <span class="ect-w-8 ect-h-8 ect-rounded-full ect-bg-champagne/50 ect-flex ect-items-center ect-justify-center ect-shrink-0">
                 <svg class="ect-w-4 ect-h-4 ect-text-gold-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

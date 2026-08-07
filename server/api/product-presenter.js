@@ -131,7 +131,11 @@ function normalizeProductAttributes(input) {
 
 /** Prefer a variant with a real list price; catalog query sorts by listPricePaise asc so a ₹0 stub would otherwise win. */
 export function pickVariantForPricing(activeVariants, preferredVariant) {
-  if (preferredVariant) return preferredVariant
+  // Only an actual variant row counts as a preference. Guarded because
+  // `products.map(toApiProduct)` forwards the array index into this argument,
+  // and a truthy index would otherwise be returned as the "variant" — leaving
+  // every product after the first priced from `undefined`.
+  if (preferredVariant && typeof preferredVariant === 'object') return preferredVariant
   if (!Array.isArray(activeVariants) || !activeVariants.length) return null
   const withPrice = activeVariants.find(
     (v) => typeof v?.listPricePaise === 'number' && Number.isFinite(v.listPricePaise) && v.listPricePaise > 0,

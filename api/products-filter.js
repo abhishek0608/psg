@@ -103,7 +103,9 @@ export default async function handler(req, res) {
       },
       orderBy: { createdAt: 'desc' },
     })
-    const products = Array.isArray(dbProducts) ? dbProducts.map(toApiProduct) : []
+    // Explicit arrow: passing `toApiProduct` bare would hand it the map index
+    // as its `preferredVariant` argument and drop the variant list price.
+    const products = Array.isArray(dbProducts) ? dbProducts.map((product) => toApiProduct(product)) : []
 
     // The filter query reads images straight from the DB, so products whose
     // images live only in S3 (e.g. mass-uploaded ones) come back with none.
