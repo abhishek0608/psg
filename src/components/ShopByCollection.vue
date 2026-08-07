@@ -38,7 +38,7 @@ function goToCollection(slug: string) {
 
 <template>
   <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-14 sm:ect-pt-16">
-    <header class="ect-flex ect-items-end ect-justify-between ect-gap-4 ect-mb-7">
+    <header class="ect-flex ect-flex-col ect-items-start sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-3 sm:ect-gap-4 ect-mb-7">
       <div>
         <p class="ect-eyebrow ect-text-[#b79a56]">Shop by category</p>
         <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
@@ -54,15 +54,24 @@ function goToCollection(slug: string) {
     </header>
 
     <div class="ect-grid ect-grid-cols-3 lg:ect-grid-cols-5 ect-gap-3 sm:ect-gap-4">
+      <!--
+        `flex flex-col` rather than `block`: grid stretches each tile to the row
+        height, and a stretched <button> vertically centres its content by UA
+        default. A label that wraps to two lines ("Bracelets & Bangles" at the
+        3-column breakpoint) makes the row a line taller, which then shunts every
+        single-line sibling down half a line — image and caption both. Laying the
+        button out as a column pins its content to the top so the tiles in a row
+        stay aligned no matter how the captions wrap.
+      -->
       <button
         v-for="(item, index) in collections"
         :key="item.slug"
         type="button"
-        class="ect-group ect-block ect-text-center"
+        class="ect-group ect-flex ect-flex-col ect-text-center"
         @click="goToCollection(item.slug)"
       >
         <span
-          class="ect-relative ect-block ect-aspect-square ect-rounded-md ect-overflow-hidden ect-mb-3 ect-shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)] ect-transition-opacity group-hover:ect-opacity-85"
+          class="ect-relative ect-block ect-shrink-0 ect-aspect-square ect-rounded-md ect-overflow-hidden ect-mb-3 ect-shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)] ect-transition-opacity group-hover:ect-opacity-85"
           :style="{ background: tileBgs[index % tileBgs.length] }"
         >
           <img
