@@ -32,13 +32,14 @@ const { addQuote } = useQuotes()
 const { createOrder, openCheckout, isConfigured } = useRazorpay()
 const {
   recentAddresses: savedAddresses,
+  isAccountSynced,
   getById,
   findMatching,
   uniqueLabel,
   save: saveAddress,
   touch: touchAddress,
 } = useSavedAddresses()
-const { user } = useAuth()
+const { user, isLoggedIn } = useAuth()
 const isProcessing = ref(false)
 const paymentError = ref('')
 
@@ -58,6 +59,9 @@ const form = ref({
 // form; first-time shoppers (no saved addresses) fall through to manual entry.
 const selectedSavedId = ref(savedAddresses.value[0]?.id ?? '')
 const isEditingDetails = ref(false)
+// Set once the shopper picks for themselves, so the account's addresses
+// arriving from the server never override a deliberate choice.
+const pickerTouched = ref(false)
 const saveAsLabel = ref('')
 const saveAddressMessage = ref('')
 
@@ -115,6 +119,21 @@ watch(
   { immediate: true },
 )
 
+// A signed-in shopper's addresses arrive from the account after the page has
+// rendered — and replace the guest list outright — so the selection is settled
+// once they land, not only on setup.
+watch(savedAddresses, (list) => {
+  const first = list[0]
+  if (!first) return
+  // An explicit "Use a new address" choice stands.
+  if (pickerTouched.value && !selectedSavedId.value) return
+  // Preselect, or re-point a selection whose entry is gone (the guest list
+  // giving way to the account's on sign-in).
+  if (!selectedSavedId.value || !list.some((a) => a.id === selectedSavedId.value)) {
+    selectedSavedId.value = first.id
+  }
+})
+
 function editSelectedDetails() {
   isEditingDetails.value = true
 }
@@ -145,15 +164,15 @@ function rememberAddressForNextTime() {
   const existing =
     (selectedSavedId.value && !isEditingDetails.value ? selectedAddress.value : undefined) ??
     findMatching(details)
-  if (existing) {
-    touchAddress(existing.id)
-    return
-  }
-  const id = saveAddress({ label: uniqueLabel(details.city), ...details })
-  touchAddress(id)
+  const write = existing
+    ? touchAddress(existing.id)
+    : saveAddress({ label: uniqueLabel(details.city), ...details, lastUsedAt: new Date().toISOString() })
+  // The order itself is already placed; a failed write only costs the shopper
+  // the convenience next time, so it must not block the confirmation page.
+  write.catch((err) => console.error('Could not remember this address:', err))
 }
 
-function saveCurrentAddress() {
+async function saveCurrentAddress() {
   saveAddressMessage.value = ''
   const label = saveAsLabel.value.trim()
   if (!label) {
@@ -173,19 +192,26 @@ function saveCurrentAddress() {
     saveAddressMessage.value = 'Fill in contact details before saving.'
     return
   }
-  saveAddress({
-    label,
-    name: form.value.name.trim(),
-    email: form.value.email.trim(),
-    phone: form.value.phone.trim(),
-    address: form.value.address.trim(),
-    city: form.value.city.trim(),
-    state: form.value.state.trim(),
-    country: form.value.country,
-    pincode: form.value.pincode.trim(),
-  })
+  try {
+    await saveAddress({
+      label,
+      name: form.value.name.trim(),
+      email: form.value.email.trim(),
+      phone: form.value.phone.trim(),
+      address: form.value.address.trim(),
+      city: form.value.city.trim(),
+      state: form.value.state.trim(),
+      country: form.value.country,
+      pincode: form.value.pincode.trim(),
+    })
+  } catch {
+    saveAddressMessage.value = 'Could not save this address. Check your connection and try again.'
+    return
+  }
   saveAsLabel.value = ''
-  saveAddressMessage.value = 'Saved. Choose it from Saved shipping address in Contact details anytime.'
+  saveAddressMessage.value = isAccountSynced.value
+    ? 'Saved to your account. Pick it from Deliver To on any device.'
+    : 'Saved on this device. Pick it from Deliver To next time.'
 }
 
 const isOnlinePayment = computed(() => form.value.payment === 'upi' || form.value.payment === 'card')
@@ -473,7 +499,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
  ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
                   : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
               >
-                <input v-model="selectedSavedId" type="radio" :value="a.id" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
+                <input v-model="selectedSavedId" type="radio" :value="a.id" @change="pickerTouched = true" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
                 <span class="ect-flex-1 ect-min-w-0">
                   <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-block ect-truncate">{{ a.label }}</span>
                   <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block ect-truncate">{{ a.name }} · {{ a.phone }}</span>
@@ -490,7 +516,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
  ? 'ect-border-gold-400 ect-bg-champagne/50 ect-shadow-card'
                   : 'ect-border-sand hover:ect-border-gold-300 hover:ect-bg-champagne/40'"
               >
-                <input v-model="selectedSavedId" type="radio" value="" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
+                <input v-model="selectedSavedId" type="radio" value="" @change="pickerTouched = true" class="ect-accent-charcoal ect-w-4 ect-h-4 ect-shrink-0 ect-mt-0.5" />
                 <span class="ect-flex-1 ect-min-w-0">
                   <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-block">Use a new address</span>
                   <span class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-block">Enter contact and shipping details below</span>
@@ -503,14 +529,14 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
 
             <!-- Chosen address recap, so nothing has to be re-typed -->
             <section v-if="selectedAddress && !isEditingDetails" class="ect-mt-4 ect-rounded-xl ect-border ect-border-sand ect-bg-cream/60 ect-p-4">
-              <div class="ect-flex ect-items-start ect-justify-between ect-gap-4">
+              <div class="ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-start sm:ect-justify-between ect-gap-2 sm:ect-gap-4">
                 <div class="ect-min-w-0">
                   <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1.5">Order will be sent to</p>
                   <p class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ selectedAddress.name }}</p>
                   <p class="ect-font-body ect-text-sm ect-text-charcoal/65 ect-mt-0.5">{{ selectedAddress.address }}, {{ selectedAddress.city }}, {{ selectedAddress.state }} {{ selectedAddress.pincode }}, {{ countryDisplayName(selectedAddress.country) }}</p>
                   <p class="ect-font-body ect-text-xs ect-text-charcoal/45 ect-mt-1">{{ selectedAddress.email }} · {{ selectedAddress.phone }}</p>
                 </div>
-                <button type="button" class="ect-shrink-0 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-gold-700 hover:ect-text-gold-800" @click="editSelectedDetails">
+                <button type="button" class="ect-shrink-0 ect-self-start ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-gold-700 hover:ect-text-gold-800" @click="editSelectedDetails">
                   Edit for this order
                 </button>
               </div>
@@ -518,6 +544,19 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
             <p v-else-if="selectedAddress" class="ect-mt-4 ect-font-body ect-text-xs ect-text-charcoal/50">
               Editing “{{ selectedAddress.label }}” for this order only.
               <button type="button" class="ect-font-semibold ect-text-gold-700 hover:ect-text-gold-800 ect-underline" @click="restoreSelectedAddress">Undo changes</button>
+            </p>
+          </section>
+
+          <!-- Guests have nothing saved to pick from; signing in surfaces the
+               addresses already on their account. -->
+          <section v-if="!savedAddresses.length && !isLoggedIn" class="ect-flex ect-items-start ect-gap-3 ect-rounded-2xl ect-border ect-border-sand ect-bg-champagne/40 ect-p-4 sm:ect-p-5">
+            <svg class="ect-mt-0.5 ect-h-5 ect-w-5 ect-shrink-0 ect-text-gold-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            <p class="ect-font-body ect-text-sm ect-leading-6 ect-text-charcoal/70">
+              Ordered with us before?
+              <RouterLink :to="{ path: '/login', query: { redirect: '/checkout' } }" class="ect-font-semibold ect-text-gold-700 hover:ect-text-gold-800 ect-underline">Sign in</RouterLink>
+              to pick a saved address instead of typing it again.
             </p>
           </section>
 

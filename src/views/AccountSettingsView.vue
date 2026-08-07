@@ -67,9 +67,26 @@ function closeAddressForm() {
   editingAddressId.value = null
 }
 
-function submitAddress() {
-  saveAddress({ ...addressForm.value, id: editingAddressId.value ?? undefined })
+const addressError = ref('')
+
+async function submitAddress() {
+  addressError.value = ''
+  try {
+    await saveAddress({ ...addressForm.value, id: editingAddressId.value ?? undefined })
+  } catch {
+    addressError.value = 'Could not save this address. Check your connection and try again.'
+    return
+  }
   closeAddressForm()
+}
+
+async function deleteAddress(id: string) {
+  addressError.value = ''
+  try {
+    await removeAddress(id)
+  } catch {
+    addressError.value = 'Could not delete this address. Check your connection and try again.'
+  }
 }
 
 async function handleSubmit() {
@@ -237,7 +254,7 @@ async function handleSubmit() {
                   </div>
                   <div class="ect-flex ect-shrink-0 ect-items-center ect-gap-2">
                     <button type="button" class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-gold-700 hover:ect-text-gold-800" @click="editAddress(address)">Edit</button>
-                    <button type="button" class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-red-500 hover:ect-text-red-600" @click="removeAddress(address.id)">Delete</button>
+                    <button type="button" class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-wide ect-text-red-500 hover:ect-text-red-600" @click="deleteAddress(address.id)">Delete</button>
                   </div>
                 </article>
               </div>
@@ -245,6 +262,8 @@ async function handleSubmit() {
                 <p class="ect-font-body ect-text-sm ect-text-charcoal/55">{{ addresses.length ? 'No addresses match your search.' : 'No saved addresses yet.' }}</p>
               </div>
             </section>
+
+            <p v-if="addressError" class="ect-mt-4 ect-font-body ect-text-sm ect-text-red-600">{{ addressError }}</p>
 
             <button type="button" class="ect-mt-5 ect-rounded-xl ect-bg-charcoal ect-px-6 ect-py-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-white hover:ect-bg-noir ect-transition-colors" @click="openNewAddress">Add new address</button>
 

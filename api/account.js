@@ -460,6 +460,99 @@ async function handleGetProfile(res, customerId) {
   return res.status(200).json({ user: toUserPayload(customer) })
 }
 
+const ADDRESS_TEXT_LIMIT = 200
+
+function addressText(input, limit = ADDRESS_TEXT_LIMIT) {
+  return String(input ?? '').trim().slice(0, limit)
+}
+
+/** DB row -> the shape checkout and account settings work with. */
+function toAddressPayload(row) {
+  return {
+    id: row.id,
+    label: row.label || row.city || 'Saved address',
+    name: row.contactName || '',
+    email: row.contactEmail || '',
+    phone: row.contactPhone || '',
+    address: [row.line1, row.line2].filter(Boolean).join(', '),
+    city: row.city || '',
+    state: row.state || '',
+    country: row.country || 'IN',
+    pincode: row.postalCode || '',
+    lastUsedAt: row.lastUsedAt ? row.lastUsedAt.toISOString() : undefined,
+  }
+}
+
+async function fetchAddresses(customerId) {
+  const rows = await prisma.address.findMany({
+    where: { customerId },
+    orderBy: [{ lastUsedAt: 'desc' }, { updatedAt: 'desc' }],
+  })
+  return rows.map(toAddressPayload)
+}
+
+async function handleGetAddresses(res, customerId) {
+  if (!customerId) return res.status(400).json({ message: 'userId is required.' })
+  return res.status(200).json({ addresses: await fetchAddresses(customerId) })
+}
+
+async function handlePostAddresses(res, customerId, body) {
+  if (!customerId) return res.status(400).json({ message: 'userId is required.' })
+  const action = String(body?.action || 'save').toLowerCase()
+  const addressId = addressText(body?.addressId, 60)
+
+  if (action === 'remove') {
+    if (!addressId) return res.status(400).json({ message: 'addressId is required.' })
+    // deleteMany scopes the delete to the owner, so an id alone cannot reach
+    // somebody else's address.
+    await prisma.address.deleteMany({ where: { id: addressId, customerId } })
+    return res.status(200).json({ addresses: await fetchAddresses(customerId) })
+  }
+
+  if (action === 'touch') {
+    if (!addressId) return res.status(400).json({ message: 'addressId is required.' })
+    await prisma.address.updateMany({
+      where: { id: addressId, customerId },
+      data: { lastUsedAt: new Date() },
+    })
+    return res.status(200).json({ addresses: await fetchAddresses(customerId) })
+  }
+
+  if (action !== 'save') return res.status(400).json({ message: 'Invalid address action.' })
+
+  const entry = body?.address && typeof body.address === 'object' ? body.address : {}
+  const line1 = addressText(entry.address)
+  const city = addressText(entry.city, 80)
+  const state = addressText(entry.state, 80)
+  const postalCode = addressText(entry.pincode, 20)
+  if (!line1 || !city || !state || !postalCode) {
+    return res.status(400).json({ message: 'Street address, city, state and postal code are required.' })
+  }
+
+  const data = {
+    label: addressText(entry.label, 60) || city,
+    contactName: addressText(entry.name, 120),
+    contactEmail: addressText(entry.email, 160),
+    contactPhone: addressText(entry.phone, 40),
+    line1,
+    city,
+    state,
+    country: addressText(entry.country, 40) || 'IN',
+    postalCode,
+    ...(entry.lastUsedAt ? { lastUsedAt: new Date(entry.lastUsedAt) } : {}),
+  }
+
+  // An id that is not this customer's own address falls through to a create,
+  // so a stale or guessed id can never overwrite another account's row.
+  const owned = addressId
+    ? await prisma.address.findFirst({ where: { id: addressId, customerId }, select: { id: true } })
+    : null
+  if (owned) await prisma.address.update({ where: { id: owned.id }, data })
+  else await prisma.address.create({ data: { ...data, customerId, type: 'shipping' } })
+
+  return res.status(200).json({ addresses: await fetchAddresses(customerId) })
+}
+
 async function handleGetCart(res, customerId) {
   if (!customerId) return res.status(400).json({ message: 'userId is required.' })
   const cart = await getOrCreateCart(customerId)
@@ -604,6 +697,7 @@ export default async function handler(req, res) {
       if (mode === 'profile') return await handleGetProfile(res, userId)
       if (mode === 'cart') return await handleGetCart(res, userId)
       if (mode === 'wishlist') return await handleGetWishlist(res, userId)
+      if (mode === 'addresses') return await handleGetAddresses(res, userId)
       return res.status(400).json({ message: 'Invalid mode for GET.' })
     }
 
@@ -620,6 +714,7 @@ export default async function handler(req, res) {
       if (mode === 'change-password') return await handleChangePassword(res, userId, body)
       if (mode === 'cart') return await handlePostCart(res, userId, body)
       if (mode === 'wishlist') return await handlePostWishlist(res, userId, body)
+      if (mode === 'addresses') return await handlePostAddresses(res, userId, body)
       return res.status(400).json({ message: 'Invalid mode for POST.' })
     }
 

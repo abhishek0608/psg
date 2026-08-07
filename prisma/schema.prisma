@@ -299,17 +299,26 @@ model Address {
   id            String   @id @default(cuid())
   customerId    String
   type          String   @default("shipping")
+  // Checkout stores the whole delivery card, not just the postal parts, so a
+  // saved address can be selected without re-entering who receives it.
+  label         String?
+  contactName   String?
+  contactEmail  String?
+  contactPhone  String?
   line1         String
   line2         String?
   city          String
   state         String
   country       String   @default("IN")
   postalCode    String
+  lastUsedAt    DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   customer      User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
   ordersBilling Order[]  @relation("OrderBillingAddress")
   ordersShip    Order[]  @relation("OrderShippingAddress")
+
+  @@index([customerId, lastUsedAt])
 }
 
 model Cart {

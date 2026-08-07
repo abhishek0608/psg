@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
+const route = useRoute()
 const { signin } = useAuth()
+
+// Only in-app paths are honoured, so a crafted ?redirect= cannot bounce a
+// signed-in shopper off to another site.
+function redirectTarget(): string {
+  const to = String(route.query.redirect ?? '')
+  return to.startsWith('/') && !to.startsWith('//') ? to : '/'
+}
 
 const email = ref('')
 const password = ref('')
@@ -17,7 +25,7 @@ async function handleSubmit() {
   try {
     await signin(email.value, password.value)
     isLoading.value = false
-    router.push('/')
+    router.push(redirectTarget())
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Unable to sign in.'
     isLoading.value = false
