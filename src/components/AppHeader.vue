@@ -668,7 +668,7 @@ function toggleNotifications() {
                 :key="item.slug"
                 type="button"
                 @click="goToCollection(item.slug)"
-                class="ect-relative ect-h-24 ect-rounded-2xl ect-overflow-hidden ect-flex ect-items-end ect-p-3.5 ect-text-left ect-shadow-card hover:ect-shadow-luxe-sm hover:-ect-translate-y-0.5 ect-transition-all ect-duration-200"
+                class="ect-relative ect-h-32 ect-rounded-2xl ect-overflow-hidden ect-flex ect-items-end ect-p-3.5 ect-text-left ect-shadow-card hover:ect-shadow-luxe-sm hover:-ect-translate-y-0.5 ect-transition-all ect-duration-200"
                 :style="{ backgroundImage: cardStripe + ', ' + cardGold }"
               >
                 <!-- Eager load: the drawer is display:none until opened, so a lazy
@@ -691,7 +691,7 @@ function toggleNotifications() {
               v-if="signatureCollection"
               type="button"
               @click="goToCollection(signatureCollection.slug)"
-              class="ect-relative ect-w-full ect-h-28 ect-mt-3 ect-rounded-2xl ect-overflow-hidden ect-flex ect-flex-col ect-justify-end ect-p-4 ect-text-left ect-shadow-card hover:ect-shadow-luxe-sm hover:-ect-translate-y-0.5 ect-transition-all ect-duration-200"
+              class="ect-relative ect-w-full ect-h-40 ect-mt-3 ect-rounded-2xl ect-overflow-hidden ect-flex ect-flex-col ect-justify-end ect-p-4 ect-text-left ect-shadow-card hover:ect-shadow-luxe-sm hover:-ect-translate-y-0.5 ect-transition-all ect-duration-200"
               :style="{ backgroundImage: cardStripe + ', ' + cardGoldDark }"
             >
               <img
