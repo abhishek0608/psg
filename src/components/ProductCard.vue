@@ -106,8 +106,10 @@ const reviewLabel = computed(() => {
   return count >= 1000 ? `${(count / 1000).toFixed(1)}k` : String(count)
 })
 
+// Bestsellers carry no listing badge: the pill sat over the top-left corner of
+// the shot and hid part of the piece, and best sellers already have their own
+// section and collection tab.
 const productTag = computed(() => {
-  if (props.product?.isBestSeller) return 'Bestseller'
   if (props.product?.isNewArrival) return 'New'
   if (props.product?.priceValue && props.product.priceValue <= 50000) return 'Under ₹50k'
   return ''
@@ -140,7 +142,7 @@ const productTag = computed(() => {
         <span class="ect-absolute ect-inset-0 ect-bg-charcoal/0 group-hover:ect-bg-charcoal/[0.035] ect-transition-colors ect-duration-300" />
 
         <!-- Listing badge (top-left) -->
-        <span v-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label" :class="productTag === 'Bestseller' ? 'ect-bg-[#1f3f37] ect-text-[#f4ecd9]' : 'ect-bg-[#b79a56] ect-text-[#2b2723]'">
+        <span v-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#b79a56] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#2b2723]">
           {{ productTag }}
         </span>
 
