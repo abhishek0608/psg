@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import { CATEGORIES, CENTER_SHAPE_OPTIONS, CENTER_STONE_SIZE_OPTIONS, COLORS, STONE_TYPE_OPTIONS, type Category, type Material, type Color } from '../data/products'
+import { CATEGORIES, CENTER_SHAPE_OPTIONS, COLORS, STONE_TYPE_OPTIONS, type Category, type Material, type Color } from '../data/products'
 import { formatInr } from '../utils/currency'
 
 interface Filters {
@@ -11,7 +11,6 @@ interface Filters {
   priceMax: number
   stoneTags: string[]
   centerShapes: string[]
-  centerStoneSizes: string[]
 }
 
 const props = defineProps<{
@@ -29,7 +28,7 @@ const emit = defineEmits<{
   (e: 'apply', filters: Filters): void
 }>()
 
-const local = ref<Filters>({ ...props.initial, categories: [...props.initial.categories], materials: [...props.initial.materials], colors: [...props.initial.colors], stoneTags: [...(props.initial.stoneTags || [])], centerShapes: [...(props.initial.centerShapes || [])], centerStoneSizes: [...(props.initial.centerStoneSizes || [])] })
+const local = ref<Filters>({ ...props.initial, categories: [...props.initial.categories], materials: [...props.initial.materials], colors: [...props.initial.colors], stoneTags: [...(props.initial.stoneTags || [])], centerShapes: [...(props.initial.centerShapes || [])] })
 
 watch(() => props.modelValue, (open) => {
   if (open) {
@@ -40,7 +39,6 @@ watch(() => props.modelValue, (open) => {
       colors: [...props.initial.colors],
       stoneTags: [...(props.initial.stoneTags || [])],
       centerShapes: [...(props.initial.centerShapes || [])],
-      centerStoneSizes: [...(props.initial.centerStoneSizes || [])],
     }
   }
 })
@@ -53,7 +51,6 @@ const activeCount = computed(() => {
   if (local.value.priceMin > 0 || local.value.priceMax < props.maxPrice) count++
   if (local.value.stoneTags.length) count++
   if (local.value.centerShapes.length) count++
-  if (local.value.centerStoneSizes.length) count++
   return count
 })
 
@@ -70,7 +67,6 @@ const previewCount = computed(() => {
     if (f.priceMax < props.maxPrice && p.priceValue > f.priceMax) return false
     if (f.stoneTags.length && !f.stoneTags.some((t) => Array.isArray(p.stoneTags) && p.stoneTags.includes(t))) return false
     if (f.centerShapes.length && !f.centerShapes.some((s) => p.customizationOptions?.centerShapes?.includes(s))) return false
-    if (f.centerStoneSizes.length && !f.centerStoneSizes.some((s) => p.customizationOptions?.centerStoneSizes?.includes(s))) return false
     return true
   }).length
 })
@@ -105,12 +101,6 @@ function toggleCenterShape(s: string) {
   else local.value.centerShapes.splice(idx, 1)
 }
 
-function toggleCenterStoneSize(s: string) {
-  const idx = local.value.centerStoneSizes.indexOf(s)
-  if (idx === -1) local.value.centerStoneSizes.push(s)
-  else local.value.centerStoneSizes.splice(idx, 1)
-}
-
 // Faceted counts: how many products match every active facet EXCEPT the named
 // one, so each pill can show the count it would yield if chosen.
 function baseMatch(p: any, exclude: string) {
@@ -122,7 +112,6 @@ function baseMatch(p: any, exclude: string) {
   if (f.priceMax < props.maxPrice && p.priceValue > f.priceMax) return false
   if (exclude !== 'stone' && f.stoneTags.length && !f.stoneTags.some((t) => Array.isArray(p.stoneTags) && p.stoneTags.includes(t))) return false
   if (exclude !== 'shape' && f.centerShapes.length && !f.centerShapes.some((s) => p.customizationOptions?.centerShapes?.includes(s))) return false
-  if (exclude !== 'size' && f.centerStoneSizes.length && !f.centerStoneSizes.some((s) => p.customizationOptions?.centerStoneSizes?.includes(s))) return false
   return true
 }
 
@@ -136,7 +125,6 @@ const categoryCount = (cat: Category) => countFor('category', (p) => p.category 
 const materialCount = (m: Material) => countFor('material', (p) => p.material === m)
 const stoneCount = (id: string) => countFor('stone', (p) => Array.isArray(p.stoneTags) && p.stoneTags.includes(id))
 const shapeCount = (s: string) => countFor('shape', (p) => p.customizationOptions?.centerShapes?.includes(s))
-const sizeCount = (s: string) => countFor('size', (p) => p.customizationOptions?.centerStoneSizes?.includes(s))
 
 // Applied selections rendered as removable chips at the top of the panel.
 const priceActive = computed(() => local.value.priceMin > 0 || local.value.priceMax < props.maxPrice)
@@ -155,7 +143,6 @@ const activeChips = computed(() => {
     chips.push({ key: `color-${c}`, label: opt ? (opt.label.split(' ')[0] ?? opt.label) : c, remove: () => toggleColor(c) })
   })
   local.value.centerShapes.forEach((s) => chips.push({ key: `shape-${s}`, label: s, remove: () => toggleCenterShape(s) }))
-  local.value.centerStoneSizes.forEach((s) => chips.push({ key: `size-${s}`, label: s, remove: () => toggleCenterStoneSize(s) }))
   if (priceActive.value) chips.push({ key: 'price', label: `${formatPrice(local.value.priceMin)} – ${formatPrice(local.value.priceMax)}${local.value.priceMax >= props.maxPrice ? '+' : ''}`, remove: resetPrice })
   return chips
 })
@@ -174,20 +161,19 @@ function onPriceMaxChange() {
 }
 
 function clear() {
-  local.value = { categories: props.lockedCategory ? [props.lockedCategory] : [], materials: [], colors: [], priceMin: 0, priceMax: props.maxPrice, stoneTags: [], centerShapes: [], centerStoneSizes: [] }
+  local.value = { categories: props.lockedCategory ? [props.lockedCategory] : [], materials: [], colors: [], priceMin: 0, priceMax: props.maxPrice, stoneTags: [], centerShapes: [] }
 }
 
 // Collapsible sections (header toggles content visibility).
 const stoneTypeOpen = ref(true)
 const stoneShapeOpen = ref(false)
-const stoneSizeOpen = ref(false)
 
 // Price slider: gold fill geometry between the two handles.
 const minPct = computed(() => props.maxPrice ? Math.min(100, (local.value.priceMin / props.maxPrice) * 100) : 0)
 const maxPct = computed(() => props.maxPrice ? Math.min(100, (local.value.priceMax / props.maxPrice) * 100) : 100)
 
 function apply() {
-  emit('apply', { ...local.value, categories: [...local.value.categories], materials: [...local.value.materials], colors: [...local.value.colors], stoneTags: [...local.value.stoneTags], centerShapes: [...local.value.centerShapes], centerStoneSizes: [...local.value.centerStoneSizes] })
+  emit('apply', { ...local.value, categories: [...local.value.categories], materials: [...local.value.materials], colors: [...local.value.colors], stoneTags: [...local.value.stoneTags], centerShapes: [...local.value.centerShapes] })
   emit('update:modelValue', false)
 }
 
@@ -426,40 +412,6 @@ function formatPrice(val: number) {
                 >
                   {{ shape }}
                   <span class="ect-text-xs" :class="local.centerShapes.includes(shape) ? 'ect-text-gold-700/60' : 'ect-text-charcoal/40'">{{ shapeCount(shape) }}</span>
-                </button>
-              </section>
-            </section>
-
-            <hr class="ect-border-sand" />
-
-            <!-- Stone Size -->
-            <section>
-              <button
-                type="button"
-                class="ect-w-full ect-flex ect-items-center ect-justify-between ect-mb-2"
-                :aria-expanded="stoneSizeOpen"
-                @click="stoneSizeOpen = !stoneSizeOpen"
-              >
-                <h3 class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/50">Stone Size</h3>
-                <span class="ect-flex ect-items-center ect-gap-2">
-                  <span v-if="local.centerStoneSizes.length" class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/70">{{ local.centerStoneSizes.length }} selected</span>
-                  <svg class="ect-w-4 ect-h-4 ect-text-charcoal/40 ect-transition-transform" :class="stoneSizeOpen ? 'ect-rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </span>
-              </button>
-              <section v-show="stoneSizeOpen" class="ect-flex ect-gap-2.5 ect-flex-wrap">
-                <button
-                  v-for="size in CENTER_STONE_SIZE_OPTIONS"
-                  :key="size"
-                  type="button"
-                  :aria-pressed="local.centerStoneSizes.includes(size)"
-                  :class="local.centerStoneSizes.includes(size) ? 'ect-bg-gold-50 ect-text-gold-700 ect-border-gold-400' : 'ect-border-sand ect-text-charcoal/80 hover:ect-border-gold-400/60'"
-                  class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-sm ect-font-medium ect-px-5 ect-py-2.5 ect-rounded-full ect-border ect-transition-colors"
-                  @click="toggleCenterStoneSize(size)"
-                >
-                  {{ size }}
-                  <span class="ect-text-xs" :class="local.centerStoneSizes.includes(size) ? 'ect-text-gold-700/60' : 'ect-text-charcoal/40'">{{ sizeCount(size) }}</span>
                 </button>
               </section>
             </section>
