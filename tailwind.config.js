@@ -34,6 +34,11 @@ export default {
         'micro': ['0.6875rem', { lineHeight: '1.35' }],
         'ui': ['0.8125rem', { lineHeight: '1.45' }],
         'ui-lg': ['0.9375rem', { lineHeight: '1.5' }],
+        // The listing grid is two-up on phones, so a card is only ~130px wide
+        // inside its padding — a seven-figure rupee price set at the full
+        // `price` step wraps or crowds the row there. `price-sm` is the phone
+        // step; cards step up to `price` from `sm:` where the width exists.
+        'price-sm': ['1.125rem', { lineHeight: '1.15' }],
         'price': ['1.375rem', { lineHeight: '1.1' }],
       },
       colors: {
