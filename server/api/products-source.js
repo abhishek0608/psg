@@ -114,7 +114,9 @@ async function fetchCatalogProductsFromDb() {
   })
 
   // Unpriced pieces still list — they show "Price on request" rather than a ₹0.
-  const products = Array.isArray(dbProducts) ? dbProducts.map(toApiProduct) : []
+  // Called with an explicit arrow: passing `toApiProduct` directly would feed
+  // the map index in as its `preferredVariant` argument.
+  const products = Array.isArray(dbProducts) ? dbProducts.map((product) => toApiProduct(product)) : []
   return mergeS3Images(products)
 }
 
