@@ -59,7 +59,7 @@ watch(() => route.fullPath, applyForSlug)
 <template>
   <section v-if="collection" class="ect-min-h-screen ect-bg-[#faf7f2] ect-pt-28">
     <!-- Compact page header (no banner) -->
-    <header class="ect-px-6 ect-max-w-7xl ect-mx-auto">
+    <header class="ect-px-4 sm:ect-px-6 ect-max-w-7xl ect-mx-auto">
       <nav class="ect-font-body ect-text-xs ect-text-charcoal/45 ect-mb-1.5" aria-label="Breadcrumb">
         <RouterLink to="/" class="hover:ect-text-charcoal ect-transition-colors">Home</RouterLink>
         <span class="ect-mx-1.5">/</span>

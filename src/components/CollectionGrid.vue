@@ -239,7 +239,10 @@ watch([activeTab, appliedFilters], () => {
 </script>
 
 <template>
-  <section id="collections" class="ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-16 sm:ect-pb-24" :class="hideHeader ? 'ect-pt-5' : 'ect-pt-16 sm:ect-pt-24'">
+  <!-- Tighter side padding on mobile (16px vs 24px) buys each card of the
+       two-up grid a few more pixels of width, which is where the phone
+       layout needs them; tablet and up keep the roomier 24px gutter. -->
+  <section id="collections" class="ect-px-4 sm:ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-16 sm:ect-pb-24" :class="hideHeader ? 'ect-pt-5' : 'ect-pt-16 sm:ect-pt-24'">
     <header v-if="!hideHeader" class="ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-2 ect-mb-8">
       <section>
         <p class="ect-eyebrow ect-inline-flex ect-items-center ect-gap-2.5 ect-text-gold-700 ect-mb-3">
@@ -475,7 +478,7 @@ watch([activeTab, appliedFilters], () => {
     </section>
 
     <!-- Product skeleton -->
-    <ul v-if="listLoading || !firstLoadDone" class="ect-grid ect-grid-cols-2 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
+    <ul v-if="listLoading || !firstLoadDone" class="ect-grid ect-grid-cols-2 ect-gap-x-2.5 ect-gap-y-3 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
       <li v-for="n in 8" :key="`skeleton-${n}`" class="ect-animate-pulse">
         <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
         <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-p-4">
@@ -486,8 +489,10 @@ watch([activeTab, appliedFilters], () => {
       </li>
     </ul>
 
-    <!-- Product grid -->
-    <ul v-else-if="displayedProducts.length" class="ect-grid ect-grid-cols-2 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
+    <!-- Product grid. The column gap is the tighter of the two on mobile so
+         the cards themselves take the space back; the row gap only has to
+         keep neighbouring rows visually separate. -->
+    <ul v-else-if="displayedProducts.length" class="ect-grid ect-grid-cols-2 ect-gap-x-2.5 ect-gap-y-3 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
       <li v-for="piece in displayedProducts" :key="piece.slug" class="ect-h-full">
         <ProductCard :slug="piece.slug" :title="piece.title" :category="piece.category" :material="piece.material" :price="piece.price" :images="piece.images" :product="piece" />
       </li>
