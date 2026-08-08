@@ -196,7 +196,7 @@ function customizationEntries(item: CartItem) {
                   <!-- Price (desktop) -->
                   <p v-if="isItemCustomized(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium ect-hidden sm:ect-block">Quote</p>
                   <p v-else-if="isItemPriceOnRequest(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium ect-whitespace-nowrap ect-hidden sm:ect-block">Price on request</p>
-                  <p v-else class="ect-font-display ect-tabular-nums ect-text-base sm:ect-text-lg ect-font-medium ect-text-charcoal ect-whitespace-nowrap ect-hidden sm:ect-block">{{ itemSubtotal(item) }}</p>
+                  <p v-else class="ect-price ect-text-base sm:ect-text-lg ect-text-charcoal ect-whitespace-nowrap ect-hidden sm:ect-block">{{ itemSubtotal(item) }}</p>
                 </section>
 
                 <section class="ect-flex ect-items-center ect-justify-between ect-mt-3 ect-gap-3">
@@ -222,7 +222,7 @@ function customizationEntries(item: CartItem) {
                     <!-- Price (mobile) -->
                     <p v-if="isItemCustomized(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium sm:ect-hidden">Quote</p>
                     <p v-else-if="isItemPriceOnRequest(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium sm:ect-hidden">Price on request</p>
-                    <p v-else class="ect-font-display ect-tabular-nums ect-text-base ect-font-medium ect-text-charcoal sm:ect-hidden">{{ itemSubtotal(item) }}</p>
+                    <p v-else class="ect-price ect-text-base ect-text-charcoal sm:ect-hidden">{{ itemSubtotal(item) }}</p>
                     <svg
                       v-if="isRowLoading(item.id)"
                       class="ect-w-4 ect-h-4 ect-text-gold-600 ect-animate-spin"
@@ -291,7 +291,7 @@ function customizationEntries(item: CartItem) {
                   </section>
                   <span v-if="isItemCustomized(item)" class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium ect-whitespace-nowrap">Quote</span>
                   <span v-else-if="isItemPriceOnRequest(item)" class="ect-font-body ect-text-xs ect-text-gold-700 ect-font-medium ect-whitespace-nowrap">Price on request</span>
-                  <span v-else class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-whitespace-nowrap">{{ itemSubtotal(item) }}</span>
+                  <span v-else class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal ect-whitespace-nowrap">{{ itemSubtotal(item) }}</span>
                 </li>
               </ul>
 
@@ -300,13 +300,13 @@ function customizationEntries(item: CartItem) {
               <section class="ect-space-y-2 ect-mb-4">
                 <article class="ect-flex ect-justify-between">
                   <span class="ect-font-body ect-text-sm ect-text-charcoal/60">Subtotal ({{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }})</span>
-                  <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ formattedTotal }}</span>
+                  <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ formattedTotal }}</span>
                 </article>
                 <article v-if="volumeDiscountTier" class="ect-flex ect-justify-between">
                   <span class="ect-font-body ect-text-sm ect-text-gold-600 ect-flex ect-items-center ect-gap-1.5">
                     Volume discount ({{ discountPercent }}% · {{ volumeDiscountTier.minQty }}+ items)
                   </span>
-                  <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-gold-600">− {{ formattedDiscount }}</span>
+                  <span class="ect-price ect-font-semibold ect-text-sm ect-text-gold-600">− {{ formattedDiscount }}</span>
                 </article>
                 <article v-else-if="nextVolumeDiscountTier" class="ect-flex">
                   <span class="ect-font-body ect-text-micro ect-text-charcoal/45">
@@ -336,7 +336,7 @@ function customizationEntries(item: CartItem) {
               <article class="ect-flex ect-justify-between ect-items-baseline ect-mb-5">
                 <span class="ect-font-display ect-text-lg ect-text-charcoal">Total</span>
                 <section class="ect-text-right">
-                  <span class="ect-font-display ect-tabular-nums ect-text-2xl ect-text-charcoal ect-block">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
+                  <span class="ect-price ect-text-2xl ect-text-charcoal ect-block">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
                   <span v-if="volumeDiscountTier" class="ect-font-body ect-text-micro ect-text-gold-600">You save {{ formattedDiscount }} ({{ discountPercent }}%)</span>
                   <span v-if="quoteNote" class="ect-font-body ect-text-micro ect-text-gold-600 ect-block">{{ quoteNote }}</span>
                 </section>

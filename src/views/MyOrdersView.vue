@@ -54,7 +54,7 @@ function paymentLabel(method: string) {
               <p class="ect-font-body ect-text-sm ect-text-charcoal/60">{{ order.itemCount }} {{ order.itemCount === 1 ? 'item' : 'items' }} · {{ paymentLabel(order.paymentMethod) }}</p>
               <p class="ect-font-body ect-text-xs ect-text-charcoal/50 ect-mt-1 ect-truncate">{{ order.items.map((i) => i.title).join(', ') }}</p>
             </span>
-            <span class="ect-font-display ect-tabular-nums ect-text-lg ect-font-medium ect-text-charcoal ect-shrink-0">{{ order.formattedTotal }}</span>
+            <span class="ect-price ect-text-lg ect-text-charcoal ect-shrink-0">{{ order.formattedTotal }}</span>
           </div>
           <section class="ect-px-5 sm:ect-px-6 ect-pb-5 sm:ect-pb-6 ect-pt-0">
             <span class="ect-inline-flex ect-items-center ect-gap-1.5 ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-champagne ect-font-body ect-text-xs ect-font-medium ect-text-gold-800">{{ order.status }}</span>

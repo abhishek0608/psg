@@ -197,7 +197,7 @@ const productTag = computed(() => {
     <section class="ect-px-3 ect-pb-3 ect-pt-1.5 sm:ect-px-3.5">
       <div class="ect-flex ect-items-center ect-gap-2">
         <div class="ect-min-w-0 ect-flex-1">
-          <p v-if="hasRetailPrice" class="ect-truncate ect-font-display ect-tabular-nums ect-text-price-sm sm:ect-text-price ect-font-medium ect-leading-none ect-tracking-display-sm ect-text-charcoal">{{ price }}</p>
+          <p v-if="hasRetailPrice" class="ect-truncate ect-price ect-text-price-sm sm:ect-text-price ect-leading-none ect-text-charcoal">{{ price }}</p>
           <p v-else class="ect-truncate ect-font-body ect-text-ui sm:ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
         </div>
         <button
