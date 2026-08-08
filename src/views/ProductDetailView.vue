@@ -572,7 +572,7 @@ function handleAddToVideoCall() {
               @click="handleAddToCart"
               :disabled="addingToCart"
               class="ect-flex-1 ect-inline-flex ect-items-center ect-justify-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-full ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-shadow-sm ect-transition-colors"
-              :class="addingToCart ? 'ect-bg-rose-300 ect-cursor-wait' : added ? 'ect-bg-rose-700' : 'ect-bg-rose-600 hover:ect-bg-rose-700'"
+              :class="addingToCart ? 'ect-bg-forest-500/60 ect-cursor-wait' : added ? 'ect-bg-forest-700' : 'ect-bg-forest-500 hover:ect-bg-forest-600'"
             >
               <svg v-if="!addingToCart && !added" class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272" />

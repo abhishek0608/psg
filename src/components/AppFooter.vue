@@ -18,8 +18,11 @@ function handleSubscribe() {
 
 <template>
   <footer class="ect-relative ect-overflow-hidden ect-text-white">
-    <span class="ect-absolute ect-inset-0 ect-bg-gradient-to-br ect-from-bluestone-900 ect-via-bluestone-800 ect-to-noir" />
-    <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_50%_40%_at_90%_100%,_rgba(201,146,55,0.12),transparent)]" />
+    <span class="ect-absolute ect-inset-0 ect-bg-gradient-to-b ect-from-espresso-800 ect-to-noir" />
+    <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_50%_40%_at_90%_100%,_rgba(201,162,39,0.10),transparent)]" />
+    <!-- Hairline of gold along the top edge, the one place the metal is allowed
+         to touch the full width of the page. -->
+    <span class="ect-absolute ect-inset-x-0 ect-top-0 ect-h-px ect-bg-[linear-gradient(90deg,transparent,rgba(201,162,39,0.45),transparent)]" />
 
     <!-- Newsletter -->
     <section class="ect-relative ect-max-w-7xl ect-mx-auto ect-px-6 ect-pt-16 ect-pb-12 ect-border-b ect-border-white/10">
@@ -41,7 +44,7 @@ function handleSubscribe() {
             />
             <button
               type="submit"
-              class="ect-shrink-0 ect-inline-flex ect-items-center ect-justify-center ect-rounded-md ect-bg-white ect-px-7 ect-py-3.5 ect-font-body ect-text-ui ect-font-semibold ect-uppercase ect-tracking-label ect-text-bluestone-800 hover:ect-bg-champagne ect-transition-colors"
+              class="ect-shrink-0 ect-inline-flex ect-items-center ect-justify-center ect-rounded-md ect-bg-white ect-px-7 ect-py-3.5 ect-font-body ect-text-ui ect-font-semibold ect-uppercase ect-tracking-label ect-text-espresso-800 hover:ect-bg-champagne ect-transition-colors"
             >
               Subscribe
             </button>

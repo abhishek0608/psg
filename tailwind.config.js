@@ -5,19 +5,20 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ['Fraunces', 'Georgia', 'serif'],
-        body: ['Instrument Sans', 'system-ui', 'sans-serif'],
+        display: ['Playfair Display', 'Georgia', 'serif'],
+        body: ['Jost', 'system-ui', 'sans-serif'],
       },
       // Two semantic tracking tokens instead of the twenty-odd arbitrary
-      // `tracking-[0.13em]`-style values this file used to invite. Display type
-      // tracks negative (Fraunces is drawn generously and needs pulling in at
-      // size); uppercase runs track positive, and only at two strengths:
-      // `eyebrow` for standalone kickers, `label` for inline UI text.
+      // `tracking-[0.13em]`-style values this file used to invite. Playfair is
+      // drawn tight already, so display type only needs a hair of negative
+      // tracking — overdoing it collides the hairline serifs and reads dense
+      // rather than refined. Uppercase runs track positive, and only at two
+      // strengths: `eyebrow` for standalone kickers, `label` for inline UI text.
       letterSpacing: {
-        'display': '-0.018em',
-        'display-sm': '-0.008em',
-        'eyebrow': '0.14em',
-        'label': '0.08em',
+        'display': '-0.01em',
+        'display-sm': '-0.005em',
+        'eyebrow': '0.18em',
+        'label': '0.1em',
       },
       lineHeight: {
         'display': '1.06',
@@ -42,17 +43,20 @@ export default {
         'price': ['1.375rem', { lineHeight: '1.1' }],
       },
       colors: {
+        // The single metallic accent. Pulled off the orange-bronze it used to
+        // sit on and onto true gold (#c9a227), which is the tone the homepage
+        // components were already hard-coding.
         gold: {
-          50: '#fff8e8',
-          100: '#ffedbd',
-          200: '#f8d979',
-          300: '#e9bd3f',
-          400: '#c99237',
-          500: '#a97825',
-          600: '#865d1e',
-          700: '#664719',
-          800: '#513916',
-          900: '#422f14',
+          50: '#fdf9ef',
+          100: '#f7edd3',
+          200: '#ecd9a6',
+          300: '#dcbf72',
+          400: '#c9a227',
+          500: '#ab8626',
+          600: '#8d6d20',
+          700: '#6f561b',
+          800: '#5a4517',
+          900: '#4a3914',
         },
         rose: {
           50: '#fef8f9',
@@ -93,24 +97,42 @@ export default {
           500: '#a855f7',
           600: '#9333ea',
         },
+        // Neutrals are warm on purpose. These tokens used to be blue-tinted
+        // (cream #f7fbfd, sand #d9e7ef, noir #0d2436) while the homepage
+        // components hard-coded a warm ivory set — so the header and footer met
+        // the page on a visible cool/warm seam. One warm ramp now, keyed to the
+        // ivory (#faf7f2) and border (#e6ddce) the homepage already used.
         charcoal: '#1b1917',
-        ink: '#17202a',
-        noir: '#0d2436',
-        cream: '#f7fbfd',
+        ink: '#3a352e',
+        noir: '#1a1613',
+        cream: '#faf7f2',
         pearl: '#ffffff',
-        champagne: '#e7f3f8',
-        sand: '#d9e7ef',
-        bluestone: {
-          50: '#eef9fb',
-          100: '#d4f0f4',
-          200: '#9fdde7',
-          300: '#5bc2d1',
-          400: '#259eb3',
-          500: '#177c96',
-          600: '#175b8c',
-          700: '#16466c',
-          800: '#133a59',
-          900: '#102f49',
+        champagne: '#f3ece0',
+        sand: '#e6ddce',
+        // Near-black warm neutral: the desktop category bar, the footer ground,
+        // and the small brand marks on the auth screens. Replaces the `bluestone`
+        // scale, whose navy read closer to a bank than a jeweller.
+        espresso: {
+          50: '#f7f4ef',
+          100: '#ebe4d9',
+          200: '#d5c9b6',
+          300: '#b6a68d',
+          400: '#8d7c63',
+          500: '#6b5c47',
+          600: '#4e4234',
+          700: '#3a3129',
+          800: '#2b2723',
+          900: '#1a1613',
+        },
+        // The single action colour. Both CTAs used to disagree — deep green on
+        // the listing cards, crimson on the product page — so "add to bag" and
+        // "add to cart" looked like different buttons for the same thing.
+        forest: {
+          50: '#f1f5f3',
+          400: '#2c5a4e',
+          500: '#1f3f37',
+          600: '#17342d',
+          700: '#112823',
         },
       },
       boxShadow: {

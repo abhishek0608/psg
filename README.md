@@ -60,7 +60,7 @@ How it hangs together:
 - **Vue 3** (Composition API, `<script setup>`)
 - **Vite**
 - **Tailwind CSS** (all utility classes use the `ect-` prefix)
-- **Fonts:** Playfair Display (headings), Cormorant Garamond (body)
+- **Fonts:** Playfair Display (display/headings), Jost (UI and body)
 
 ## Structure
 

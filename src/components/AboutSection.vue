@@ -1,30 +1,29 @@
 <script setup lang="ts">
 // "The Jewelet promise" cards (Aurelle design) — trust content adapted from the
 // site's actual policies (see AboutView / footer).
-const promise: { icon: 'pricing' | 'buyback' | 'quality' | 'returns'; title: string; text: string; bg: string }[] = [
+// One icon treatment for all four, not four unrelated brand colours. A row of
+// green/navy/maroon/terracotta chips reads as four different products; the
+// restraint is what makes the row look considered.
+const promise: { icon: 'pricing' | 'buyback' | 'quality' | 'returns'; title: string; text: string }[] = [
   {
     icon: 'pricing',
     title: 'Transparent pricing',
     text: 'Metal rate, making charges and taxes shown clearly on every product — no hidden markups.',
-    bg: '#1f6b52',
   },
   {
     icon: 'buyback',
     title: 'Lifetime exchange',
     text: 'Exchange or upgrade at prevailing rates, any time. Your investment stays protected.',
-    bg: '#26406e',
   },
   {
     icon: 'quality',
     title: 'Certified quality',
     text: 'Every piece BIS hallmarked and stones certified for guaranteed purity.',
-    bg: '#9c2c3e',
   },
   {
     icon: 'returns',
     title: 'Easy returns',
     text: 'Changed your mind? Free, hassle-free returns within the return window.',
-    bg: '#c9765a',
   },
 ]
 </script>
@@ -32,7 +31,7 @@ const promise: { icon: 'pricing' | 'buyback' | 'quality' | 'returns'; title: str
 <template>
   <section id="about" class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-16 sm:ect-pt-20">
     <header class="ect-text-center ect-mb-9">
-      <p class="ect-eyebrow ect-text-[#b79a56]">The Jewelet promise</p>
+      <p class="ect-eyebrow ect-text-gold-600">The Jewelet promise</p>
       <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
         Shop with total confidence
       </h2>
@@ -42,11 +41,10 @@ const promise: { icon: 'pricing' | 'buyback' | 'quality' | 'returns'; title: str
       <article
         v-for="p in promise"
         :key="p.title"
-        class="ect-bg-white ect-border ect-border-[#ece4d5] ect-rounded-[10px] ect-p-7"
+        class="ect-bg-white ect-border ect-border-sand ect-rounded-[10px] ect-p-7 ect-transition-colors hover:ect-border-gold-300"
       >
         <span
-          class="ect-inline-flex ect-items-center ect-justify-center ect-w-11 ect-h-11 ect-rounded-xl ect-text-white ect-mb-4"
-          :style="{ background: p.bg }"
+          class="ect-inline-flex ect-items-center ect-justify-center ect-w-11 ect-h-11 ect-rounded-full ect-bg-champagne ect-text-gold-700 ect-ring-1 ect-ring-inset ect-ring-gold-300/50 ect-mb-4"
         >
           <svg v-if="p.icon === 'pricing'" class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
