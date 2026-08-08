@@ -177,56 +177,62 @@ const productTag = computed(() => {
         </button>
       </figure>
 
-      <section class="ect-flex ect-flex-1 ect-flex-col ect-px-4 ect-pt-4 ect-pb-0">
+      <!-- The card is meant to read as the shot plus a caption, not as a tall
+           column of its own: the meta block stays on two tight lines and the
+           name is clamped to one so every card in a row lines up. -->
+      <section class="ect-flex ect-flex-1 ect-flex-col ect-px-3 ect-pt-2 ect-pb-0 sm:ect-px-3.5">
         <p class="ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#a2987f]">{{ category }}</p>
         <h3
-          class="ect-mt-1.5 ect-font-body ect-text-ui-lg ect-font-normal ect-leading-snug ect-text-charcoal group-hover:ect-text-[#1f3f37] ect-transition-colors ect-line-clamp-2"
+          class="ect-mt-0.5 ect-font-body ect-text-ui sm:ect-text-ui-lg ect-font-normal ect-leading-snug ect-text-charcoal group-hover:ect-text-[#1f3f37] ect-transition-colors ect-line-clamp-1"
         >
           {{ title }}
         </h3>
       </section>
     </RouterLink>
 
-    <!-- Price + Add to Cart -->
-    <section class="ect-px-4 ect-pb-4 ect-pt-3">
-      <div class="ect-flex ect-min-h-[30px] ect-items-baseline ect-gap-2 ect-flex-wrap">
-        <p v-if="hasRetailPrice" class="ect-font-display ect-tabular-nums ect-text-price-sm sm:ect-text-price ect-font-medium ect-leading-none ect-tracking-display-sm ect-text-charcoal">{{ price }}</p>
-        <p v-else class="ect-font-body ect-text-ui sm:ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
-      </div>
-      <div class="ect-mt-3 ect-flex ect-gap-2">
-      <button
-        v-if="product"
-        type="button"
-        @click="handleCartToggle"
-        :aria-pressed="inCart"
-        :aria-label="cartLoading
-          ? inCart ? 'Removing from cart' : 'Adding to cart'
-          : inCart ? 'Remove from cart' : 'Add to cart'"
-        :title="inCart ? 'Remove from bag' : 'Add to bag'"
-        :disabled="cartLoading"
-        class="ect-min-w-0 ect-flex-1 ect-h-11 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
-        :class="cartLoading
- ? 'ect-bg-[#1f3f37]/70 ect-text-[#f4ecd9] ect-cursor-wait'
-          : inCart
-          ? 'ect-bg-[#f4ecd9] ect-text-[#1f3f37] ect-ring-1 ect-ring-inset ect-ring-[#1f3f37]/35 hover:ect-bg-[#ece0c4]'
-          : 'ect-bg-[#1f3f37] ect-text-[#f4ecd9] hover:ect-bg-[#17342d]'"
-      >
-        <svg v-if="cartLoading" class="ect-w-4 ect-h-4 ect-shrink-0 ect-animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle class="ect-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3.5" />
-          <path class="ect-opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z" />
-        </svg>
-        <svg v-else-if="!inCart" class="ect-w-[18px] ect-h-[18px] ect-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
-        </svg>
-        <svg v-else class="ect-w-[18px] ect-h-[18px] ect-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-        </svg>
-        <span class="ect-hidden sm:ect-inline">{{
-          cartLoading
-            ? inCart ? 'Removing...' : 'Adding...'
-            : inCart ? 'Added' : 'Add to Bag'
-        }}</span>
-      </button>
+    <!-- Price + Add to Cart share one row: stacked, they added ~70px of dead
+         height under an already square image and made the card read as a
+         column. The button keeps its icon-only form on phones, so the row
+         costs no more than the price line did on its own. -->
+    <section class="ect-px-3 ect-pb-3 ect-pt-1.5 sm:ect-px-3.5">
+      <div class="ect-flex ect-items-center ect-gap-2">
+        <div class="ect-min-w-0 ect-flex-1">
+          <p v-if="hasRetailPrice" class="ect-truncate ect-font-display ect-tabular-nums ect-text-price-sm sm:ect-text-price ect-font-medium ect-leading-none ect-tracking-display-sm ect-text-charcoal">{{ price }}</p>
+          <p v-else class="ect-truncate ect-font-body ect-text-ui sm:ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
+        </div>
+        <button
+          v-if="product"
+          type="button"
+          @click="handleCartToggle"
+          :aria-pressed="inCart"
+          :aria-label="cartLoading
+            ? inCart ? 'Removing from cart' : 'Adding to cart'
+            : inCart ? 'Remove from cart' : 'Add to cart'"
+          :title="inCart ? 'Remove from bag' : 'Add to bag'"
+          :disabled="cartLoading"
+          class="ect-shrink-0 ect-h-9 ect-w-9 sm:ect-h-10 sm:ect-w-auto sm:ect-min-w-[128px] sm:ect-px-3.5 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
+          :class="cartLoading
+            ? 'ect-bg-[#1f3f37]/70 ect-text-[#f4ecd9] ect-cursor-wait'
+            : inCart
+            ? 'ect-bg-[#f4ecd9] ect-text-[#1f3f37] ect-ring-1 ect-ring-inset ect-ring-[#1f3f37]/35 hover:ect-bg-[#ece0c4]'
+            : 'ect-bg-[#1f3f37] ect-text-[#f4ecd9] hover:ect-bg-[#17342d]'"
+        >
+          <svg v-if="cartLoading" class="ect-w-4 ect-h-4 ect-shrink-0 ect-animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="ect-opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3.5" />
+            <path class="ect-opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z" />
+          </svg>
+          <svg v-else-if="!inCart" class="ect-w-[18px] ect-h-[18px] ect-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+          </svg>
+          <svg v-else class="ect-w-[18px] ect-h-[18px] ect-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+          <span class="ect-hidden sm:ect-inline">{{
+            cartLoading
+              ? inCart ? 'Removing...' : 'Adding...'
+              : inCart ? 'Added' : 'Add to Bag'
+          }}</span>
+        </button>
       </div>
     </section>
   </article>
