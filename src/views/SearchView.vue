@@ -102,7 +102,7 @@ onMounted(async () => {
         <span class="ect-text-charcoal/70 ect-font-medium">"{{ submittedQuery }}"</span>
       </p>
 
-      <ul v-if="productsLoading" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0">
+      <ul v-if="productsLoading" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0">
         <li v-for="n in 8" :key="n" class="ect-animate-pulse">
           <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
           <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-p-4">
@@ -113,7 +113,7 @@ onMounted(async () => {
         </li>
       </ul>
 
-      <ul v-else-if="textResults.length" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0">
+      <ul v-else-if="textResults.length" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0">
         <li v-for="item in textResults" :key="item.slug" class="ect-h-full">
           <ProductCard
             :slug="item.slug"

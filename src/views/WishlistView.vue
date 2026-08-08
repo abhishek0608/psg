@@ -138,7 +138,7 @@ function onCardGroupChange(product: Product, value: string) {
           <p v-if="!section.products.length" class="ect-font-body ect-text-sm ect-text-charcoal/45 ect-py-6">
             No pieces yet — use the group selector on a saved piece to add it here.
           </p>
-          <ul v-else class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-6 ect-list-none ect-m-0 ect-p-0">
+          <ul v-else class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0">
             <li v-for="product in section.products" :key="product.slug" class="ect-h-full ect-flex ect-flex-col ect-gap-2">
               <ProductCard
                 :slug="product.slug"
@@ -164,7 +164,7 @@ function onCardGroupChange(product: Product, value: string) {
             <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal/70">Ungrouped</h2>
             <span class="ect-font-body ect-text-xs ect-text-charcoal/45">{{ ungrouped.length }} {{ ungrouped.length === 1 ? 'piece' : 'pieces' }}</span>
           </header>
-          <ul class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-6 ect-list-none ect-m-0 ect-p-0">
+          <ul class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0">
             <li v-for="product in ungrouped" :key="product.slug" class="ect-h-full ect-flex ect-flex-col ect-gap-2">
               <ProductCard
                 :slug="product.slug"
