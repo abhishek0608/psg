@@ -143,7 +143,7 @@ function toggleNotifications() {
   <header class="ect-fixed ect-top-0 ect-left-0 ect-right-0 ect-z-50">
     <!-- Announcement bar (mobile only — on desktop the dark category bar
          below the logo row takes its place, matching the Bluestone layout) -->
-    <section class="lg:ect-hidden ect-bg-bluestone-800 ect-text-champagne ect-text-center ect-py-1.5 ect-px-4">
+    <section class="lg:ect-hidden ect-bg-espresso-800 ect-text-champagne ect-text-center ect-py-1.5 ect-px-4">
       <p class="ect-font-body ect-text-nano sm:ect-text-micro ect-tracking-eyebrow sm:ect-tracking-eyebrow ect-uppercase ect-whitespace-nowrap ect-text-cream/85">
         <span class="sm:ect-hidden">Free shipping &middot; Certified jewellery</span>
         <span class="ect-hidden sm:ect-inline">Free insured shipping &middot; Certified gold and diamond jewellery &middot; Lifetime exchange</span>
@@ -435,7 +435,7 @@ function toggleNotifications() {
     <!-- Desktop category bar + Bluestone-style mega menu -->
     <nav
       v-if="!isInternalPath"
-      class="ect-hidden lg:ect-block ect-relative ect-z-10 ect-bg-bluestone-800"
+      class="ect-hidden lg:ect-block ect-relative ect-z-10 ect-bg-espresso-800"
       @mouseleave="activeDropdown = null"
     >
       <ul class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-stretch ect-list-none ect-m-0 ect-p-0">
@@ -443,7 +443,7 @@ function toggleNotifications() {
           <RouterLink
             :to="`/collections/${item.slug}`"
             class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-label ect-transition-colors"
-            :class="activeDropdown === item.slug ? 'ect-bg-white ect-text-bluestone-800' : 'ect-text-cream/85 hover:ect-text-white'"
+            :class="activeDropdown === item.slug ? 'ect-bg-white ect-text-espresso-800' : 'ect-text-cream/85 hover:ect-text-white'"
             @click="activeDropdown = null"
           >
             {{ item.title }}
@@ -491,7 +491,7 @@ function toggleNotifications() {
               </ul>
               <RouterLink
                 :to="`/collections/${activeMegaItem.slug}`"
-                class="ect-mt-5 ect-inline-flex ect-w-full ect-items-center ect-justify-center ect-py-2.5 ect-border ect-border-bluestone-800/30 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-bluestone-800 hover:ect-bg-bluestone-800 hover:ect-text-white ect-transition-colors"
+                class="ect-mt-5 ect-inline-flex ect-w-full ect-items-center ect-justify-center ect-py-2.5 ect-border ect-border-espresso-800/30 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-espresso-800 hover:ect-bg-espresso-800 hover:ect-text-white ect-transition-colors"
                 @click="activeDropdown = null"
               >
                 View All {{ activeMegaItem.title }}
@@ -534,7 +534,7 @@ function toggleNotifications() {
             <section class="ect-border-l ect-border-sand/70 ect-pl-8">
               <header class="ect-flex ect-items-center ect-justify-between ect-mb-4">
                 <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide">Browse By Collections</h3>
-                <RouterLink to="/collections" class="ect-inline-flex ect-items-center ect-gap-1 ect-font-body ect-text-xs ect-font-semibold ect-text-bluestone-600 hover:ect-text-bluestone-800 ect-transition-colors" @click="activeDropdown = null">
+                <RouterLink to="/collections" class="ect-inline-flex ect-items-center ect-gap-1 ect-font-body ect-text-xs ect-font-semibold ect-text-espresso-600 hover:ect-text-espresso-800 ect-transition-colors" @click="activeDropdown = null">
                   View All
                   <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12l-7.5 7.5M21 12H3"/></svg>
                 </RouterLink>

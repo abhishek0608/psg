@@ -8,11 +8,11 @@ html {
 
 body {
   @apply ect-antialiased ect-bg-cream ect-text-charcoal;
-  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-family: 'Jost', system-ui, sans-serif;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  /* Instrument Sans is drawn fairly tight; a hair of negative tracking at body
-     size keeps colour even without the letters touching. */
-  letter-spacing: -0.006em;
+  /* Jost is geometric, so its round letters already carry generous sidebearings;
+     it sets evenly at its natural tracking and tightening it closes the counters. */
+  letter-spacing: 0;
 }
 
 #app {
@@ -21,43 +21,46 @@ body {
 
 /* Refined text selection — quiet gold tint */
 ::selection {
-  background: rgba(23, 91, 140, 0.16);
-  color: #17202a;
+  background: rgba(201, 162, 39, 0.22);
+  color: #1b1917;
 }
 
 /* Type defaults live in the components layer so that per-element `tracking-*`
    and `leading-*` utilities (emitted into the later utilities layer) can still
    override them. Redefining them at top level would outrank every utility. */
 @layer components {
-  /* Fraunces is a variable face: `opsz` retunes contrast and detail for the
-     size it is actually rendered at, and SOFT/WONK are pinned to their crisp
-     settings so headings read refined rather than novelty. */
+  /* Playfair's thins are genuinely hairline, so headings are set at 400–500 and
+     allowed room: weight is what makes a high-contrast serif look heavy and
+     cheap, and the contrast alone already carries the presence. */
   .ect-font-display {
-    font-optical-sizing: auto;
-    font-variation-settings: 'SOFT' 0, 'WONK' 0;
     font-feature-settings: 'kern' 1, 'liga' 1;
-    letter-spacing: -0.012em;
+    font-weight: 500;
+    letter-spacing: -0.005em;
   }
 
   /* Tracking tightens as display type grows — the single biggest tell of
-     typography that was set rather than defaulted. */
+     typography that was set rather than defaulted. Playfair needs far less of
+     this than a low-contrast face would: past about -0.02em the serifs of
+     adjacent letters start to touch at hero sizes. */
   .ect-text-2xl.ect-font-display,
   .ect-text-3xl.ect-font-display {
-    line-height: 1.14;
-    letter-spacing: -0.016em;
+    line-height: 1.18;
+    letter-spacing: -0.008em;
   }
   .ect-text-4xl.ect-font-display,
   .ect-text-5xl.ect-font-display,
   .ect-text-6xl.ect-font-display,
   .ect-text-7xl.ect-font-display {
-    line-height: 1.04;
-    letter-spacing: -0.022em;
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.014em;
   }
 
-  /* Body copy: comfortable reading */
+  /* Body copy: comfortable reading. Jost runs a shorter x-height than the
+     grotesque it replaced, so leading is opened a step to compensate. */
   .ect-font-body.ect-text-base,
   .ect-font-body.ect-text-lg {
-    line-height: 1.65;
+    line-height: 1.7;
   }
 }
 
@@ -65,17 +68,19 @@ body {
    inline in ~30 files at 19 different tracking values, which is why nothing
    quite lined up. */
 .ect-eyebrow {
-  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-family: 'Jost', system-ui, sans-serif;
   font-size: 0.6875rem;
-  font-weight: 600;
+  /* Jost's geometric caps are already wide and even; at 600 they crowd their own
+     tracking, so the kicker is set at 500 and given more air instead. */
+  font-weight: 500;
   line-height: 1;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.18em;
   /* Uppercase runs sit optically low against lowercase neighbours. */
   font-feature-settings: 'kern' 1;
 }
 
-/* Italic Fraunces is a true drawn italic, not a slant — worth leaning on for
+/* Italic Playfair is a true drawn italic, not a slant — worth leaning on for
    emphasis inside display lines. */
 .ect-font-display em,
 .ect-font-display .ect-italic {

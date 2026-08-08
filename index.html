@@ -19,12 +19,15 @@
     <meta name="twitter:card" content="summary" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- Fraunces carries the display voice: a variable old-style serif with an
-         optical-size axis, so large headings pick up genuine high-contrast
-         thick/thins instead of a scaled-up text face. Instrument Sans handles
-         UI and body — a compact grotesque that stays legible at 11–13px, where
-         most of this interface actually lives. -->
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,300..700,0..100,0..1;1,9..144,300..700,0..100,0..1&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet" />
+    <!-- Playfair Display carries the display voice: a high-contrast transitional
+         serif with hairline thins and vertical stress — the drawing convention
+         fine-jewellery houses use, and the reason a heading reads "atelier"
+         rather than "artisan bakery". Variable 400..900 so headings can be set
+         light at size and still hold weight at 18px.
+         Jost handles UI and body: a geometric sans whose wide, even uppercase is
+         built for the tracked-out nav labels and eyebrows this interface leans
+         on, and which stays quiet next to a high-contrast serif. -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Jost:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet" />
     <!-- Must match SITE_NAME in src/composables/useSeo.ts: this is the title the
          browser paints before Vue mounts, so any mismatch flashes in the tab. -->
     <title>Jewelet — Fine Jewellery</title>

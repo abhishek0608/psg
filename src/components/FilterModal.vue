@@ -257,7 +257,7 @@ function formatPrice(val: number) {
                   :key="m"
                   type="button"
                   :aria-pressed="local.materials.includes(m)"
-                  :class="local.materials.includes(m) ? 'ect-bg-rose-500 ect-text-white ect-border-rose-500' : 'ect-bg-champagne ect-text-charcoal ect-border-transparent hover:ect-bg-sand'"
+                  :class="local.materials.includes(m) ? 'ect-bg-forest-500 ect-text-white ect-border-forest-500' : 'ect-bg-champagne ect-text-charcoal ect-border-transparent hover:ect-bg-sand'"
                   class="ect-inline-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-sm ect-font-medium ect-px-5 ect-py-2.5 ect-rounded-full ect-border ect-capitalize ect-transition-colors"
                   @click="toggleMaterial(m)"
                 >
@@ -433,7 +433,7 @@ function formatPrice(val: number) {
               type="button"
               @click="apply"
               :disabled="previewCount === 0"
-              class="ect-flex-[1.6] ect-py-3.5 ect-bg-rose-500 ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-full hover:ect-bg-rose-600 ect-transition-colors disabled:ect-opacity-40 disabled:ect-cursor-not-allowed"
+              class="ect-flex-[1.6] ect-py-3.5 ect-bg-forest-500 ect-text-white ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-rounded-full hover:ect-bg-forest-600 ect-transition-colors disabled:ect-opacity-40 disabled:ect-cursor-not-allowed"
             >
               <template v-if="previewCount !== null">{{ previewCount === 0 ? 'No pieces match' : `Show ${previewCount} ${previewCount === 1 ? 'piece' : 'pieces'}` }}</template>
               <template v-else>Apply Filters{{ activeCount > 0 ? ` (${activeCount})` : '' }}</template>

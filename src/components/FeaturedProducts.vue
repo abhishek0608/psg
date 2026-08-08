@@ -50,10 +50,16 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
 
 <template>
   <section id="collections" class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-14 sm:ect-pt-16">
+    <!-- Eyebrow + heading, matching the two sections either side of this one.
+         Without the kicker this heading sat a line higher than its neighbours
+         and broke the vertical rhythm down the page. -->
     <header class="ect-flex ect-items-end ect-justify-between ect-gap-4 ect-mb-6">
-      <h2 class="ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
-        Best sellers
-      </h2>
+      <div>
+        <p class="ect-eyebrow ect-text-gold-600">Curated selection</p>
+        <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
+          Best sellers
+        </h2>
+      </div>
       <RouterLink
         to="/collections"
         class="ect-shrink-0 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#2b2723] ect-border-b ect-border-[#cdbfa6] ect-pb-0.5 hover:ect-text-[#1f5c4d] ect-transition-colors"
