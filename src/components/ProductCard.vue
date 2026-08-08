@@ -146,14 +146,18 @@ const productTag = computed(() => {
           {{ productTag }}
         </span>
 
-        <!-- Wishlist button (top-right) — always visible -->
+        <!-- Wishlist button (top-right) — always visible.
+             Most of the catalogue is shot on white, so a translucent white
+             puck disappeared into the backdrop: the ring outline and the
+             drop shadow are what keep both overlay buttons legible on a
+             pure-white shot as much as on a lifestyle photo. -->
         <button
           type="button"
           @click="handleWishlist"
-          class="ect-absolute ect-top-2.5 ect-right-2.5 ect-w-[34px] ect-h-[34px] ect-rounded-full ect-bg-white/90 ect-backdrop-blur-sm ect-flex ect-items-center ect-justify-center ect-shadow-sm ect-transition-all ect-duration-200 hover:ect-scale-105"
+          class="ect-absolute ect-top-2.5 ect-right-2.5 ect-w-[34px] ect-h-[34px] ect-rounded-full ect-bg-white ect-ring-1 ect-ring-inset ect-ring-charcoal/15 ect-backdrop-blur-sm ect-flex ect-items-center ect-justify-center ect-shadow-[0_2px_8px_rgba(27,25,23,0.18)] ect-transition-all ect-duration-200 hover:ect-scale-105"
           :aria-label="wishlisted ? 'Remove from wishlist' : 'Add to wishlist'"
         >
-          <svg class="ect-w-4 ect-h-4 ect-transition-colors" :class="wishlisted ? 'ect-text-rose-500' : 'ect-text-charcoal/55'" :fill="wishlisted ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="ect-w-4 ect-h-4 ect-transition-colors" :class="wishlisted ? 'ect-text-rose-500' : 'ect-text-charcoal/70'" :fill="wishlisted ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
           </svg>
         </button>
@@ -164,8 +168,8 @@ const productTag = computed(() => {
           type="button"
           @click="handleVideoCall"
           :disabled="videoCallDisabled"
-          class="ect-absolute ect-top-[52px] ect-right-2.5 ect-w-[34px] ect-h-[34px] ect-rounded-full ect-backdrop-blur-sm ect-flex ect-items-center ect-justify-center ect-shadow-sm ect-transition-all ect-duration-200 hover:ect-scale-105 disabled:ect-opacity-40 disabled:hover:ect-scale-100 disabled:ect-cursor-not-allowed"
-          :class="onVideoCall ? 'ect-bg-emerald-50 ect-ring-1 ect-ring-emerald-600/40' : 'ect-bg-white/90'"
+          class="ect-absolute ect-top-[52px] ect-right-2.5 ect-w-[34px] ect-h-[34px] ect-rounded-full ect-ring-1 ect-ring-inset ect-backdrop-blur-sm ect-flex ect-items-center ect-justify-center ect-shadow-[0_2px_8px_rgba(27,25,23,0.18)] ect-transition-all ect-duration-200 hover:ect-scale-105 disabled:ect-opacity-40 disabled:hover:ect-scale-100 disabled:ect-cursor-not-allowed"
+          :class="onVideoCall ? 'ect-bg-emerald-50 ect-ring-emerald-600/40' : 'ect-bg-white ect-ring-charcoal/15'"
           :aria-pressed="onVideoCall"
           :aria-label="onVideoCall ? 'Remove from video call' : videoCallDisabled ? 'Video call list is full' : 'Add to video call'"
           :title="onVideoCall ? 'Remove from video call' : videoCallDisabled ? 'Video call list is full' : 'Add to video call'"
@@ -173,7 +177,7 @@ const productTag = computed(() => {
           <!-- Solid emerald when shortlisted, matching how the wishlist heart
                fills rose — an outline-only colour shift is too quiet to read
                as a state at this size. -->
-          <svg class="ect-w-4 ect-h-4 ect-transition-colors" :class="onVideoCall ? 'ect-text-emerald-600' : 'ect-text-charcoal/55'" :fill="onVideoCall ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <svg class="ect-w-4 ect-h-4 ect-transition-colors" :class="onVideoCall ? 'ect-text-emerald-600' : 'ect-text-charcoal/70'" :fill="onVideoCall ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h8.25a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H4.5A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
           </svg>
         </button>
