@@ -95,16 +95,10 @@ const hasRetailPrice = computed(() => {
   return Number.isFinite(numeric) && numeric > 0
 })
 
-const ratingLabel = computed(() => {
-  const rating = props.product?.rating
-  return typeof rating === 'number' && rating > 0 ? rating.toFixed(1) : '4.8'
-})
-
-const reviewLabel = computed(() => {
-  const count = props.product?.reviewCount
-  if (typeof count !== 'number' || count <= 0) return 'Verified'
-  return count >= 1000 ? `${(count / 1000).toFixed(1)}k` : String(count)
-})
+// Listing cards carry no star rating: reviews belong on the product page,
+// where the full set is readable and the number has context. On a grid the
+// stars were decoration — every card drew the same five glyphs, and a piece
+// with no reviews still fell back to a rating it had not earned.
 
 // Bestsellers carry no listing badge: the pill sat over the top-left corner of
 // the shot and hid part of the piece, and best sellers already have their own
@@ -186,10 +180,6 @@ const productTag = computed(() => {
         >
           {{ title }}
         </h3>
-        <p class="ect-mt-2 ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-xs ect-text-[#7a7264]">
-          <span class="ect-text-[#c99a2e]" aria-hidden="true">★★★★★</span>
-          <span>{{ ratingLabel }} ({{ reviewLabel }})</span>
-        </p>
       </section>
     </RouterLink>
 

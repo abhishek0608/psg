@@ -1,3 +1,4 @@
+import { SITE_SETTINGS } from '../config/site-settings'
 import type { Product } from '../data/products'
 
 const SITE_NAME = 'Jewelet — Fine Jewellery'
@@ -78,7 +79,9 @@ export function setProductJsonLd(product: Product) {
     }
   }
 
-  if (product.rating && product.reviewCount) {
+  // Search engines expect an aggregate rating in the markup to be visible on
+  // the page itself, so this follows the same switch the on-page rating does.
+  if (SITE_SETTINGS.enableReviews && product.rating && product.reviewCount) {
     data.aggregateRating = {
       '@type': 'AggregateRating',
       ratingValue: product.rating,
