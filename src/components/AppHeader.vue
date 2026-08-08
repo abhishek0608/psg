@@ -152,7 +152,10 @@ function toggleNotifications() {
 
     <!-- Main nav -->
     <nav class="ect-relative ect-z-20 ect-bg-white/95 ect-backdrop-blur-xl lg:ect-border-b lg:ect-border-sand">
-      <section class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-center ect-justify-between ect-h-16">
+      <!-- `px-4` below `sm`: at 320px the fixed left cluster (hamburger + logo)
+           and the four right icons need every pixel of the row, and the one
+           that fell off the end was the cart. -->
+      <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-5 ect-flex ect-items-center ect-justify-between ect-h-16">
         <!-- Left: mobile hamburger + logo (mobile) / logo only (desktop) -->
         <section class="ect-flex ect-items-center ect-gap-3 ect-shrink-0">
           <button
@@ -171,7 +174,7 @@ function toggleNotifications() {
             :to="isInternalPath ? { path: '/internal', query: { tab: 'orders' } } : '/'"
             class="ect-flex ect-items-center ect-gap-2.5 ect-shrink-0"
           >
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-10 ect-w-auto ect-max-w-[140px] lg:ect-max-w-[180px] ect-object-contain" />
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-10 ect-w-auto ect-max-w-[104px] sm:ect-max-w-[140px] lg:ect-max-w-[180px] ect-object-contain" />
           </RouterLink>
         </section>
 
@@ -360,7 +363,7 @@ function toggleNotifications() {
         <!-- Mobile right: search, video call, wishlist, cart (sign-in lives in the drawer).
              Search is icon-only here — the text field lives on /search and in the drawer,
              so the top bar stays a single row of icons. -->
-        <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-1.5">
+        <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-1 sm:ect-gap-1.5">
           <RouterLink v-if="!isInternalPath" to="/search" class="ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Search">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />

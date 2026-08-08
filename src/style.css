@@ -112,6 +112,54 @@ body {
   font-synthesis: none;
 }
 
+/* The product card's price + add-to-bag row.
+
+   The card is dropped into grids that are two-up, three-up and four-up
+   depending on the page, so how much room this row actually has is a property
+   of the card, not of the window. Sizing the button off viewport breakpoints
+   got that wrong wherever a wide window held narrow columns: at 1024px the
+   catalog goes four-up on ~223px cards, the button still claimed its full
+   ~147px labelled width, and every price in the grid hit the `truncate` and
+   rendered as "₹ …". The search grid did the same at every desktop width, and
+   the two-up phone grid did it again at 320px.
+
+   So the row measures itself. The price is never the thing that gives way —
+   it is the number the whole card exists to show — and the button yields in
+   two stages: it drops its label below the width where the label fits, and
+   wraps onto its own line when even the icon-only form won't sit beside the
+   figure. Both stages are driven by `container-type: inline-size` on the row,
+   which is why `flex-wrap` is the backstop: an unusually long amount pushes
+   the button down a line instead of clipping the price. */
+.ect-buy-row {
+  container-type: inline-size;
+}
+
+/* Icon-only is the default, because it is the form that fits the narrowest
+   card. The label is an enhancement the row opts into once it has the room. */
+.ect-buy-row-cta {
+  height: 2.25rem;
+  width: 2.25rem;
+}
+.ect-buy-row-cta-label {
+  display: none;
+}
+
+/* 260px is the measured sum of the widest rupee amount the catalog carries at
+   `text-price` (~103px), the row gap (8px) and the labelled button at its
+   natural width (~147px). Below it the label cannot fit beside the price, so
+   it isn't offered. */
+@container (min-width: 260px) {
+  .ect-buy-row-cta {
+    height: 2.5rem;
+    width: auto;
+    min-width: 128px;
+    padding-inline: 0.875rem;
+  }
+  .ect-buy-row-cta-label {
+    display: inline;
+  }
+}
+
 /* Luxury detail: a fine gold rule used as a section accent */
 .ect-gold-rule {
   height: 1px;
