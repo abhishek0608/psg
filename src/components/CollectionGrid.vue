@@ -242,8 +242,8 @@ watch([activeTab, appliedFilters], () => {
   <!-- Tighter side padding on mobile (16px vs 24px) buys each card of the
        two-up grid a few more pixels of width, which is where the phone
        layout needs them; tablet and up keep the roomier 24px gutter. -->
-  <section id="collections" class="ect-px-4 sm:ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-16 sm:ect-pb-24" :class="hideHeader ? 'ect-pt-5' : 'ect-pt-16 sm:ect-pt-24'">
-    <header v-if="!hideHeader" class="ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-2 ect-mb-8">
+  <section id="collections" class="ect-px-4 sm:ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-10 sm:ect-pb-20" :class="hideHeader ? 'ect-pt-2.5 sm:ect-pt-4' : 'ect-pt-12 sm:ect-pt-20'">
+    <header v-if="!hideHeader" class="ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-2 ect-mb-6">
       <section>
         <p class="ect-eyebrow ect-inline-flex ect-items-center ect-gap-2.5 ect-text-gold-700 ect-mb-3">
           <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
@@ -254,7 +254,7 @@ watch([activeTab, appliedFilters], () => {
     </header>
 
     <!-- Tabs + Filter (single line on mobile: All, New, Best, icon) -->
-    <section class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-mb-7 ect-border-b ect-border-[#e6ddce] ect-min-w-0" :class="sidebar ? 'lg:ect-hidden' : ''">
+    <section class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-mb-3 sm:ect-mb-5 ect-border-b ect-border-[#e6ddce] ect-min-w-0" :class="sidebar ? 'lg:ect-hidden' : ''">
       <!-- Filter: icon only on mobile -->
       <button
         type="button"
@@ -289,7 +289,7 @@ watch([activeTab, appliedFilters], () => {
           :aria-selected="activeTab === tab.id"
           :aria-label="tab.label"
           :class="activeTab === tab.id ? 'ect-text-charcoal ect-border-[#1f3f37]' : 'ect-text-charcoal/50 hover:ect-text-charcoal ect-border-transparent'"
-          class="ect-font-body ect-text-xs sm:ect-text-sm ect-font-medium ect-px-2 sm:ect-px-4 ect-py-3 ect--mb-px ect-border-b-2 ect-transition-colors ect-whitespace-nowrap"
+          class="ect-font-body ect-text-xs sm:ect-text-sm ect-font-medium ect-px-2 sm:ect-px-4 ect-py-2.5 sm:ect-py-3 ect--mb-px ect-border-b-2 ect-transition-colors ect-whitespace-nowrap"
           @click="switchTab(tab.id)"
         >
           <span v-if="tab.id === 'all'">{{ tab.label }}</span>
@@ -416,7 +416,7 @@ watch([activeTab, appliedFilters], () => {
       <div class="ect-flex-1 ect-min-w-0">
 
         <!-- Desktop count + sort bar -->
-        <div v-if="sidebar" class="ect-hidden lg:ect-flex ect-items-center ect-justify-between ect-mb-7">
+        <div v-if="sidebar" class="ect-hidden lg:ect-flex ect-items-center ect-justify-between ect-mb-5">
           <p class="ect-font-body ect-text-sm ect-text-charcoal/55">
             <template v-if="listLoading || productsLoading || !productsLoaded || !firstLoadDone">Loading pieces…</template>
             <template v-else>{{ filteredProducts.length }} {{ filteredProducts.length === 1 ? 'piece' : 'pieces' }}</template>
@@ -446,7 +446,7 @@ watch([activeTab, appliedFilters], () => {
         </div>
 
     <!-- Active filter chips -->
-    <section v-if="activeFilterCount > 0" class="ect-flex ect-flex-wrap ect-gap-2 ect-mb-6" :class="sidebar ? 'lg:ect-hidden' : ''">
+    <section v-if="activeFilterCount > 0" class="ect-flex ect-flex-wrap ect-gap-2 ect-mb-3 sm:ect-mb-5" :class="sidebar ? 'lg:ect-hidden' : ''">
       <span v-for="cat in appliedFilters.categories.filter(c => c !== lockedCategory)" :key="cat" class="ect-inline-flex ect-items-center ect-gap-1 ect-px-3 ect-py-1 ect-rounded-full ect-bg-charcoal/10 ect-text-charcoal ect-font-body ect-text-xs ect-font-medium">
         {{ cat }}
         <button type="button" @click="appliedFilters.categories = appliedFilters.categories.filter(c => c !== cat)" class="hover:ect-text-charcoal/70">×</button>
@@ -478,7 +478,7 @@ watch([activeTab, appliedFilters], () => {
     </section>
 
     <!-- Product skeleton -->
-    <ul v-if="listLoading || !firstLoadDone" class="ect-grid ect-grid-cols-2 ect-gap-x-2.5 ect-gap-y-3 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
+    <ul v-if="listLoading || !firstLoadDone" class="ect-grid ect-grid-cols-2 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
       <li v-for="n in 8" :key="`skeleton-${n}`" class="ect-animate-pulse">
         <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
         <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-p-4">
@@ -489,10 +489,10 @@ watch([activeTab, appliedFilters], () => {
       </li>
     </ul>
 
-    <!-- Product grid. The column gap is the tighter of the two on mobile so
-         the cards themselves take the space back; the row gap only has to
-         keep neighbouring rows visually separate. -->
-    <ul v-else-if="displayedProducts.length" class="ect-grid ect-grid-cols-2 ect-gap-x-2.5 ect-gap-y-3 sm:ect-gap-[22px] ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
+    <!-- Product grid. Both gaps stay tight so the cards themselves take the
+         space back; the row gap only has to keep neighbouring rows visually
+         separate, and each card already carries its own border. -->
+    <ul v-else-if="displayedProducts.length" class="ect-grid ect-grid-cols-2 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
       <li v-for="piece in displayedProducts" :key="piece.slug" class="ect-h-full">
         <ProductCard :slug="piece.slug" :title="piece.title" :category="piece.category" :material="piece.material" :price="piece.price" :images="piece.images" :product="piece" />
       </li>

@@ -177,10 +177,10 @@ const productTag = computed(() => {
         </button>
       </figure>
 
-      <section class="ect-flex ect-flex-1 ect-flex-col ect-px-4 ect-pt-4 ect-pb-0">
+      <section class="ect-flex ect-flex-1 ect-flex-col ect-px-4 ect-pt-2.5 sm:ect-pt-3 ect-pb-0">
         <p class="ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#a2987f]">{{ category }}</p>
         <h3
-          class="ect-mt-1.5 ect-font-body ect-text-ui-lg ect-font-normal ect-leading-snug ect-text-charcoal group-hover:ect-text-[#1f3f37] ect-transition-colors ect-line-clamp-2"
+          class="ect-mt-0.5 ect-font-body ect-text-ui-lg ect-font-normal ect-leading-snug ect-text-charcoal group-hover:ect-text-[#1f3f37] ect-transition-colors ect-line-clamp-2"
         >
           {{ title }}
         </h3>
@@ -188,12 +188,15 @@ const productTag = computed(() => {
     </RouterLink>
 
     <!-- Price + Add to Cart -->
-    <section class="ect-px-4 ect-pb-4 ect-pt-3">
-      <div class="ect-flex ect-min-h-[30px] ect-items-baseline ect-gap-2 ect-flex-wrap">
+    <section class="ect-px-4 ect-pb-2.5 ect-pt-1.5 sm:ect-pb-3 sm:ect-pt-2">
+      <!-- The min height only has to reserve one line, so a "Price on request"
+           card and a priced one still line their buttons up; anything taller
+           was dead space on every card in the grid. -->
+      <div class="ect-flex ect-min-h-[22px] ect-items-baseline ect-gap-2 ect-flex-wrap">
         <p v-if="hasRetailPrice" class="ect-font-display ect-tabular-nums ect-text-price-sm sm:ect-text-price ect-font-medium ect-leading-none ect-tracking-display-sm ect-text-charcoal">{{ price }}</p>
         <p v-else class="ect-font-body ect-text-ui sm:ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
       </div>
-      <div class="ect-mt-3 ect-flex ect-gap-2">
+      <div class="ect-mt-1.5 sm:ect-mt-2.5 ect-flex ect-gap-2">
       <button
         v-if="product"
         type="button"
@@ -204,7 +207,7 @@ const productTag = computed(() => {
           : inCart ? 'Remove from cart' : 'Add to cart'"
         :title="inCart ? 'Remove from bag' : 'Add to bag'"
         :disabled="cartLoading"
-        class="ect-min-w-0 ect-flex-1 ect-h-11 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
+        class="ect-min-w-0 ect-flex-1 ect-h-10 sm:ect-h-11 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
         :class="cartLoading
  ? 'ect-bg-[#1f3f37]/70 ect-text-[#f4ecd9] ect-cursor-wait'
           : inCart
