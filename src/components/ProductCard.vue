@@ -192,13 +192,15 @@ const productTag = computed(() => {
 
     <!-- Price + Add to Cart share one row: stacked, they added ~70px of dead
          height under an already square image and made the card read as a
-         column. The button keeps its icon-only form on phones, so the row
-         costs no more than the price line did on its own. -->
+         column. The button keeps its icon-only form on narrow cards, so the row
+         costs no more than the price line did on its own. Which form it takes
+         is decided by the row's own width, not the viewport's — see
+         `.ect-buy-row` in style.css for why that distinction matters. -->
     <section class="ect-px-3 ect-pb-3 ect-pt-1.5 sm:ect-px-3.5">
-      <div class="ect-flex ect-items-center ect-gap-2">
-        <div class="ect-min-w-0 ect-flex-1">
-          <p v-if="hasRetailPrice" class="ect-truncate ect-price ect-text-price-sm sm:ect-text-price ect-leading-none ect-text-charcoal">{{ price }}</p>
-          <p v-else class="ect-truncate ect-font-body ect-text-ui sm:ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
+      <div class="ect-buy-row ect-flex ect-flex-wrap ect-items-center ect-gap-2">
+        <div class="ect-min-w-0 ect-shrink-0">
+          <p v-if="hasRetailPrice" class="ect-whitespace-nowrap ect-price ect-text-price-sm sm:ect-text-price ect-leading-none ect-text-charcoal">{{ price }}</p>
+          <p v-else class="ect-whitespace-nowrap ect-font-body ect-text-ui sm:ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
         </div>
         <button
           v-if="product"
@@ -210,7 +212,7 @@ const productTag = computed(() => {
             : inCart ? 'Remove from cart' : 'Add to cart'"
           :title="inCart ? 'Remove from bag' : 'Add to bag'"
           :disabled="cartLoading"
-          class="ect-shrink-0 ect-h-9 ect-w-9 sm:ect-h-10 sm:ect-w-auto sm:ect-min-w-[128px] sm:ect-px-3.5 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
+          class="ect-buy-row-cta ect-ml-auto ect-shrink-0 ect-rounded-full ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-xs sm:ect-text-ui ect-font-semibold ect-uppercase ect-tracking-wide ect-transition-all ect-duration-200 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#1f3f37]/30 focus:ect-ring-offset-1"
           :class="cartLoading
             ? 'ect-bg-[#1f3f37]/70 ect-text-[#f4ecd9] ect-cursor-wait'
             : inCart
@@ -227,7 +229,7 @@ const productTag = computed(() => {
           <svg v-else class="ect-w-[18px] ect-h-[18px] ect-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
-          <span class="ect-hidden sm:ect-inline">{{
+          <span class="ect-buy-row-cta-label">{{
             cartLoading
               ? inCart ? 'Removing...' : 'Adding...'
               : inCart ? 'Added' : 'Add to Bag'

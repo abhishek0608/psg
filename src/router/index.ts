@@ -42,6 +42,10 @@ const router = createRouter({
     { path: '/account', name: 'account', component: () => import('../views/AccountSettingsView.vue'), meta: { title: 'Account', noindex: true } },
     { path: '/forgot-password', name: 'forgot-password', component: () => import('../views/ForgotPasswordView.vue'), meta: { title: 'Forgot Password', noindex: true } },
     { path: '/reset-password', name: 'reset-password', component: () => import('../views/ResetPasswordView.vue'), meta: { title: 'Reset Password', noindex: true } },
+    // Catch-all. The host rewrites every unmatched path to index.html, so
+    // without this the router matches nothing and renders an empty <main>.
+    // Keep it last — vue-router takes the first match.
+    { path: '/:pathMatch(.*)*', name: 'not-found', component: () => import('../views/NotFoundView.vue'), meta: { title: 'Page Not Found', noindex: true } },
   ],
 })
 

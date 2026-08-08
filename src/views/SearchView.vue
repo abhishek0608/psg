@@ -59,6 +59,13 @@ onMounted(async () => {
 <template>
   <main class="ect-min-h-screen ect-bg-[#faf7f2] ect-pt-32 ect-pb-20 ect-px-5">
     <section class="ect-max-w-5xl ect-mx-auto">
+      <!-- The search field is its own visual title, so the page carried no
+           heading at all — leaving anyone navigating by headings with nothing
+           to land on. Named rather than shown, so the layout is unchanged. -->
+      <h1 class="ect-sr-only">
+        {{ submittedQuery ? `Search results for “${submittedQuery}”` : 'Search' }}
+      </h1>
+
       <!-- Shown at every width: the mobile top bar only carries the search icon,
            so this is where a phone actually types its query. -->
       <form

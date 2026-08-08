@@ -106,6 +106,13 @@ function setVideoRef(el: Element | ComponentPublicInstance | null, index: number
 // the 5s image timer, so a clip is never cut off mid-shot.
 const currentSlideIsVideo = computed(() => Boolean(resolveVideoUrl(currentSlide.value).trim()))
 
+// The page heading when a banner is carrying the hero. Banners are artwork, so
+// a headline is optional on a slide — falling back to the brand line keeps the
+// homepage from having a heading that reads as empty.
+const heroHeading = computed(
+  () => currentSlide.value?.headline?.trim() || 'Jewelet — fine jewellery, handcrafted',
+)
+
 function stopAutoRotate() {
   if (autoRotateHandle != null) {
     window.clearInterval(autoRotateHandle)
@@ -255,7 +262,16 @@ onUnmounted(() => {
           />
         </template>
         <!-- No copy overlay: an uploaded banner or hero video carries its own
-             artwork and typography, so nothing is drawn on top of it. -->
+             artwork and typography, so nothing is drawn on top of it.
+
+             That typography is pixels, though. Drawn nothing at all, the
+             homepage shipped without a single heading the moment a banner was
+             configured — the editorial placeholder below owns the only <h1> on
+             the page, and it only renders when no slide exists. So the heading
+             is named here rather than shown: the banner still carries the
+             visual voice, and the document keeps a title for search engines
+             and for anyone navigating by headings. -->
+        <h1 class="ect-sr-only">{{ heroHeading }}</h1>
       </template>
 
       <!-- Editorial placeholder, only once we know no slides are configured -->
