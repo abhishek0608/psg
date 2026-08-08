@@ -481,10 +481,13 @@ watch([activeTab, appliedFilters], () => {
     <ul v-if="listLoading || !firstLoadDone" class="ect-grid ect-grid-cols-2 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0" :class="sidebar ? 'lg:ect-grid-cols-3' : 'lg:ect-grid-cols-4'">
       <li v-for="n in 8" :key="`skeleton-${n}`" class="ect-animate-pulse">
         <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
-        <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-p-4">
-          <section class="ect-h-3 ect-w-1/3 ect-rounded ect-bg-[#e6ddce] ect-mb-3" />
-          <section class="ect-h-4 ect-w-3/4 ect-rounded ect-bg-[#e6ddce] ect-mb-3" />
-          <section class="ect-h-5 ect-w-1/2 ect-rounded ect-bg-[#e6ddce]" />
+        <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-px-3 ect-pt-2 ect-pb-3 sm:ect-px-3.5">
+          <section class="ect-h-3 ect-w-1/3 ect-rounded ect-bg-[#e6ddce]" />
+          <section class="ect-mt-1.5 ect-h-4 ect-w-3/4 ect-rounded ect-bg-[#e6ddce]" />
+          <section class="ect-mt-2.5 ect-flex ect-items-center ect-gap-2">
+            <section class="ect-h-5 ect-flex-1 ect-rounded ect-bg-[#e6ddce]" />
+            <section class="ect-h-9 ect-w-9 sm:ect-h-10 sm:ect-w-24 ect-rounded-full ect-bg-[#e6ddce]" />
+          </section>
         </section>
       </li>
     </ul>
