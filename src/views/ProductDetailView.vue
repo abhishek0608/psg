@@ -698,7 +698,7 @@ function handleAddToVideoCall() {
           </p>
           <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-text-charcoal">You may also like</h2>
         </header>
-        <ul class="ect-list-none ect-m-0 ect-p-0 ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-4 sm:ect-gap-6">
+        <ul class="ect-list-none ect-m-0 ect-p-0 ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4">
           <li v-for="related in relatedProducts" :key="related.slug" class="ect-h-full">
             <ProductCard
               :slug="related.slug"
