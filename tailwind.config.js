@@ -36,11 +36,19 @@ export default {
         'ui': ['0.8125rem', { lineHeight: '1.45' }],
         'ui-lg': ['0.9375rem', { lineHeight: '1.5' }],
         // The listing grid is two-up on phones, so a card is only ~130px wide
-        // inside its padding — a seven-figure rupee price set at the full
-        // `price` step wraps or crowds the row there. `price-sm` is the phone
-        // step; cards step up to `price` from `sm:` where the width exists.
-        'price-sm': ['1.125rem', { lineHeight: '1.15' }],
-        'price': ['1.375rem', { lineHeight: '1.1' }],
+        // inside its padding — and once the price shares that row with the
+        // add-to-bag button, the figure itself gets ~96px. `price-sm` is the
+        // phone step; cards step up to `price` from `sm:` where the width
+        // exists. Both steps are sized so a seven-figure rupee amount still
+        // fits its track rather than hitting the `truncate` and rendering a
+        // clipped price, which reads as a bug rather than as a tight layout.
+        //
+        // These were 1.125/1.375rem when prices were set in Playfair. Jost is
+        // geometric and runs ~25% wider at the same pixel size, so holding the
+        // old steps clipped anything from ₹10,00,000 up; they come down a step
+        // to buy that width back. Measured, not guessed — see `.ect-price`.
+        'price-sm': ['1rem', { lineHeight: '1.15' }],
+        'price': ['1.1875rem', { lineHeight: '1.1' }],
       },
       colors: {
         // The single metallic accent. Pulled off the orange-bronze it used to

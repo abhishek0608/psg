@@ -501,7 +501,7 @@ function handleAddToVideoCall() {
           </h1>
 
           <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-x-4 ect-gap-y-2 ect-mb-5">
-            <p v-if="hasRetailPrice" class="ect-font-display ect-tabular-nums ect-text-2xl ect-text-charcoal">{{ product.price }}</p>
+            <p v-if="hasRetailPrice" class="ect-price ect-text-2xl ect-text-charcoal">{{ product.price }}</p>
             <p v-else class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium">Price on request</p>
             <div v-if="reviewSummary" class="ect-inline-flex ect-items-center ect-gap-2 ect-text-charcoal/55">
               <StarRating :rating="product.rating || 0" size="sm" />
@@ -657,7 +657,7 @@ function handleAddToVideoCall() {
             </div>
             <div class="ect-flex ect-items-center ect-justify-between ect-gap-4 ect-pt-3 ect-border-t ect-border-sand">
               <dt class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Total</dt>
-              <dd class="ect-font-display ect-text-lg ect-text-charcoal ect-tabular-nums">{{ product.breakup.total }}</dd>
+              <dd class="ect-price ect-text-lg ect-text-charcoal">{{ product.breakup.total }}</dd>
             </div>
           </dl>
         </section>

@@ -62,6 +62,31 @@ body {
   .ect-font-body.ect-text-lg {
     line-height: 1.7;
   }
+
+  /* Prices are figures, not display type. Playfair is a high-contrast serif —
+     its thins are hairlines — and a price is read at a glance at small sizes,
+     worst on the two-up phone grid where the figure gets a ~96px track beside
+     the add-to-bag button. The card name is already Jost, so the serif amount
+     was the one serif in the block and read as a mismatch rather than as a
+     flourish. Defined once here because this was previously re-typed inline at
+     eight call sites, which is how the weights drifted apart. Every price on
+     the site is this class plus a size utility. */
+  .ect-price {
+    font-family: 'Jost', system-ui, sans-serif;
+    /* Jost sets lighter in colour than Playfair at the same numeric weight, so
+       prices sit at 500 to keep the presence the serif had. 600 and up turns
+       the geometric digits blocky — reads as a discount sticker, not a price. */
+    font-weight: 500;
+    /* Amounts stack in the cart and checkout summaries, so figures need to be
+       the same width or the columns wobble row to row. */
+    font-variant-numeric: tabular-nums;
+    /* Explicitly natural: the -0.005em on `.ect-font-display` is tuned for
+       Playfair, and on geometric digits that same tightening closes the
+       counters of 0, 6 and 8. */
+    letter-spacing: 0;
+    /* Single-line figures, so none of the body leading applies. */
+    line-height: 1.15;
+  }
 }
 
 /* The eyebrow/kicker treatment, defined once. Previously this was re-typed

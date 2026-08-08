@@ -768,7 +768,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <p class="ect-font-body ect-text-xs ect-text-charcoal/50">{{ item.product.category }}</p>
                 </section>
                 <span v-if="isPriceOnRequestCartItem(item)" class="ect-font-body ect-text-xs ect-text-gold-700 ect-font-medium ect-whitespace-nowrap">Price on request</span>
-                <span v-else class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal ect-whitespace-nowrap">{{ item.product.price }}</span>
+                <span v-else class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal ect-whitespace-nowrap">{{ item.product.price }}</span>
               </li>
             </ul>
 
@@ -777,11 +777,11 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
             <section class="ect-space-y-2 ect-mb-4">
               <article class="ect-flex ect-justify-between">
                 <span class="ect-font-body ect-text-sm ect-text-charcoal/60">Subtotal</span>
-                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ formattedTotal }}</span>
+                <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ formattedTotal }}</span>
               </article>
               <article v-if="volumeDiscountTier" class="ect-flex ect-justify-between">
                 <span class="ect-font-body ect-text-sm ect-text-gold-600">Volume discount ({{ discountPercent }}%)</span>
-                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-gold-600">− {{ formattedDiscount }}</span>
+                <span class="ect-price ect-font-semibold ect-text-sm ect-text-gold-600">− {{ formattedDiscount }}</span>
               </article>
               <article v-if="hasPriceOnRequestItems" class="ect-flex ect-justify-between">
                 <span class="ect-font-body ect-text-sm ect-text-gold-700">Price-on-request items</span>
@@ -801,7 +801,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
 
             <article class="ect-flex ect-justify-between ect-items-baseline ect-mb-1">
               <span class="ect-font-display ect-text-lg ect-text-charcoal">Total</span>
-              <span class="ect-font-display ect-tabular-nums ect-text-2xl ect-text-charcoal">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
+              <span class="ect-price ect-text-2xl ect-text-charcoal">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
             </article>
             <p class="ect-font-body ect-text-xs ect-text-charcoal/40 ect-text-right">GST included in price</p>
           </section>
