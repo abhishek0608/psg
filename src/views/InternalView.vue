@@ -150,15 +150,56 @@ const aboutSaving = ref(false)
 const aboutUploading = ref(false)
 const aboutMessage = ref('')
 
-// --- Volume (quantity) discount config ---
-interface DiscountTierDraft {
-  minQty: number | null
-  percent: number | null
+// --- Offers config ---
+// Two kinds, deliberately different. The flat offer is site-wide and automatic:
+// it changes the price on every product card, so shoppers see it before they
+// ever reach the cart. A promo code changes nothing until it is typed in at
+// checkout. Quantity tiers used to live here too and no longer do — PSG sells
+// direct to consumers, so volume pricing had no audience.
+type OfferTypeDraft = 'PERCENT' | 'AMOUNT'
+
+const flatOfferEnabled = ref(false)
+const flatOfferType = ref<OfferTypeDraft>('PERCENT')
+const flatOfferValue = ref<number | null>(null)
+const flatOfferLabel = ref('')
+const offerSaving = ref(false)
+const offerMessage = ref('')
+
+interface PromoCodeDraft {
+  id: string
+  code: string
+  type: OfferTypeDraft
+  value: number | null
+  minOrderPaise: number | null
+  startsAt: string
+  endsAt: string
+  active: boolean
 }
-const volumeDiscountEnabled = ref(false)
-const volumeDiscountTiers = ref<DiscountTierDraft[]>([])
-const discountSaving = ref(false)
-const discountMessage = ref('')
+
+const promoCodes = ref<PromoCodeDraft[]>([])
+const promoLoading = ref(false)
+const promoSavingId = ref('')
+const promoMessage = ref('')
+// The row being edited, or a blank draft when adding. Editing happens in a
+// single form rather than inline so the date and type pickers have room.
+const promoDraft = ref<PromoCodeDraft | null>(null)
+
+// Percent offers are capped below 100 so enabling one can never drive an order
+// to ₹0 — mirrors MAX_OFFER_PERCENT in server/api/offers-source.js.
+const MAX_OFFER_PERCENT = 90
+
+function blankPromoDraft(): PromoCodeDraft {
+  return {
+    id: '',
+    code: '',
+    type: 'PERCENT',
+    value: null,
+    minOrderPaise: null,
+    startsAt: '',
+    endsAt: '',
+    active: true,
+  }
+}
 // --- Orders tab: searchable + paginated list (replaces the capped dashboard
 // payload so search covers every order, not just the newest 25) ---
 const orders = ref<InternalOrder[]>([])
@@ -1017,13 +1058,7 @@ async function loadSiteConfig() {
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data.message || 'Unable to load branding settings.')
     logoUrl.value = String(data?.siteConfig?.logoUrl || '')
-    volumeDiscountEnabled.value = Boolean(data?.siteConfig?.volumeDiscountEnabled)
-    const rawTiers = Array.isArray(data?.siteConfig?.volumeDiscountTiers)
-      ? data.siteConfig.volumeDiscountTiers
-      : []
-    volumeDiscountTiers.value = rawTiers
-      .map((t: { minQty?: number; percent?: number }) => ({ minQty: Number(t?.minQty), percent: Number(t?.percent) }))
-      .sort((a: DiscountTierDraft, b: DiscountTierDraft) => Number(a.minQty) - Number(b.minQty))
+    applyFlatOfferToView(data?.siteConfig?.flatOffer)
     collectionImages.value = normalizeCollectionImagesForView(data?.siteConfig?.collectionImages)
     applyAboutContentToView(data?.siteConfig?.aboutContent)
     applyVideoCallSettings(data?.siteConfig)
@@ -1034,48 +1069,171 @@ async function loadSiteConfig() {
   }
 }
 
-function addDiscountTier() {
-  volumeDiscountTiers.value.push({ minQty: null, percent: null })
-  discountMessage.value = ''
+function applyFlatOfferToView(raw: unknown) {
+  const offer = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  flatOfferEnabled.value = Boolean(offer.enabled)
+  flatOfferType.value = String(offer.type || '').toUpperCase() === 'AMOUNT' ? 'AMOUNT' : 'PERCENT'
+  const value = Math.floor(Number(offer.value))
+  flatOfferValue.value = Number.isFinite(value) && value > 0 ? value : null
+  flatOfferLabel.value = typeof offer.label === 'string' ? offer.label : ''
 }
 
-function removeDiscountTier(index: number) {
-  volumeDiscountTiers.value.splice(index, 1)
-  discountMessage.value = ''
-}
+/** Live preview of what the storefront badge will read once this is saved. */
+const flatOfferPreview = computed(() => {
+  if (flatOfferLabel.value.trim()) return flatOfferLabel.value.trim()
+  const value = Number(flatOfferValue.value)
+  if (!Number.isFinite(value) || value <= 0) return '—'
+  return flatOfferType.value === 'PERCENT' ? `${value}% OFF` : `₹${value.toLocaleString('en-IN')} OFF`
+})
 
-async function saveDiscountConfig() {
+async function saveFlatOffer() {
   if (!isInternalUser.value || !user.value?.id) return
-  discountSaving.value = true
-  discountMessage.value = ''
+  const value = Math.floor(Number(flatOfferValue.value))
+  if (flatOfferEnabled.value && !(Number.isFinite(value) && value > 0)) {
+    offerMessage.value = 'Enter a discount greater than zero, or switch the offer off.'
+    return
+  }
+  if (flatOfferEnabled.value && flatOfferType.value === 'PERCENT' && value > MAX_OFFER_PERCENT) {
+    offerMessage.value = `A percentage offer can be at most ${MAX_OFFER_PERCENT}%.`
+    return
+  }
+  offerSaving.value = true
+  offerMessage.value = ''
   try {
-    // Drop blank/invalid rows so the admin can leave an empty draft row around.
-    const tiers = volumeDiscountTiers.value
-      .map((t) => ({ minQty: Math.floor(Number(t.minQty)), percent: Number(t.percent) }))
-      .filter((t) => Number.isFinite(t.minQty) && t.minQty >= 1 && Number.isFinite(t.percent) && t.percent > 0 && t.percent <= 100)
     const res = await fetch(`${API_BASE}/api/internal?resource=site-config`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: user.value.id,
-        volumeDiscountEnabled: volumeDiscountEnabled.value,
-        volumeDiscountTiers: tiers,
+        flatOfferEnabled: flatOfferEnabled.value,
+        flatOfferType: flatOfferType.value,
+        flatOfferValue: Number.isFinite(value) && value > 0 ? value : 0,
+        flatOfferLabel: flatOfferLabel.value,
       }),
     })
     const data = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(data.message || 'Unable to save discount settings.')
-    const savedTiers = Array.isArray(data?.siteConfig?.volumeDiscountTiers) ? data.siteConfig.volumeDiscountTiers : []
-    volumeDiscountTiers.value = savedTiers
-      .map((t: { minQty?: number; percent?: number }) => ({ minQty: Number(t?.minQty), percent: Number(t?.percent) }))
-      .sort((a: DiscountTierDraft, b: DiscountTierDraft) => Number(a.minQty) - Number(b.minQty))
-    volumeDiscountEnabled.value = Boolean(data?.siteConfig?.volumeDiscountEnabled)
+    if (!res.ok) throw new Error(data.message || 'Unable to save the offer.')
+    applyFlatOfferToView(data?.siteConfig?.flatOffer)
     invalidateSiteConfig()
-    discountMessage.value = 'Discount settings saved.'
+    offerMessage.value = 'Offer saved.'
   } catch (e) {
-    discountMessage.value = e instanceof Error ? e.message : 'Unable to save discount settings.'
+    offerMessage.value = e instanceof Error ? e.message : 'Unable to save the offer.'
   } finally {
-    discountSaving.value = false
+    offerSaving.value = false
   }
+}
+
+// --- Promo codes ---
+
+function promoRowToDraft(row: Record<string, unknown>): PromoCodeDraft {
+  return {
+    id: String(row?.id || ''),
+    code: String(row?.code || ''),
+    type: String(row?.type || '').toUpperCase() === 'AMOUNT' ? 'AMOUNT' : 'PERCENT',
+    value: Number(row?.value) || null,
+    minOrderPaise: Number(row?.minOrderPaise) || null,
+    startsAt: String(row?.startsAt || ''),
+    endsAt: String(row?.endsAt || ''),
+    active: row?.active !== false,
+  }
+}
+
+async function loadPromoCodes() {
+  if (!isInternalUser.value || !user.value?.id) return
+  promoLoading.value = true
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/internal?resource=promo-codes&userId=${encodeURIComponent(user.value.id)}`,
+    )
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || 'Unable to load promo codes.')
+    const rows = Array.isArray(data?.promoCodes) ? data.promoCodes : []
+    promoCodes.value = rows.map(promoRowToDraft)
+  } catch (e) {
+    promoMessage.value = e instanceof Error ? e.message : 'Unable to load promo codes.'
+  } finally {
+    promoLoading.value = false
+  }
+}
+
+function startNewPromo() {
+  promoDraft.value = blankPromoDraft()
+  promoMessage.value = ''
+}
+
+function editPromo(row: PromoCodeDraft) {
+  promoDraft.value = { ...row }
+  promoMessage.value = ''
+}
+
+function cancelPromoDraft() {
+  promoDraft.value = null
+  promoMessage.value = ''
+}
+
+async function savePromoDraft() {
+  const draft = promoDraft.value
+  if (!draft || !isInternalUser.value || !user.value?.id) return
+  promoSavingId.value = draft.id || 'new'
+  promoMessage.value = ''
+  try {
+    const res = await fetch(`${API_BASE}/api/internal?resource=promo-codes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: user.value.id,
+        id: draft.id || undefined,
+        code: draft.code,
+        type: draft.type,
+        value: Number(draft.value) || 0,
+        minOrderPaise: Number(draft.minOrderPaise) || 0,
+        startsAt: draft.startsAt,
+        endsAt: draft.endsAt,
+        active: draft.active,
+      }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || 'Unable to save the promo code.')
+    await loadPromoCodes()
+    promoDraft.value = null
+    promoMessage.value = 'Promo code saved.'
+  } catch (e) {
+    promoMessage.value = e instanceof Error ? e.message : 'Unable to save the promo code.'
+  } finally {
+    promoSavingId.value = ''
+  }
+}
+
+async function deletePromo(row: PromoCodeDraft) {
+  if (!isInternalUser.value || !user.value?.id || !row.id) return
+  if (!window.confirm(`Delete the code "${row.code}"? Orders that already used it keep their record.`)) return
+  promoSavingId.value = row.id
+  promoMessage.value = ''
+  try {
+    const res = await fetch(`${API_BASE}/api/internal?resource=promo-codes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.value.id, action: 'delete', id: row.id }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || 'Unable to delete the promo code.')
+    if (promoDraft.value?.id === row.id) promoDraft.value = null
+    await loadPromoCodes()
+    promoMessage.value = 'Promo code deleted.'
+  } catch (e) {
+    promoMessage.value = e instanceof Error ? e.message : 'Unable to delete the promo code.'
+  } finally {
+    promoSavingId.value = ''
+  }
+}
+
+/** Plain-language summary of a code, so the table reads without decoding fields. */
+function promoSummary(row: PromoCodeDraft) {
+  const off = row.type === 'PERCENT' ? `${row.value}% off` : `₹${Number(row.value).toLocaleString('en-IN')} off`
+  const min = row.minOrderPaise ? ` over ₹${Number(row.minOrderPaise).toLocaleString('en-IN')}` : ''
+  const from = row.startsAt ? ` from ${row.startsAt}` : ''
+  const to = row.endsAt ? ` until ${row.endsAt}` : ''
+  return `${off}${min}${from}${to}`
 }
 
 async function onLogoFileChange(event: Event) {
@@ -1428,6 +1586,7 @@ onMounted(() => {
   void loadProducts(true)
   void loadHomepageSlides()
   void loadSiteConfig()
+  void loadPromoCodes()
   document.addEventListener('click', closeProductMoreOnOutsideClick)
 })
 
@@ -2332,95 +2491,250 @@ onBeforeUnmount(() => {
           </article>
         </div>
 
-        <div v-else-if="activeTabId === 'discounts'" class="ect-p-4 sm:ect-p-5">
-          <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
-            <div>
-              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Pricing</p>
-              <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Volume discount</h2>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Reward larger orders with an automatic discount based on the total number of items in the cart. The best matching tier is applied at checkout.</p>
-            </div>
-            <div class="ect-flex ect-flex-wrap ect-gap-2">
-              <button
-                type="button"
-                class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60"
-                :disabled="discountSaving || logoLoading"
-                @click="saveDiscountConfig"
-              >
-                {{ discountSaving ? 'Saving…' : 'Save discount' }}
-              </button>
-            </div>
-          </div>
+        <div v-else-if="activeTabId === 'offers'" class="ect-p-4 sm:ect-p-5 ect-space-y-8">
 
-          <p
-            v-if="discountMessage"
-            class="ect-mb-4 ect-font-body ect-text-sm"
-            :class="discountMessage === 'Discount settings saved.' ? 'ect-text-emerald-700' : 'ect-text-red-600'"
-          >
-            {{ discountMessage }}
-          </p>
-
-          <div v-if="logoLoading" class="ect-h-40 ect-max-w-xl ect-rounded-2xl ect-bg-cream ect-animate-pulse" />
-
-          <article v-else class="ect-max-w-xl ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-p-5 ect-space-y-5">
-            <label class="ect-flex ect-items-center ect-gap-3 ect-cursor-pointer">
-              <input v-model="volumeDiscountEnabled" type="checkbox" class="ect-h-4 ect-w-4 ect-rounded ect-border-charcoal/25 ect-text-gold-700 focus:ect-ring-gold-400/40" />
-              <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Enable volume discount on the storefront</span>
-            </label>
-
-            <div :class="volumeDiscountEnabled ? '' : 'ect-opacity-50 ect-pointer-events-none'">
-              <div class="ect-flex ect-items-center ect-justify-between ect-mb-2">
-                <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Discount tiers</span>
+          <!-- Flat offer: automatic, site-wide, and visible on every product
+               card. This is the one that changes catalog prices. -->
+          <section>
+            <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
+              <div>
+                <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Pricing</p>
+                <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Flat offer</h2>
+                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">A site-wide discount applied automatically to every priced piece. The catalog, cart and checkout all show the reduced price, so shoppers see it before they reach the bag.</p>
+              </div>
+              <div class="ect-flex ect-flex-wrap ect-gap-2">
                 <button
                   type="button"
-                  class="ect-inline-flex ect-items-center ect-gap-1 ect-rounded-full ect-border ect-border-gold-400 ect-px-3 ect-py-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-gold-700 hover:ect-bg-cream"
-                  @click="addDiscountTier"
+                  class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60"
+                  :disabled="offerSaving || logoLoading"
+                  @click="saveFlatOffer"
                 >
-                  + Add tier
+                  {{ offerSaving ? 'Saving…' : 'Save offer' }}
                 </button>
               </div>
+            </div>
 
-              <p v-if="!volumeDiscountTiers.length" class="ect-font-body ect-text-sm ect-text-charcoal/45 ect-py-3">No tiers yet. Add one, e.g. “5 items → 5% off”.</p>
+            <p
+              v-if="offerMessage"
+              class="ect-mb-4 ect-font-body ect-text-sm"
+              :class="offerMessage === 'Offer saved.' ? 'ect-text-emerald-700' : 'ect-text-red-600'"
+            >
+              {{ offerMessage }}
+            </p>
 
-              <div class="ect-space-y-2">
-                <div
-                  v-for="(tier, i) in volumeDiscountTiers"
-                  :key="i"
-                  class="ect-flex ect-items-center ect-gap-2"
+            <div v-if="logoLoading" class="ect-h-40 ect-max-w-xl ect-rounded-2xl ect-bg-cream ect-animate-pulse" />
+
+            <article v-else class="ect-max-w-xl ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-p-5 ect-space-y-5">
+              <label class="ect-flex ect-items-center ect-gap-3 ect-cursor-pointer">
+                <input v-model="flatOfferEnabled" type="checkbox" class="ect-h-4 ect-w-4 ect-rounded ect-border-charcoal/25 ect-text-gold-700 focus:ect-ring-gold-400/40" />
+                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Show this offer on the storefront</span>
+              </label>
+
+              <div :class="flatOfferEnabled ? '' : 'ect-opacity-50 ect-pointer-events-none'" class="ect-space-y-4">
+                <div>
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Discount</span>
+                  <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-2">
+                    <select
+                      v-model="flatOfferType"
+                      class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                    >
+                      <option value="PERCENT">Percentage off</option>
+                      <option value="AMOUNT">Rupees off</option>
+                    </select>
+                    <input
+                      v-model.number="flatOfferValue"
+                      type="number"
+                      min="1"
+                      :max="flatOfferType === 'PERCENT' ? MAX_OFFER_PERCENT : undefined"
+                      step="1"
+                      :placeholder="flatOfferType === 'PERCENT' ? '%' : '₹'"
+                      class="ect-w-28 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                    />
+                    <span class="ect-font-body ect-text-sm ect-text-charcoal/55">
+                      {{ flatOfferType === 'PERCENT' ? `% off every piece (max ${MAX_OFFER_PERCENT}%)` : 'off every piece' }}
+                    </span>
+                  </div>
+                  <p v-if="flatOfferType === 'AMOUNT'" class="ect-mt-2 ect-font-body ect-text-micro ect-text-charcoal/40">
+                    Pieces priced at or below this amount are left at full price — a ₹5,000 discount on a ₹4,000 piece would otherwise make it free.
+                  </p>
+                </div>
+
+                <div>
+                  <label class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Badge text (optional)</label>
+                  <input
+                    v-model="flatOfferLabel"
+                    type="text"
+                    maxlength="60"
+                    placeholder="e.g. Festive Sale"
+                    class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                  />
+                  <p class="ect-mt-2 ect-font-body ect-text-micro ect-text-charcoal/40">
+                    Shown on product cards. Leave blank to use the discount itself. Preview:
+                    <span class="ect-ml-1 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#1f3f37] ect-px-2 ect-py-0.5 ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9]">{{ flatOfferPreview }}</span>
+                  </p>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <!-- Promo codes: nothing changes on the catalog until a shopper types
+               one in at checkout. -->
+          <section class="ect-pt-2 ect-border-t ect-border-sand">
+            <div class="ect-mb-5 ect-mt-6 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
+              <div>
+                <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Campaigns</p>
+                <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Promo codes</h2>
+                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Codes a shopper types in at checkout. Catalog prices stay as they are; the discount comes off the order total, on top of any flat offer.</p>
+              </div>
+              <div class="ect-flex ect-flex-wrap ect-gap-2">
+                <button
+                  type="button"
+                  class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60"
+                  :disabled="promoLoading || Boolean(promoDraft)"
+                  @click="startNewPromo"
                 >
-                  <span class="ect-font-body ect-text-sm ect-text-charcoal/55">Buy</span>
+                  + New code
+                </button>
+              </div>
+            </div>
+
+            <p
+              v-if="promoMessage"
+              class="ect-mb-4 ect-font-body ect-text-sm"
+              :class="promoMessage.endsWith('saved.') || promoMessage.endsWith('deleted.') ? 'ect-text-emerald-700' : 'ect-text-red-600'"
+            >
+              {{ promoMessage }}
+            </p>
+
+            <!-- Editor form, shared by "new" and "edit" so the date and type
+                 pickers have room the table rows could not give them. -->
+            <article v-if="promoDraft" class="ect-mb-4 ect-max-w-3xl ect-rounded-2xl ect-border ect-border-gold-400 ect-bg-white ect-p-5 ect-space-y-4">
+              <div class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
+                <div>
+                  <label class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Code</label>
                   <input
-                    v-model.number="tier.minQty"
+                    v-model="promoDraft.code"
+                    type="text"
+                    maxlength="40"
+                    placeholder="DIWALI10"
+                    class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-uppercase ect-tracking-wide ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                  />
+                </div>
+                <div>
+                  <label class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Discount</label>
+                  <div class="ect-flex ect-items-center ect-gap-2">
+                    <select
+                      v-model="promoDraft.type"
+                      class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                    >
+                      <option value="PERCENT">%</option>
+                      <option value="AMOUNT">₹</option>
+                    </select>
+                    <input
+                      v-model.number="promoDraft.value"
+                      type="number"
+                      min="1"
+                      :max="promoDraft.type === 'PERCENT' ? MAX_OFFER_PERCENT : undefined"
+                      step="1"
+                      class="ect-w-full ect-min-w-0 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Minimum order (₹, optional)</label>
+                  <input
+                    v-model.number="promoDraft.minOrderPaise"
                     type="number"
-                    min="1"
+                    min="0"
                     step="1"
-                    placeholder="Qty"
-                    class="ect-w-20 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                    placeholder="0"
+                    class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
                   />
-                  <span class="ect-font-body ect-text-sm ect-text-charcoal/55">+ items, get</span>
+                </div>
+                <div class="ect-flex ect-items-end">
+                  <label class="ect-flex ect-items-center ect-gap-3 ect-cursor-pointer ect-pb-2">
+                    <input v-model="promoDraft.active" type="checkbox" class="ect-h-4 ect-w-4 ect-rounded ect-border-charcoal/25 ect-text-gold-700 focus:ect-ring-gold-400/40" />
+                    <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Active</span>
+                  </label>
+                </div>
+                <div>
+                  <label class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Starts (optional)</label>
                   <input
-                    v-model.number="tier.percent"
-                    type="number"
-                    min="1"
-                    max="100"
-                    step="0.5"
-                    placeholder="%"
-                    class="ect-w-20 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                    v-model="promoDraft.startsAt"
+                    type="date"
+                    class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
                   />
-                  <span class="ect-font-body ect-text-sm ect-text-charcoal/55">% off</span>
-                  <button
-                    type="button"
-                    class="ect-ml-auto ect-p-1.5 ect-rounded-full ect-text-charcoal/30 hover:ect-bg-red-50 hover:ect-text-red-500 ect-transition-colors"
-                    aria-label="Remove tier"
-                    @click="removeDiscountTier(i)"
-                  >
-                    <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
+                </div>
+                <div>
+                  <label class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Ends (optional)</label>
+                  <input
+                    v-model="promoDraft.endsAt"
+                    type="date"
+                    class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
+                  />
                 </div>
               </div>
 
-              <p class="ect-mt-3 ect-font-body ect-text-micro ect-text-charcoal/40">Tiers are matched by total cart quantity; the highest tier the cart qualifies for wins. Customized (quote) items count toward quantity but the percentage only reduces the priced subtotal.</p>
-            </div>
-          </article>
+              <div class="ect-flex ect-flex-wrap ect-gap-2 ect-pt-1">
+                <button
+                  type="button"
+                  class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60"
+                  :disabled="Boolean(promoSavingId)"
+                  @click="savePromoDraft"
+                >
+                  {{ promoSavingId ? 'Saving…' : 'Save code' }}
+                </button>
+                <button
+                  type="button"
+                  class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-border ect-border-charcoal/20 ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal/70 hover:ect-bg-cream ect-transition-colors"
+                  @click="cancelPromoDraft"
+                >
+                  Cancel
+                </button>
+              </div>
+            </article>
+
+            <div v-if="promoLoading" class="ect-h-24 ect-max-w-3xl ect-rounded-2xl ect-bg-cream ect-animate-pulse" />
+
+            <p v-else-if="!promoCodes.length" class="ect-font-body ect-text-sm ect-text-charcoal/45 ect-py-3">
+              No promo codes yet. Add one, e.g. “DIWALI10 → 10% off over ₹50,000”.
+            </p>
+
+            <ul v-else class="ect-list-none ect-m-0 ect-p-0 ect-max-w-3xl ect-space-y-2">
+              <li
+                v-for="row in promoCodes"
+                :key="row.id"
+                class="ect-flex ect-flex-wrap ect-items-center ect-gap-3 ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-px-4 ect-py-3"
+              >
+                <span class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-wide ect-text-charcoal">{{ row.code }}</span>
+                <span
+                  class="ect-inline-flex ect-items-center ect-rounded-full ect-px-2 ect-py-0.5 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label"
+                  :class="row.active ? 'ect-bg-emerald-50 ect-text-emerald-700' : 'ect-bg-charcoal/5 ect-text-charcoal/45'"
+                >
+                  {{ row.active ? 'Active' : 'Off' }}
+                </span>
+                <span class="ect-font-body ect-text-sm ect-text-charcoal/55">{{ promoSummary(row) }}</span>
+                <span class="ect-ml-auto ect-flex ect-items-center ect-gap-1">
+                  <button
+                    type="button"
+                    class="ect-rounded-full ect-px-3 ect-py-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 hover:ect-bg-cream ect-transition-colors"
+                    @click="editPromo(row)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    class="ect-p-1.5 ect-rounded-full ect-text-charcoal/30 hover:ect-bg-red-50 hover:ect-text-red-500 ect-transition-colors disabled:ect-opacity-40"
+                    :disabled="promoSavingId === row.id"
+                    aria-label="Delete code"
+                    @click="deletePromo(row)"
+                  >
+                    <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </span>
+              </li>
+            </ul>
+          </section>
         </div>
 
         <div v-else-if="activeTabId === 'products'" class="ect-overflow-x-auto">

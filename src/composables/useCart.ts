@@ -2,6 +2,7 @@ import { reactive, computed, watch, ref } from 'vue'
 import type { Product } from '../data/products'
 import { useAuth } from './useAuth'
 import { useSiteConfig, type VolumeDiscountTier } from './useSiteConfig'
+import { unitPriceWithOffer, useOffers } from './useOffers'
 import { API_BASE } from '../config-api'
 import { formatInr } from '../utils/currency'
 
@@ -101,20 +102,45 @@ let cartSyncBound = false
 
 export function useCart() {
   const { user } = useAuth()
-  const { volumeDiscountEnabled, volumeDiscountTiers } = useSiteConfig()
+  const { volumeDiscountEnabled, volumeDiscountTiers, flatOffer } = useSiteConfig()
+  const { appliedPromo } = useOffers()
   const totalItems = computed(() => items.reduce((sum, i) => sum + i.qty, 0))
 
-  const totalPrice = computed(() =>
-    items.reduce((sum, i) => {
-      if (isCustomizedCartItem(i)) return sum
-      const num = i.product.priceValue ?? Number(i.product.price.replace(/[^\d]/g, ''))
-      return sum + num * i.qty
-    }, 0),
+  function lineListPrice(item: CartItem) {
+    return item.product.priceValue ?? Number(item.product.price.replace(/[^\d]/g, ''))
+  }
+
+  // Gross of every priced line, before any offer — the "was" figure the cart
+  // strikes through. Customized pieces are quoted separately and carry no price
+  // here, so they stay out of both totals.
+  const listTotal = computed(() =>
+    items.reduce((sum, i) => (isCustomizedCartItem(i) ? sum : sum + lineListPrice(i) * i.qty), 0),
   )
 
+  // The subtotal at the prices actually shown on the catalog: the flat offer is
+  // applied per unit, exactly as the product card displayed it, so the cart
+  // total is the sum of the prices the shopper was quoted.
+  const totalPrice = computed(() =>
+    items.reduce(
+      (sum, i) =>
+        isCustomizedCartItem(i)
+          ? sum
+          : sum + unitPriceWithOffer(lineListPrice(i), flatOffer.value) * i.qty,
+      0,
+    ),
+  )
+
+  const flatOfferAmount = computed(() => listTotal.value - totalPrice.value)
+  const formattedListTotal = computed(() => formatInr(listTotal.value))
   const formattedTotal = computed(() => formatInr(totalPrice.value))
+  const formattedFlatOffer = computed(() => formatInr(flatOfferAmount.value))
 
   // --- Site-wide volume (quantity) discount ---
+  // Dormant. PSG sells direct to consumers, so nothing in the internal
+  // workspace can enable tiers and `volumeDiscountEnabled` stays false — these
+  // resolve to null / 0. The code is kept so a B2B channel can switch the
+  // columns back on without rebuilding the pricing chain.
+  //
   // The best applicable tier is the one with the highest minQty the cart's
   // total item count satisfies (tiers arrive sorted high→low). Customized
   // items count toward the quantity threshold but, since they're quoted
@@ -127,9 +153,6 @@ export function useCart() {
 
   const discountPercent = computed(() => volumeDiscountTier.value?.percent ?? 0)
   const discountAmount = computed(() => Math.round((totalPrice.value * discountPercent.value) / 100))
-  const discountedTotal = computed(() => totalPrice.value - discountAmount.value)
-  const formattedDiscount = computed(() => formatInr(discountAmount.value))
-  const formattedDiscountedTotal = computed(() => formatInr(discountedTotal.value))
 
   // The next unreached tier, used to nudge shoppers ("add N more to save X%").
   const nextVolumeDiscountTier = computed<VolumeDiscountTier | null>(() => {
@@ -138,6 +161,28 @@ export function useCart() {
     const higher = volumeDiscountTiers.value.filter((t) => t.minQty > qty)
     return higher[higher.length - 1] ?? null
   })
+
+  // --- Promo code ---
+  // Entered at checkout and worth whatever the server said it was worth, so the
+  // figure here can never drift from the one that gets charged. It comes off
+  // what is left after the flat offer, which is the subtotal the shopper sees.
+  const promoAmount = computed(() => {
+    const promo = appliedPromo.value
+    if (!promo) return 0
+    const afterVolume = totalPrice.value - discountAmount.value
+    return Math.max(0, Math.min(promo.discount, afterVolume))
+  })
+  const formattedPromoDiscount = computed(() => formatInr(promoAmount.value))
+
+  /** What the shopper actually pays: catalog prices, less the promo code. */
+  const payableTotal = computed(() =>
+    Math.max(0, totalPrice.value - discountAmount.value - promoAmount.value),
+  )
+  const formattedPayableTotal = computed(() => formatInr(payableTotal.value))
+
+  /** Everything saved against the list prices, offer and code together. */
+  const totalSavings = computed(() => listTotal.value - payableTotal.value)
+  const formattedTotalSavings = computed(() => formatInr(totalSavings.value))
 
   async function syncFromServer() {
     if (!user.value?.id) return
@@ -289,15 +334,22 @@ export function useCart() {
     cartId,
     loading,
     totalItems,
+    listTotal,
     totalPrice,
+    formattedListTotal,
     formattedTotal,
+    flatOfferAmount,
+    formattedFlatOffer,
     volumeDiscountTier,
     nextVolumeDiscountTier,
     discountPercent,
     discountAmount,
-    discountedTotal,
-    formattedDiscount,
-    formattedDiscountedTotal,
+    promoAmount,
+    formattedPromoDiscount,
+    payableTotal,
+    formattedPayableTotal,
+    totalSavings,
+    formattedTotalSavings,
     addToCart,
     removeFromCart,
     updateQty,

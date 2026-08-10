@@ -135,11 +135,24 @@ model StoneSize {
 model SiteConfig {
   id        String   @id @default("default")
   logoUrl   String?
-  // Site-wide volume (quantity) discount. When enabled, the storefront applies
-  // the best matching tier based on the total number of items in the cart.
+  // Site-wide volume (quantity) discount. Dormant: PSG sells direct to
+  // consumers, so quantity tiers no longer have an admin surface and this stays
+  // false. The columns and the pricing code are kept so a B2B channel can
+  // switch them back on without a migration.
   // volumeDiscountTiers is a JSON array of { minQty, percent } objects.
   volumeDiscountEnabled Boolean @default(false)
   volumeDiscountTiers   Json?
+  // Site-wide flat offer. When enabled, every priced piece in the catalog is
+  // shown — and charged — at its discounted price, so the offer is part of the
+  // sticker price rather than a surprise at checkout.
+  // flatOfferType is 'PERCENT' (flatOfferValue = whole percent, 1-100) or
+  // 'AMOUNT' (flatOfferValue = whole rupees off each unit). flatOfferLabel is
+  // optional copy for the storefront badge; blank falls back to a generated
+  // label such as "15% OFF".
+  flatOfferEnabled      Boolean @default(false)
+  flatOfferType         String  @default("PERCENT")
+  flatOfferValue        Int     @default(0)
+  flatOfferLabel        String?
   // Per-collection tile images for the homepage "Shop by Collection" grid,
   // stored as a JSON map of collection slug -> image URL. Slugs that aren't
   // present fall back to the bundled gradient placeholder.
@@ -161,6 +174,29 @@ model SiteConfig {
   videoCallMaxItems     Int     @default(5)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Promo codes a shopper types in at checkout. Unlike the flat offer these never
+// touch catalog prices — the code is validated against the cart and reduces the
+// payable total only once it has been entered and accepted.
+//
+// `type` is 'PERCENT' (value = whole percent, 1-100) or 'AMOUNT' (value = whole
+// rupees). minOrderPaise holds whole rupees like every other money column here;
+// 0 means no minimum. startsAt / endsAt are optional bounds — an absent bound is
+// open-ended.
+model PromoCode {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  type          String    @default("PERCENT")
+  value         Int       @default(0)
+  minOrderPaise Int       @default(0)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([active])
 }
 
 model ProductImage {
@@ -351,6 +387,9 @@ model Order {
   shippingPaise     Int             @default(0)
   totalPaise        Int
   currency          String          @default("INR")
+  // The promo code the shopper redeemed, if any. Stored as the plain code so an
+  // order stays readable after the PromoCode row is edited or retired.
+  promoCode         String?
   notes             String?
   createdById       String?
   updatedById       String?

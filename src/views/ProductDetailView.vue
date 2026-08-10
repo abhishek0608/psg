@@ -3,13 +3,14 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
 import StarRating from '../components/StarRating.vue'
-import VolumeDiscountInfo from '../components/VolumeDiscountInfo.vue'
 import ImageWatermark from '../components/ImageWatermark.vue'
 import { useCart } from '../composables/useCart'
+import { useOffers } from '../composables/useOffers'
 import { useVideoCallList } from '../composables/useVideoCallList'
 import { useProductsApi } from '../composables/useProductsApi'
 import { setPageMeta, setProductJsonLd } from '../composables/useSeo'
 import { SITE_SETTINGS } from '../config/site-settings'
+import { formatInr } from '../utils/currency'
 import { COLORS, getProductReviews, type Color, type Product, type ProductCustomizationOptions } from '../data/products'
 
 const route = useRoute()
@@ -184,10 +185,17 @@ const reviewSummary = computed(() => {
 })
 
 // A "₹0" price reads as a bug; unpriced pieces are quoted individually instead.
-const hasRetailPrice = computed(() => {
-  const numeric = Number(String(product.value?.price || '').replace(/[^0-9.]/g, ''))
-  return Number.isFinite(numeric) && numeric > 0
+const listPriceValue = computed(() => {
+  const numeric =
+    product.value?.priceValue ?? Number(String(product.value?.price || '').replace(/[^0-9.]/g, ''))
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0
 })
+const hasRetailPrice = computed(() => listPriceValue.value > 0)
+
+// The flat offer is part of the sticker price, so the page leads with what the
+// piece costs today and keeps the old price beside it, struck through.
+const { priceDisplay, offerLabel } = useOffers()
+const pricing = computed(() => priceDisplay(listPriceValue.value))
 
 const technicalDetailRows = computed<Array<{ label: string; value: string }>>(() => {
   const desc = product.value?.description?.trim() || ''
@@ -501,7 +509,17 @@ function handleAddToVideoCall() {
           </h1>
 
           <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-x-4 ect-gap-y-2 ect-mb-5">
-            <p v-if="hasRetailPrice" class="ect-price ect-text-2xl ect-text-charcoal">{{ product.price }}</p>
+            <span v-if="hasRetailPrice" class="ect-inline-flex ect-flex-wrap ect-items-baseline ect-gap-x-3 ect-gap-y-1">
+              <span class="ect-price ect-text-2xl" :class="pricing.hasOffer ? 'ect-text-[#1f3f37]' : 'ect-text-charcoal'">
+                {{ pricing.hasOffer ? pricing.formattedDiscounted : product.price }}
+              </span>
+              <template v-if="pricing.hasOffer">
+                <span class="ect-price ect-text-base ect-text-charcoal/40 ect-line-through">{{ pricing.formattedList }}</span>
+                <span class="ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#1f3f37] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9]">
+                  {{ offerLabel }}
+                </span>
+              </template>
+            </span>
             <p v-else class="ect-font-body ect-text-sm ect-text-gold-700 ect-font-medium">Price on request</p>
             <div v-if="reviewSummary" class="ect-inline-flex ect-items-center ect-gap-2 ect-text-charcoal/55">
               <StarRating :rating="product.rating || 0" size="sm" />
@@ -564,9 +582,7 @@ function handleAddToVideoCall() {
 
           </section>
 
-          <VolumeDiscountInfo class="ect-mt-5" label="Volume discount available" />
-
-          <div class="ect-mt-3 ect-flex ect-flex-col sm:ect-flex-row ect-items-stretch sm:ect-items-center ect-gap-3">
+          <div class="ect-mt-8 ect-flex ect-flex-col sm:ect-flex-row ect-items-stretch sm:ect-items-center ect-gap-3">
             <button
               type="button"
               @click="handleAddToCart"
@@ -655,9 +671,23 @@ function handleAddToVideoCall() {
               <dt class="ect-font-body ect-text-sm ect-text-charcoal/60">{{ row.label }}</dt>
               <dd class="ect-font-body ect-text-sm ect-text-charcoal ect-tabular-nums">{{ row.value }}</dd>
             </div>
+            <!-- The breakup is built from the list price, so an active offer has
+                 to appear here too — otherwise this total contradicts the price
+                 at the top of the page. -->
+            <div
+              v-if="pricing.hasOffer"
+              class="ect-flex ect-items-center ect-justify-between ect-gap-4 ect-pt-3 ect-border-t ect-border-sand"
+            >
+              <dt class="ect-font-body ect-text-sm ect-text-charcoal/60">{{ offerLabel }}</dt>
+              <dd class="ect-font-body ect-text-sm ect-text-[#1f3f37] ect-tabular-nums">
+                − {{ formatInr(pricing.list - pricing.discounted) }}
+              </dd>
+            </div>
             <div class="ect-flex ect-items-center ect-justify-between ect-gap-4 ect-pt-3 ect-border-t ect-border-sand">
               <dt class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Total</dt>
-              <dd class="ect-price ect-text-lg ect-text-charcoal">{{ product.breakup.total }}</dd>
+              <dd class="ect-price ect-text-lg ect-text-charcoal">
+                {{ pricing.hasOffer ? pricing.formattedDiscounted : product.breakup.total }}
+              </dd>
             </div>
           </dl>
         </section>

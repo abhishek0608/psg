@@ -1,3 +1,16 @@
+<!--
+  Quantity-tier tooltip, currently unmounted.
+
+  PSG sells direct to consumers, so volume pricing was retired: nothing renders
+  this component and the internal workspace has no tier editor, which leaves
+  `volumeDiscountEnabled` false and this permanently hidden. It is kept — along
+  with the tier maths in useCart and checkout-order.js — so a B2B channel can be
+  turned back on without rebuilding it. Nothing imports it, so it is tree-shaken
+  out of the bundle.
+
+  The storefront's live discounts are in useOffers.ts: a flat offer baked into
+  catalog prices, and promo codes entered at checkout.
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useSiteConfig } from '../composables/useSiteConfig'

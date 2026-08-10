@@ -14,6 +14,7 @@
 import { prisma } from './db.js'
 import { pickVariantForPricing, pickPriceFromPriceBook } from './product-presenter.js'
 import { getSiteConfig } from './site-config-source.js'
+import { applyFlatOfferToUnitPrice, resolvePromoCode } from './offers-source.js'
 
 export const RUPEES_TO_PAISE = 100
 
@@ -28,8 +29,15 @@ export function normalizeRequestedItems(rawItems) {
 }
 
 /**
- * Prices the requested lines against the catalog and applies the same volume
- * discount the cart advertised — recomputed from config rather than trusted.
+ * Prices the requested lines against the catalog and applies the same offers
+ * the storefront advertised — every one recomputed from config rather than
+ * trusted, so a tampered cart cannot invent its own discount.
+ *
+ * Discounts are layered in the order a shopper sees them:
+ *   1. flat offer — reduces each unit price, exactly as the catalog displayed it
+ *   2. volume tier — dormant (no admin surface); contributes 0 unless a B2B
+ *      channel re-enables volumeDiscountEnabled directly in the database
+ *   3. promo code — typed in at checkout, applied to what is left
  *
  * `cartItems` is the whole cart, `requestedItems` only the part being charged.
  * They differ because customized and price-on-request pieces are quoted rather
@@ -39,11 +47,12 @@ export function normalizeRequestedItems(rawItems) {
  * quantities still have to belong to real catalog products, so the threshold
  * cannot be inflated with invented lines.
  *
- * Throws with `.statusCode = 400` when a line cannot be priced; an unpriced
- * ("price on request") piece is quoted by the team, never charged online.
+ * Throws with `.statusCode = 400` when a line cannot be priced or a promo code
+ * is unusable; an unpriced ("price on request") piece is quoted by the team,
+ * never charged online.
  */
-export async function priceCheckoutLines(requestedItems, cartItems) {
-  const requested = normalizeRequestedItems(requestedItems)
+export async function priceCheckoutLines({ items, cartItems, promoCode } = {}) {
+  const requested = normalizeRequestedItems(items)
   if (!requested.length) {
     throw Object.assign(new Error('Add at least one item before paying.'), { statusCode: 400 })
   }
@@ -58,6 +67,12 @@ export async function priceCheckoutLines(requestedItems, cartItems) {
     },
   })
   const bySlug = new Map(products.map((product) => [product.slug, product]))
+
+  // Config drives both the unit prices and the tier below, so it is read once
+  // up front. A config read that fails leaves every offer off rather than
+  // guessing — charging list price is the safe direction to fail in.
+  const config = await getSiteConfig().catch(() => null)
+  const flatOffer = config?.flatOffer || null
 
   const lines = []
   for (const item of requested) {
@@ -74,38 +89,58 @@ export async function priceCheckoutLines(requestedItems, cartItems) {
     // Same precedence the storefront shows: a live B2C price-book row wins
     // over the variant list price.
     const priceBookPrice = pickPriceFromPriceBook(product)
-    const unitPrice =
+    const listPrice =
       priceBookPrice != null && priceBookPrice > 0 ? priceBookPrice : variant.listPricePaise || 0
-    if (!(unitPrice > 0)) {
+    if (!(listPrice > 0)) {
       throw Object.assign(
         new Error(`"${product.title}" is price-on-request — request a quote instead of paying online.`),
         { statusCode: 400 },
       )
     }
+    // The flat offer is part of the sticker price, so it is baked into the unit
+    // price the order line records — an invoice then reads the same as the
+    // product page did.
+    const unitPrice = applyFlatOfferToUnitPrice(listPrice, flatOffer)
     lines.push({
       slug: product.slug,
       variantId: variant.id,
       titleSnapshot: product.title,
+      listPrice,
       unitPrice,
       qty: item.qty,
       currency: variant.currency || 'INR',
     })
   }
 
+  const listSubtotal = lines.reduce((sum, line) => sum + line.listPrice * line.qty, 0)
   const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.qty, 0)
+  const flatOfferAmount = listSubtotal - subtotal
   // Quantity that decides the tier: the whole cart when it was sent, and every
   // slug in it has to be a live product.
   const countedLines = wholeCart.length ? wholeCart.filter((item) => bySlug.has(item.slug)) : lines
   const totalQty = countedLines.reduce((sum, line) => sum + line.qty, 0)
 
   // Tiers arrive sorted highest-threshold first, so the first match is best.
-  const config = await getSiteConfig().catch(() => null)
+  // Dormant in practice — nothing in the internal workspace can enable this.
   const tier = config?.volumeDiscountEnabled
     ? (config.volumeDiscountTiers || []).find((t) => totalQty >= t.minQty) || null
     : null
-  const discountPercent = tier?.percent || 0
-  const discountAmount = Math.round((subtotal * discountPercent) / 100)
-  const total = subtotal - discountAmount
+  const volumePercent = tier?.percent || 0
+  const volumeAmount = Math.round((subtotal * volumePercent) / 100)
+  const afterVolume = subtotal - volumeAmount
+
+  // A promo code is the shopper's own input, so an unusable one throws here and
+  // the checkout call fails loudly rather than quietly charging full price.
+  let promo = null
+  let promoAmount = 0
+  if (promoCode) {
+    const resolved = await resolvePromoCode(promoCode, afterVolume)
+    promo = resolved.promo
+    promoAmount = resolved.discount
+  }
+
+  const discountAmount = volumeAmount + promoAmount
+  const total = afterVolume - promoAmount
 
   if (!(total > 0)) {
     throw Object.assign(new Error('Order total must be greater than zero.'), { statusCode: 400 })
@@ -113,8 +148,17 @@ export async function priceCheckoutLines(requestedItems, cartItems) {
 
   return {
     lines,
+    listSubtotal,
     subtotal,
-    discountPercent,
+    flatOffer,
+    flatOfferAmount,
+    volumePercent,
+    volumeAmount,
+    promoCode: promo?.code || null,
+    promoAmount,
+    // Everything taken off the priced subtotal, which is what the Order's
+    // discountPaise column records. The flat offer is not part of it — it is
+    // already inside each line's unit price.
     discountAmount,
     total,
     totalQty,
@@ -146,7 +190,13 @@ export async function createPendingOrder({
           .filter(Boolean)
           .join(', ')}`
       : null,
-    pricing.discountPercent ? `Volume discount: ${pricing.discountPercent}%` : null,
+    pricing.flatOfferAmount
+      ? `Flat offer: −₹${pricing.flatOfferAmount.toLocaleString('en-IN')} (in unit prices)`
+      : null,
+    pricing.volumePercent ? `Volume discount: ${pricing.volumePercent}%` : null,
+    pricing.promoCode
+      ? `Promo code ${pricing.promoCode}: −₹${pricing.promoAmount.toLocaleString('en-IN')}`
+      : null,
     notes || null,
   ].filter(Boolean)
 
@@ -167,6 +217,7 @@ export async function createPendingOrder({
           discountPaise: pricing.discountAmount,
           totalPaise: pricing.total,
           currency: pricing.currency,
+          promoCode: pricing.promoCode || null,
           notes: noteLines.join('\n'),
           items: {
             create: pricing.lines.map((line) => ({

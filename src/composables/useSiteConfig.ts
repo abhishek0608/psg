@@ -10,6 +10,24 @@ export interface VolumeDiscountTier {
   percent: number
 }
 
+export type OfferType = 'PERCENT' | 'AMOUNT'
+
+/**
+ * Site-wide flat offer. When enabled the storefront shows — and charges — every
+ * priced piece at its discounted price, so the offer is part of the sticker
+ * price rather than a surprise at checkout.
+ */
+export interface FlatOffer {
+  enabled: boolean
+  type: OfferType
+  /** Whole percent (1-90) for PERCENT, whole rupees off each unit for AMOUNT. */
+  value: number
+  /** Admin-supplied badge copy; blank means "generate one from the value". */
+  label: string
+}
+
+export const NO_FLAT_OFFER: FlatOffer = { enabled: false, type: 'PERCENT', value: 0, label: '' }
+
 export interface StoneSizeOption {
   value: string
   label: string
@@ -50,8 +68,13 @@ export const EMPTY_ABOUT_CONTENT: AboutContent = {
 }
 
 const logoUrl = ref('')
+// Volume (quantity) tiers are dormant: PSG sells direct to consumers, so the
+// internal workspace no longer exposes them and these stay at their empty
+// defaults. Kept — along with the pricing code — so a B2B channel can turn them
+// back on without a migration.
 const volumeDiscountEnabled = ref(false)
 const volumeDiscountTiers = ref<VolumeDiscountTier[]>([])
+const flatOffer = ref<FlatOffer>({ ...NO_FLAT_OFFER })
 // Stone sizes (dimensions) currently in use across the catalog, ordered for
 // display. Populated from /api/site-config and consumed by the product-detail
 // customization size picker.
@@ -82,6 +105,20 @@ function parseVolumeDiscountTiers(raw: unknown): VolumeDiscountTier[] {
     .map((t) => ({ minQty: Math.floor(Number((t as VolumeDiscountTier)?.minQty)), percent: Number((t as VolumeDiscountTier)?.percent) }))
     .filter((t) => Number.isFinite(t.minQty) && t.minQty >= 1 && Number.isFinite(t.percent) && t.percent > 0 && t.percent <= 100)
     .sort((a, b) => b.minQty - a.minQty)
+}
+
+function parseFlatOffer(raw: unknown): FlatOffer {
+  const src = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const type: OfferType = String(src.type || '').toUpperCase() === 'AMOUNT' ? 'AMOUNT' : 'PERCENT'
+  const value = Math.floor(Number(src.value))
+  const safeValue = Number.isFinite(value) && value > 0 ? value : 0
+  return {
+    // A zero-valued offer reads as off, matching the server's own normalisation.
+    enabled: Boolean(src.enabled) && safeValue > 0,
+    type,
+    value: safeValue,
+    label: typeof src.label === 'string' ? src.label.trim() : '',
+  }
 }
 
 function parseCollectionImages(raw: unknown): Record<string, string> {
@@ -163,6 +200,7 @@ export async function ensureSiteConfigLoaded() {
       logoUrl.value = String(data?.siteConfig?.logoUrl || '')
       volumeDiscountEnabled.value = Boolean(data?.siteConfig?.volumeDiscountEnabled)
       volumeDiscountTiers.value = parseVolumeDiscountTiers(data?.siteConfig?.volumeDiscountTiers)
+      flatOffer.value = parseFlatOffer(data?.siteConfig?.flatOffer)
       collectionImages.value = parseCollectionImages(data?.siteConfig?.collectionImages)
       aboutContent.value = parseAboutContent(data?.siteConfig?.aboutContent)
       videoCallEnabled.value = data?.siteConfig?.videoCallEnabled !== false
@@ -186,6 +224,7 @@ export function useSiteConfig() {
     logoUrl,
     volumeDiscountEnabled,
     volumeDiscountTiers,
+    flatOffer,
     collectionImages,
     aboutContent,
     videoCallEnabled,

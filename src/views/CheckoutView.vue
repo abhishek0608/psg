@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCart, isCustomizedCartItem, isPriceOnRequestCartItem } from '../composables/useCart'
+import { useOffers } from '../composables/useOffers'
 import { useOrders } from '../composables/useOrders'
 import { useQuotes } from '../composables/useQuotes'
 import { useRazorpay } from '../composables/useRazorpay'
@@ -18,15 +19,27 @@ import { formatInr } from '../utils/currency'
 const router = useRouter()
 const {
   items,
+  listTotal,
+  formattedListTotal,
   formattedTotal,
   totalPrice,
-  volumeDiscountTier,
-  discountPercent,
-  discountedTotal,
-  formattedDiscount,
-  formattedDiscountedTotal,
+  flatOfferAmount,
+  formattedFlatOffer,
+  promoAmount,
+  formattedPromoDiscount,
+  payableTotal,
+  formattedPayableTotal,
   clearCart,
 } = useCart()
+const {
+  offerPrice,
+  offerLabel,
+  appliedPromo,
+  promoError,
+  promoChecking,
+  applyPromoCode,
+  clearPromoCode,
+} = useOffers()
 const { addOrder } = useOrders()
 const { addQuote } = useQuotes()
 const { createOrder, openCheckout } = useRazorpay()
@@ -202,13 +215,44 @@ const hasPriceOnRequestItems = computed(() =>
 const payableItems = computed(() =>
   items.filter((item) => !isCustomizedCartItem(item) && !isPriceOnRequestCartItem(item)),
 )
-const canPayOnline = computed(() => payableItems.value.length > 0 && discountedTotal.value > 0)
+const canPayOnline = computed(() => payableItems.value.length > 0 && payableTotal.value > 0)
 
 // Removing the last priced piece from an all-custom cart would otherwise leave
 // an online method selected that the gateway has nothing to charge for.
 watch(canPayOnline, (payable) => {
   if (!payable && isOnlinePayment.value) form.value.payment = 'cod'
 })
+
+// --- Promo code ---
+const promoInput = ref('')
+
+/**
+ * Checks the typed code against this cart. The server prices it through the
+ * same path that will charge the shopper, so a code accepted here is worth the
+ * same at payment.
+ */
+async function handleApplyPromo() {
+  const applied = await applyPromoCode(
+    promoInput.value,
+    payableItems.value.map((item) => ({ slug: item.product.slug, qty: item.qty })),
+    items.map((item) => ({ slug: item.product.slug, qty: item.qty })),
+  )
+  if (applied) promoInput.value = ''
+}
+
+function handleClearPromo() {
+  clearPromoCode()
+  promoInput.value = ''
+}
+
+// A code is priced against the cart it was applied to, so changing the cart
+// retires it rather than carrying a stale discount to the payment step.
+watch(
+  () => items.map((item) => `${item.product.slug}:${item.qty}`).join('|'),
+  () => {
+    if (appliedPromo.value) clearPromoCode()
+  },
+)
 
 function buildCustomizationMap(customization: Record<string, unknown> | null | undefined): Record<string, string> | null {
   if (!customization) return null
@@ -233,7 +277,7 @@ function buildCustomizationMap(customization: Record<string, unknown> | null | u
 
 function finalizeStandardOrder(referenceNo?: string) {
   const snapshot = [...items]
-  const order = addOrder(snapshot, discountedTotal.value, form.value.payment, referenceNo)
+  const order = addOrder(snapshot, payableTotal.value, form.value.payment, referenceNo)
   void notifyTransaction({
     kind: 'order',
     orderId: order.id,
@@ -246,7 +290,7 @@ function finalizeStandardOrder(referenceNo?: string) {
     country: countryDisplayName(form.value.country),
     pincode: form.value.pincode.trim(),
     paymentMethod: form.value.payment,
-    formattedTotal: formattedDiscountedTotal.value,
+    formattedTotal: formattedPayableTotal.value,
     items: snapshot.map((i) => ({
       title: i.product.title,
       qty: i.qty,
@@ -300,13 +344,10 @@ function finalizeCheckout(referenceNo?: string) {
   let orderResult: ReturnType<typeof finalizeStandardOrder> | null = null
   if (nonCustomized.length) {
     const snapshot = [...nonCustomized]
-    const nonCustomGross = snapshot.reduce((sum, i) => {
-      const num = Number(String(i.product.price).replace(/[^\d]/g, ''))
-      return sum + num * i.qty
-    }, 0)
-    // Same volume-discount percentage the cart advertised, applied to the
-    // priced (non-customized) portion of a mixed order.
-    const nonCustomTotal = nonCustomGross - Math.round((nonCustomGross * discountPercent.value) / 100)
+    // Customized pieces are quoted rather than sold, so they never contribute to
+    // the cart's priced totals — which makes payableTotal already exactly the
+    // priced portion of a mixed order, offer and promo code included.
+    const nonCustomTotal = payableTotal.value
     const order = addOrder(snapshot, nonCustomTotal, form.value.payment, referenceNo)
     void notifyTransaction({
       kind: 'order',
@@ -393,6 +434,7 @@ async function handleSubmit() {
       const order = await createOrder({
         items: payableItems.value.map((item) => ({ slug: item.product.slug, qty: item.qty })),
         cartItems: items.map((item) => ({ slug: item.product.slug, qty: item.qty })),
+        promoCode: appliedPromo.value?.code,
         customer: {
           name: form.value.name.trim(),
           email: form.value.email.trim(),
@@ -413,7 +455,7 @@ async function handleSubmit() {
       // one amount and charged another. Say so instead of letting the gateway
       // surprise the customer.
       const serverTotal = Math.round(order.amountPaise / 100)
-      if (serverTotal !== discountedTotal.value) {
+      if (serverTotal !== payableTotal.value) {
         paymentError.value = `Prices changed while you were checking out — this order now comes to ${formatInr(serverTotal)}. Review your cart, then pay again to confirm.`
         isProcessing.value = false
         return
@@ -734,7 +776,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
             <span>
               {{ isProcessing
                 ? (isOnlinePayment ? 'Opening payment…' : (hasCustomizedItems ? 'Creating your custom request…' : 'Placing your order…'))
-                : (isOnlinePayment ? `Pay Securely · ${formattedDiscountedTotal}` : (hasCustomizedItems ? `Create Custom Request · ${formattedDiscountedTotal}` : `Place Order · ${formattedDiscountedTotal}`)) }}
+                : (isOnlinePayment ? `Pay Securely · ${formattedPayableTotal}` : (hasCustomizedItems ? `Create Custom Request · ${formattedPayableTotal}` : `Place Order · ${formattedPayableTotal}`)) }}
             </span>
           </button>
 
@@ -768,7 +810,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <p class="ect-font-body ect-text-xs ect-text-charcoal/50">{{ item.product.category }}</p>
                 </section>
                 <span v-if="isPriceOnRequestCartItem(item)" class="ect-font-body ect-text-xs ect-text-gold-700 ect-font-medium ect-whitespace-nowrap">Price on request</span>
-                <span v-else class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal ect-whitespace-nowrap">{{ item.product.price }}</span>
+                <span v-else class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal ect-whitespace-nowrap">{{ formatInr(offerPrice(item.product.priceValue)) }}</span>
               </li>
             </ul>
 
@@ -777,11 +819,15 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
             <section class="ect-space-y-2 ect-mb-4">
               <article class="ect-flex ect-justify-between">
                 <span class="ect-font-body ect-text-sm ect-text-charcoal/60">Subtotal</span>
-                <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ formattedTotal }}</span>
+                <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ flatOfferAmount > 0 ? formattedListTotal : formattedTotal }}</span>
               </article>
-              <article v-if="volumeDiscountTier" class="ect-flex ect-justify-between">
-                <span class="ect-font-body ect-text-sm ect-text-gold-600">Volume discount ({{ discountPercent }}%)</span>
-                <span class="ect-price ect-font-semibold ect-text-sm ect-text-gold-600">− {{ formattedDiscount }}</span>
+              <article v-if="flatOfferAmount > 0" class="ect-flex ect-justify-between">
+                <span class="ect-font-body ect-text-sm ect-text-[#1f3f37]">{{ offerLabel }}</span>
+                <span class="ect-price ect-font-semibold ect-text-sm ect-text-[#1f3f37]">− {{ formattedFlatOffer }}</span>
+              </article>
+              <article v-if="promoAmount > 0" class="ect-flex ect-justify-between">
+                <span class="ect-font-body ect-text-sm ect-text-[#1f3f37]">Promo code {{ appliedPromo?.code }}</span>
+                <span class="ect-price ect-font-semibold ect-text-sm ect-text-[#1f3f37]">− {{ formattedPromoDiscount }}</span>
               </article>
               <article v-if="hasPriceOnRequestItems" class="ect-flex ect-justify-between">
                 <span class="ect-font-body ect-text-sm ect-text-gold-700">Price-on-request items</span>
@@ -799,9 +845,48 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
 
             <hr class="ect-border-sand ect-mb-4" />
 
+            <!-- Promo code. Unlike the flat offer this is not part of the
+                 catalog price, so it lives here at the last step where the
+                 shopper can still act on it. -->
+            <section v-if="listTotal > 0" class="ect-mb-4">
+              <div v-if="appliedPromo" class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-rounded-xl ect-bg-[#f4ecd9] ect-px-3 ect-py-2.5">
+                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-[#1f3f37]">
+                  {{ appliedPromo.code }} applied
+                </span>
+                <button
+                  type="button"
+                  class="ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/55 hover:ect-text-charcoal ect-underline"
+                  @click="handleClearPromo"
+                >
+                  Remove
+                </button>
+              </div>
+              <div v-else class="ect-flex ect-items-center ect-gap-2">
+                <input
+                  v-model="promoInput"
+                  type="text"
+                  autocapitalize="characters"
+                  placeholder="Promo code"
+                  class="ect-flex-1 ect-min-w-0 ect-rounded-xl ect-border ect-border-sand ect-px-3 ect-py-2.5 ect-font-body ect-text-sm ect-uppercase ect-tracking-wide ect-text-charcoal placeholder:ect-normal-case placeholder:ect-tracking-normal placeholder:ect-text-charcoal/35 focus:ect-outline-none focus:ect-border-charcoal/40"
+                  @keydown.enter.prevent="handleApplyPromo"
+                />
+                <button
+                  type="button"
+                  :disabled="promoChecking || !promoInput.trim()"
+                  class="ect-shrink-0 ect-rounded-xl ect-bg-charcoal ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-font-semibold ect-text-white ect-transition-colors hover:ect-bg-noir disabled:ect-opacity-40 disabled:hover:ect-bg-charcoal"
+                  @click="handleApplyPromo"
+                >
+                  {{ promoChecking ? 'Checking…' : 'Apply' }}
+                </button>
+              </div>
+              <p v-if="promoError" class="ect-mt-2 ect-font-body ect-text-xs ect-text-red-600">{{ promoError }}</p>
+            </section>
+
+            <hr class="ect-border-sand ect-mb-4" />
+
             <article class="ect-flex ect-justify-between ect-items-baseline ect-mb-1">
               <span class="ect-font-display ect-text-lg ect-text-charcoal">Total</span>
-              <span class="ect-price ect-text-2xl ect-text-charcoal">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
+              <span class="ect-price ect-text-2xl ect-text-charcoal">{{ formattedPayableTotal }}</span>
             </article>
             <p class="ect-font-body ect-text-xs ect-text-charcoal/40 ect-text-right">GST included in price</p>
           </section>

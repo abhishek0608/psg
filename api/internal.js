@@ -15,6 +15,12 @@ import { isS3Configured, listProductImagesBySlug } from '../server/api/s3-images
 import { getAllHomepageSlides } from '../server/api/homepage-slides-source.js'
 import { getSiteConfig, saveSiteConfig } from '../server/api/site-config-source.js'
 import {
+  MAX_OFFER_PERCENT,
+  normalizeOfferType,
+  normalizeOfferValue,
+  normalizePromoCode,
+} from '../server/api/offers-source.js'
+import {
   getAllStoneSizes,
   invalidateStoneSizesCache,
   syncStoneSizesInUse,
@@ -24,9 +30,9 @@ import { VIDEO_CALL_STATUSES, toVideoCallPayload } from '../server/api/video-cal
 
 // This file is a single Vercel serverless function that fans out to the
 // internal-admin resources by `?resource=` (product, homepage-slides,
-// site-config, stone-sizes, upload-image) or, when omitted, the dashboard. The endpoints
-// were merged into one function to stay under the Hobby plan's 12-function
-// deployment cap.
+// site-config, promo-codes, stone-sizes, upload-image) or, when omitted, the
+// dashboard. The endpoints were merged into one function to stay under the
+// Hobby plan's 12-function deployment cap.
 
 function parseBody(req) {
   if (typeof req.body !== 'string') return req.body || {}
@@ -1707,16 +1713,13 @@ async function handleSiteConfigResource(req, res, body) {
 
   if (req.method === 'PUT') {
     // Only forward the fields present in the request body so a save from one
-    // tab (branding vs. discounts) never overwrites the other's settings.
+    // tab (branding vs. offers) never overwrites the other's settings.
     const patch = {}
     if ('logoUrl' in (body || {})) {
       patch.logoUrl = typeof body.logoUrl === 'string' ? body.logoUrl : ''
     }
-    if ('volumeDiscountEnabled' in (body || {})) {
-      patch.volumeDiscountEnabled = body.volumeDiscountEnabled
-    }
-    if ('volumeDiscountTiers' in (body || {})) {
-      patch.volumeDiscountTiers = body.volumeDiscountTiers
+    for (const key of ['flatOfferEnabled', 'flatOfferType', 'flatOfferValue', 'flatOfferLabel']) {
+      if (key in (body || {})) patch[key] = body[key]
     }
     if ('collectionImages' in (body || {})) {
       patch.collectionImages = body.collectionImages
@@ -1736,6 +1739,112 @@ async function handleSiteConfigResource(req, res, body) {
   }
 
   res.setHeader('Allow', 'GET,PUT')
+  return res.status(405).json({ message: 'Method not allowed' })
+}
+
+// ---------------------------------------------------------------------------
+// Promo codes (resource=promo-codes)
+// ---------------------------------------------------------------------------
+
+/** Optional date bound off the admin form; a blank field means "no bound". */
+function parseOptionalDate(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  const parsed = new Date(raw)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function toPromoCodeRow(row) {
+  return {
+    id: row.id,
+    code: row.code,
+    type: row.type,
+    value: row.value,
+    minOrderPaise: row.minOrderPaise,
+    // The admin form binds to <input type="date">, which wants YYYY-MM-DD.
+    startsAt: row.startsAt ? row.startsAt.toISOString().slice(0, 10) : '',
+    endsAt: row.endsAt ? row.endsAt.toISOString().slice(0, 10) : '',
+    active: row.active,
+  }
+}
+
+async function handlePromoCodesResource(req, res, body) {
+  const userId = String(req?.query?.userId || body?.userId || '').trim()
+  const internalUser = await assertInternalUser(userId)
+  if (!internalUser) return res.status(403).json({ message: 'Internal access required.' })
+
+  if (req.method === 'GET') {
+    try {
+      const rows = await prisma.promoCode.findMany({ orderBy: { createdAt: 'desc' }, take: 200 })
+      return res.status(200).json({ promoCodes: rows.map(toPromoCodeRow) })
+    } catch (error) {
+      console.error('[internal-promo-codes] list failed:', error)
+      return res.status(500).json({ message: 'Unable to load promo codes.' })
+    }
+  }
+
+  if (req.method === 'POST') {
+    const action = String(body?.action || '').trim()
+
+    if (action === 'delete') {
+      const id = String(body?.id || '').trim()
+      if (!id) return res.status(400).json({ message: 'Missing promo code id.' })
+      try {
+        await prisma.promoCode.delete({ where: { id } })
+        return res.status(200).json({ ok: true })
+      } catch (error) {
+        if (error?.code === 'P2025') return res.status(404).json({ message: 'Promo code not found.' })
+        console.error('[internal-promo-codes] delete failed:', error)
+        return res.status(500).json({ message: 'Unable to delete the promo code.' })
+      }
+    }
+
+    const code = normalizePromoCode(body?.code)
+    if (!code) return res.status(400).json({ message: 'Enter a promo code.' })
+    const type = normalizeOfferType(body?.type)
+    const value = normalizeOfferValue(body?.value, type)
+    if (!(value > 0)) {
+      return res.status(400).json({
+        message:
+          type === 'PERCENT'
+            ? `Enter a discount between 1 and ${MAX_OFFER_PERCENT}%.`
+            : 'Enter a discount amount greater than zero.',
+      })
+    }
+
+    const startsAt = parseOptionalDate(body?.startsAt)
+    const endsAt = parseOptionalDate(body?.endsAt)
+    if (startsAt && endsAt && endsAt < startsAt) {
+      return res.status(400).json({ message: 'The end date cannot be before the start date.' })
+    }
+
+    const data = {
+      code,
+      type,
+      value,
+      minOrderPaise: Math.max(0, Math.min(100_000_000, Math.floor(Number(body?.minOrderPaise) || 0))),
+      startsAt,
+      endsAt,
+      active: body?.active !== false,
+    }
+
+    try {
+      const id = String(body?.id || '').trim()
+      const row = id
+        ? await prisma.promoCode.update({ where: { id }, data })
+        : await prisma.promoCode.create({ data })
+      return res.status(200).json({ promoCode: toPromoCodeRow(row) })
+    } catch (error) {
+      if (error?.code === 'P2002') {
+        return res.status(400).json({ message: `The code "${code}" already exists.` })
+      }
+      if (error?.code === 'P2025') return res.status(404).json({ message: 'Promo code not found.' })
+      console.error('[internal-promo-codes] save failed:', error)
+      return res.status(500).json({ message: 'Unable to save the promo code.' })
+    }
+  }
+
+  res.setHeader('Allow', 'GET,POST')
   return res.status(405).json({ message: 'Method not allowed' })
 }
 
@@ -1901,6 +2010,7 @@ export default async function handler(req, res) {
   if (resource === 'product') return handleProductResource(req, res, body)
   if (resource === 'homepage-slides') return handleSlidesResource(req, res, body)
   if (resource === 'site-config') return handleSiteConfigResource(req, res, body)
+  if (resource === 'promo-codes') return handlePromoCodesResource(req, res, body)
   if (resource === 'stone-sizes') return handleStoneSizesResource(req, res, body)
   if (resource === 'upload-image') return handleUploadImageResource(req, res, body)
   if (resource === 'video-calls') return handleVideoCallsResource(req, res, body)

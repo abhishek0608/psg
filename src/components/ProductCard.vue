@@ -4,6 +4,7 @@ import type { Material, Product } from '../data/products'
 import { isCustomizedCartItem, useCart } from '../composables/useCart'
 import { useWishlist } from '../composables/useWishlist'
 import { useVideoCallList } from '../composables/useVideoCallList'
+import { useOffers } from '../composables/useOffers'
 import ImageWatermark from './ImageWatermark.vue'
 
 const props = defineProps<{
@@ -90,10 +91,17 @@ function handleVideoCall(e: Event) {
 const PLACEHOLDER_GRADIENT = 'ect-from-champagne ect-to-cream'
 
 // A "₹0" price reads as a bug; unpriced pieces are quoted individually instead.
-const hasRetailPrice = computed(() => {
-  const numeric = Number(String(props.price || '').replace(/[^0-9.]/g, ''))
-  return Number.isFinite(numeric) && numeric > 0
+const listPriceValue = computed(() => {
+  const numeric = props.product?.priceValue ?? Number(String(props.price || '').replace(/[^0-9.]/g, ''))
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0
 })
+const hasRetailPrice = computed(() => listPriceValue.value > 0)
+
+// A running flat offer is part of the sticker price, so the card shows what the
+// piece actually costs today with the old price struck through beside it. The
+// server recomputes the same figure at checkout — this is display only.
+const { priceDisplay, offerLabel } = useOffers()
+const pricing = computed(() => priceDisplay(listPriceValue.value))
 
 // Listing cards carry no star rating: reviews belong on the product page,
 // where the full set is readable and the number has context. On a grid the
@@ -135,8 +143,16 @@ const productTag = computed(() => {
         <!-- Hover overlay -->
         <span class="ect-absolute ect-inset-0 ect-bg-charcoal/0 group-hover:ect-bg-charcoal/[0.035] ect-transition-colors ect-duration-300" />
 
-        <!-- Listing badge (top-left) -->
-        <span v-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#b79a56] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#2b2723]">
+        <!-- Listing badge (top-left). A running offer outranks the "New" /
+             "Under ₹50k" tag rather than stacking a second pill over the shot —
+             the saving is the more useful thing to say about the piece. -->
+        <span
+          v-if="pricing.hasOffer"
+          class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#1f3f37] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9]"
+        >
+          {{ offerLabel }}
+        </span>
+        <span v-else-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#b79a56] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#2b2723]">
           {{ productTag }}
         </span>
 
@@ -198,8 +214,22 @@ const productTag = computed(() => {
          `.ect-buy-row` in style.css for why that distinction matters. -->
     <section class="ect-px-3 ect-pb-3 ect-pt-1.5 sm:ect-px-3.5">
       <div class="ect-buy-row ect-flex ect-flex-wrap ect-items-center ect-gap-2">
+        <!-- Under an offer the old price sits on its own tight line above the
+             new one rather than beside it: the row's 260px container query was
+             measured for one price plus the labelled button, and a second
+             amount on the same line would push the label off on narrow cards.
+             The extra line costs ~14px and only appears when an offer runs, so
+             cards still line up across a row. -->
         <div class="ect-min-w-0 ect-shrink-0">
-          <p v-if="hasRetailPrice" class="ect-whitespace-nowrap ect-price ect-text-price-sm sm:ect-text-price ect-leading-none ect-text-charcoal">{{ price }}</p>
+          <p
+            v-if="hasRetailPrice && pricing.hasOffer"
+            class="ect-whitespace-nowrap ect-price ect-text-micro ect-leading-none ect-text-charcoal/40 ect-line-through"
+          >{{ pricing.formattedList }}</p>
+          <p
+            v-if="hasRetailPrice"
+            class="ect-whitespace-nowrap ect-price ect-text-price-sm sm:ect-text-price ect-leading-none"
+            :class="pricing.hasOffer ? 'ect-mt-1 ect-text-[#1f3f37]' : 'ect-text-charcoal'"
+          >{{ pricing.hasOffer ? pricing.formattedDiscounted : price }}</p>
           <p v-else class="ect-whitespace-nowrap ect-font-body ect-text-ui sm:ect-text-sm ect-font-medium ect-tracking-wide ect-text-charcoal/55">Price on request</p>
         </div>
         <button

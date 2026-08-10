@@ -2,23 +2,27 @@
 import { computed, ref } from 'vue'
 
 import { useCart, type CartItem, isCustomizedCartItem, isPriceOnRequestCartItem } from '../composables/useCart'
-import VolumeDiscountInfo from '../components/VolumeDiscountInfo.vue'
+import { useOffers } from '../composables/useOffers'
 import { formatInr } from '../utils/currency'
 
 const {
   items,
   loading,
   totalItems,
+  formattedListTotal,
   formattedTotal,
-  volumeDiscountTier,
-  nextVolumeDiscountTier,
-  discountPercent,
-  formattedDiscount,
-  formattedDiscountedTotal,
+  flatOfferAmount,
+  formattedFlatOffer,
+  formattedPayableTotal,
+  totalSavings,
+  formattedTotalSavings,
   updateQty,
   removeFromCart,
   clearCart,
 } = useCart()
+// A promo code is entered at checkout, so the cart only reflects the flat
+// offer — it shows the saving already baked into these prices.
+const { offerPrice, offerLabel } = useOffers()
 const rowLoading = ref<Record<string, boolean>>({})
 
 function isRowLoading(id: string) {
@@ -69,9 +73,11 @@ const quoteNote = computed(() => {
   return ''
 })
 
+// Line totals use the offer price, so every amount on this page matches what
+// the product card quoted.
 function itemSubtotal(item: CartItem) {
   if (isItemCustomized(item)) return null
-  return formatInr(item.product.priceValue * item.qty)
+  return formatInr(offerPrice(item.product.priceValue) * item.qty)
 }
 
 function customizationEntries(item: CartItem) {
@@ -274,7 +280,12 @@ function customizationEntries(item: CartItem) {
             <section class="ect-bg-white ect-rounded-2xl ect-p-5 sm:ect-p-6 ect-border ect-border-sand ect-shadow-card">
               <div class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-mb-5">
                 <h2 class="ect-font-display ect-text-xl ect-font-medium ect-text-charcoal">Order Summary</h2>
-                <VolumeDiscountInfo :current-qty="totalItems" align="right" />
+                <span
+                  v-if="flatOfferAmount > 0"
+                  class="ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#1f3f37] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9]"
+                >
+                  {{ offerLabel }}
+                </span>
               </div>
 
               <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3 ect-mb-5">
@@ -298,20 +309,16 @@ function customizationEntries(item: CartItem) {
               <hr class="ect-border-sand ect-mb-4" />
 
               <section class="ect-space-y-2 ect-mb-4">
+                <!-- With an offer running the subtotal is shown at list price
+                     and the saving taken off beneath it, so the arithmetic is
+                     visible rather than silently folded into the line totals. -->
                 <article class="ect-flex ect-justify-between">
                   <span class="ect-font-body ect-text-sm ect-text-charcoal/60">Subtotal ({{ totalItems }} item{{ totalItems !== 1 ? 's' : '' }})</span>
-                  <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ formattedTotal }}</span>
+                  <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ flatOfferAmount > 0 ? formattedListTotal : formattedTotal }}</span>
                 </article>
-                <article v-if="volumeDiscountTier" class="ect-flex ect-justify-between">
-                  <span class="ect-font-body ect-text-sm ect-text-gold-600 ect-flex ect-items-center ect-gap-1.5">
-                    Volume discount ({{ discountPercent }}% · {{ volumeDiscountTier.minQty }}+ items)
-                  </span>
-                  <span class="ect-price ect-font-semibold ect-text-sm ect-text-gold-600">− {{ formattedDiscount }}</span>
-                </article>
-                <article v-else-if="nextVolumeDiscountTier" class="ect-flex">
-                  <span class="ect-font-body ect-text-micro ect-text-charcoal/45">
-                    Add {{ nextVolumeDiscountTier.minQty - totalItems }} more item{{ nextVolumeDiscountTier.minQty - totalItems !== 1 ? 's' : '' }} to save {{ nextVolumeDiscountTier.percent }}%
-                  </span>
+                <article v-if="flatOfferAmount > 0" class="ect-flex ect-justify-between">
+                  <span class="ect-font-body ect-text-sm ect-text-[#1f3f37] ect-flex ect-items-center ect-gap-1.5">{{ offerLabel }}</span>
+                  <span class="ect-price ect-font-semibold ect-text-sm ect-text-[#1f3f37]">− {{ formattedFlatOffer }}</span>
                 </article>
                 <article v-if="hasCustomItems" class="ect-flex ect-justify-between">
                   <span class="ect-font-body ect-text-sm ect-text-gold-700">Custom items</span>
@@ -336,8 +343,8 @@ function customizationEntries(item: CartItem) {
               <article class="ect-flex ect-justify-between ect-items-baseline ect-mb-5">
                 <span class="ect-font-display ect-text-lg ect-text-charcoal">Total</span>
                 <section class="ect-text-right">
-                  <span class="ect-price ect-text-2xl ect-text-charcoal ect-block">{{ volumeDiscountTier ? formattedDiscountedTotal : formattedTotal }}</span>
-                  <span v-if="volumeDiscountTier" class="ect-font-body ect-text-micro ect-text-gold-600">You save {{ formattedDiscount }} ({{ discountPercent }}%)</span>
+                  <span class="ect-price ect-text-2xl ect-text-charcoal ect-block">{{ formattedPayableTotal }}</span>
+                  <span v-if="totalSavings > 0" class="ect-font-body ect-text-micro ect-text-[#1f3f37]">You save {{ formattedTotalSavings }}</span>
                   <span v-if="quoteNote" class="ect-font-body ect-text-micro ect-text-gold-600 ect-block">{{ quoteNote }}</span>
                 </section>
               </article>

@@ -117,6 +117,12 @@ export function useRazorpay() {
     items: CheckoutLine[]
     /** The whole cart — only used to pick the volume-discount tier. */
     cartItems: CheckoutLine[]
+    /**
+     * The promo code the shopper applied, if any. Only the code travels: the
+     * server looks up what it is worth, so the browser cannot name its own
+     * discount.
+     */
+    promoCode?: string
     customer: CheckoutCustomer
     shipping: CheckoutShipping
     method: string
