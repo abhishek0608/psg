@@ -15,7 +15,7 @@ const tabs: { id: InternalWorkspaceTabId; label: string }[] = [
   { id: 'homepage', label: 'Homepage' },
   { id: 'about', label: 'About page' },
   { id: 'branding', label: 'Branding' },
-  { id: 'discounts', label: 'Discounts' },
+  { id: 'offers', label: 'Offers' },
 ]
 </script>
 

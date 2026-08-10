@@ -1,4 +1,5 @@
 import { prisma } from './db.js'
+import { normalizeFlatOffer, normalizeOfferType, normalizeOfferValue } from './offers-source.js'
 
 // There is only ever one SiteConfig row, keyed by this fixed id.
 export const SITE_CONFIG_ID = 'default'
@@ -6,6 +7,10 @@ export const SITE_CONFIG_ID = 'default'
 // Coerce arbitrary stored/incoming JSON into a clean, sorted list of
 // { minQty, percent } tiers. Invalid entries are dropped rather than throwing
 // so a bad row can never break price rendering on the storefront.
+//
+// Dormant: quantity tiers have no admin surface any more (PSG sells direct to
+// consumers), so volumeDiscountEnabled stays false and this returns an empty
+// list in practice. Kept so a B2B channel can be switched back on.
 function normalizeVolumeDiscountTiers(raw) {
   if (!Array.isArray(raw)) return []
   const tiers = []
@@ -112,6 +117,7 @@ function normalizeSiteConfig(row) {
     logoUrl: row?.logoUrl || '',
     volumeDiscountEnabled: Boolean(row?.volumeDiscountEnabled),
     volumeDiscountTiers: normalizeVolumeDiscountTiers(row?.volumeDiscountTiers),
+    flatOffer: normalizeFlatOffer(row),
     collectionImages: normalizeCollectionImages(row?.collectionImages),
     aboutContent: normalizeAboutContent(row?.aboutContent),
     // A row that predates the video-call columns reads as "enabled" so the
@@ -142,6 +148,18 @@ export async function saveSiteConfig(patch = {}) {
   }
   if ('volumeDiscountTiers' in patch) {
     update.volumeDiscountTiers = normalizeVolumeDiscountTiers(patch.volumeDiscountTiers)
+  }
+  // The flat offer is written as a unit: the type decides how the value is
+  // clamped, so saving one without the other could store a 5,000% discount.
+  if ('flatOfferEnabled' in patch || 'flatOfferType' in patch || 'flatOfferValue' in patch) {
+    const type = normalizeOfferType(patch.flatOfferType)
+    update.flatOfferType = type
+    update.flatOfferValue = normalizeOfferValue(patch.flatOfferValue, type)
+    update.flatOfferEnabled = Boolean(patch.flatOfferEnabled) && update.flatOfferValue > 0
+  }
+  if ('flatOfferLabel' in patch) {
+    update.flatOfferLabel =
+      typeof patch.flatOfferLabel === 'string' ? patch.flatOfferLabel.trim().slice(0, 60) || null : null
   }
   if ('collectionImages' in patch) {
     update.collectionImages = normalizeCollectionImages(patch.collectionImages)

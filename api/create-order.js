@@ -2,11 +2,13 @@
  * POST /api/create-order — starts an online (UPI / card) checkout.
  *
  * The browser posts what it wants to buy, never what it wants to pay:
- *   { items: [{ slug, qty }], cartItems: [{ slug, qty }],
+ *   { items: [{ slug, qty }], cartItems: [{ slug, qty }], promoCode?,
  *     customer: {...}, shipping: {...}, method, userId? }
  * `items` is the priced, chargeable part of the cart; `cartItems` is the whole
- * cart, which only decides which volume-discount tier applies.
- * Every amount is re-derived from the catalog and the live discount config
+ * cart, which only decides which volume-discount tier applies. `promoCode` is
+ * the code the shopper typed — the discount it is worth is recomputed here, so
+ * the browser cannot name its own figure.
+ * Every amount is re-derived from the catalog and the live offer config
  * (server/api/checkout-order.js), a PENDING Order + Payment pair is written,
  * and a Razorpay order is opened for that server-computed total.
  *
@@ -63,7 +65,11 @@ export default async function handler(req, res) {
   const body = parseBody(req)
 
   try {
-    const pricing = await priceCheckoutLines(body?.items, body?.cartItems)
+    const pricing = await priceCheckoutLines({
+      items: body?.items,
+      cartItems: body?.cartItems,
+      promoCode: body?.promoCode,
+    })
     const paymentMethod = methodFromCheckoutChoice(body?.method)
     if (paymentMethod === 'COD') {
       return res.status(400).json({ message: 'Cash on delivery does not go through online payment.' })
