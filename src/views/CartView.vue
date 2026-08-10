@@ -278,14 +278,10 @@ function customizationEntries(item: CartItem) {
 
             <!-- Order summary card -->
             <section class="ect-bg-white ect-rounded-2xl ect-p-5 sm:ect-p-6 ect-border ect-border-sand ect-shadow-card">
+              <!-- No offer badge here either: the discount already has its own
+                   line in the totals below, a few rows down. -->
               <div class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-mb-5">
                 <h2 class="ect-font-display ect-text-xl ect-font-medium ect-text-charcoal">Order Summary</h2>
-                <span
-                  v-if="flatOfferAmount > 0"
-                  class="ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#1f3f37] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9]"
-                >
-                  {{ offerLabel }}
-                </span>
               </div>
 
               <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3 ect-mb-5">
