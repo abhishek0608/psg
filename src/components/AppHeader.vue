@@ -54,13 +54,17 @@ const collectionItems: CollectionLink[] = COLLECTION_LINKS
 // "All Jewellery" opens the same panel with an extra category rail on the left:
 // hovering a category there swaps the rest of the panel to that category's
 // content, so the entry point differs but the menu body is identical.
+// The panel body is driven by MEGA_MENUS, so the rail only lists collections
+// that have menu data — a collection added to COLLECTION_LINKS without a
+// MEGA_MENUS entry would otherwise blank the whole panel when hovered.
 const ALL_JEWELLERY_KEY = '__all__'
-const allJewelleryItem = ref(collectionItems[0]?.slug ?? '')
+const railCollections = collectionItems.filter((c) => MEGA_MENUS[c.slug])
+const allJewelleryItem = ref(railCollections[0]?.slug ?? '')
 const isAllJewelleryOpen = computed(() => activeDropdown.value === ALL_JEWELLERY_KEY)
 
 function openAllJewellery() {
   activeDropdown.value = ALL_JEWELLERY_KEY
-  allJewelleryItem.value = collectionItems[0]?.slug ?? ''
+  allJewelleryItem.value = railCollections[0]?.slug ?? ''
 }
 
 const activeMegaSlug = computed(() =>
@@ -514,7 +518,7 @@ function toggleNotifications() {
           <div
             class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-py-7 ect-grid"
             :class="isAllJewelleryOpen
-              ? 'ect-grid-cols-[11.5rem_1fr_1fr_1fr_1.35fr] ect-gap-x-7'
+              ? 'ect-grid-cols-[12.5rem_1fr_1fr_1fr_1.35fr] ect-gap-x-7'
               : 'ect-grid-cols-[1.35fr_1fr_1fr_1.15fr] ect-gap-x-10'"
           >
             <!-- Category rail (All Jewellery only): hovering a row swaps the
@@ -522,10 +526,10 @@ function toggleNotifications() {
             <section v-if="isAllJewelleryOpen">
               <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4 ect-min-h-[2.375rem]">Shop By Category</h3>
               <ul class="ect-list-none ect-m-0 ect-p-0">
-                <li v-for="c in collectionItems" :key="c.slug">
+                <li v-for="c in railCollections" :key="c.slug">
                   <RouterLink
                     :to="`/collections/${c.slug}`"
-                    class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-py-2 ect-pl-3 ect-pr-2 ect-rounded-sm ect-font-body ect-text-sm ect-transition-colors"
+                    class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-py-2 ect-pl-3 ect-pr-2 ect-rounded-sm ect-font-body ect-text-sm ect-whitespace-nowrap ect-transition-colors"
                     :class="activeMegaSlug === c.slug
                       ? 'ect-bg-champagne/60 ect-text-espresso-800 ect-font-semibold'
                       : 'ect-text-charcoal/65 hover:ect-text-gold-700'"
