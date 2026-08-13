@@ -8,7 +8,7 @@
  *   Promo code  — typed in at checkout. Catalog prices are untouched; the code
  *                 reduces the order subtotal once it has been entered.
  *
- * A promo code applies to the subtotal *after* the flat offer, which is the
+ * A promo code applies to the subtotal *after* automatic product offers, which is the
  * behaviour a shopper expects once the discounted price is the price they were
  * shown. The two therefore stack.
  *
@@ -18,6 +18,7 @@
 import { prisma } from './db.js'
 
 export const OFFER_TYPES = ['PERCENT', 'AMOUNT']
+export const AUTOMATIC_OFFER_TYPES = ['PERCENT', 'AMOUNT', 'FIXED_PRICE']
 
 // A percent offer is capped below 100 so enabling one can never drive an order
 // to ₹0 and take checkout down with it — Razorpay cannot charge nothing.
@@ -33,6 +34,19 @@ export function normalizeOfferValue(value, type) {
   const parsed = Math.floor(Number(value))
   if (!Number.isFinite(parsed) || parsed <= 0) return 0
   if (normalizeOfferType(type) === 'PERCENT') return Math.min(MAX_OFFER_PERCENT, parsed)
+  return Math.min(100_000_000, parsed)
+}
+
+/** Automatic campaigns also support a product's exact temporary sale price. */
+export function normalizeAutomaticOfferType(value) {
+  const type = String(value || '').trim().toUpperCase()
+  return AUTOMATIC_OFFER_TYPES.includes(type) ? type : 'PERCENT'
+}
+
+export function normalizeAutomaticOfferValue(value, type) {
+  const parsed = Math.floor(Number(value))
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0
+  if (normalizeAutomaticOfferType(type) === 'PERCENT') return Math.min(MAX_OFFER_PERCENT, parsed)
   return Math.min(100_000_000, parsed)
 }
 
@@ -74,6 +88,9 @@ export function applyFlatOfferToUnitPrice(listPrice, offer) {
   if (offer.type === 'PERCENT') {
     return Math.round((price * (100 - offer.value)) / 100)
   }
+  if (offer.type === 'FIXED_PRICE') {
+    return offer.value < price ? offer.value : price
+  }
   return price > offer.value ? price - offer.value : price
 }
 
@@ -90,10 +107,27 @@ export function normalizeOfferScope(value) {
 
 /** Normalized internal shape shared by catalog and checkout resolution. */
 export function normalizeAutomaticOffer(row) {
-  const type = normalizeOfferType(row?.type)
-  const value = normalizeOfferValue(row?.value, type)
-  const productIds = Array.isArray(row?.products)
-    ? row.products.map((target) => String(target?.productId || '')).filter(Boolean)
+  const rawType = String(row?.type || '').trim()
+  const type = rawType ? normalizeAutomaticOfferType(rawType) : null
+  const value = type ? normalizeAutomaticOfferValue(row?.value, type) : null
+  const productTargets = Array.isArray(row?.products)
+    ? row.products
+        .map((target) => {
+          const productId = String(target?.productId || '')
+          const rawType = String(target?.offerType || '').trim()
+          const offerType = rawType ? normalizeAutomaticOfferType(rawType) : null
+          const offerValue = offerType
+            ? normalizeAutomaticOfferValue(target?.offerValue, offerType)
+            : null
+          return {
+            productId,
+            offerType: offerType && offerValue > 0 ? offerType : null,
+            offerValue: offerType && offerValue > 0 ? offerValue : null,
+            offerLabel:
+              typeof target?.offerLabel === 'string' ? target.offerLabel.trim().slice(0, 60) : '',
+          }
+        })
+        .filter((target) => target.productId)
     : []
   return {
     id: String(row?.id || ''),
@@ -102,19 +136,20 @@ export function normalizeAutomaticOffer(row) {
     value,
     label: typeof row?.label === 'string' ? row.label.trim().slice(0, 60) : '',
     scope: normalizeOfferScope(row?.scope),
-    active: Boolean(row?.active) && value > 0,
+    active: Boolean(row?.active),
     startsAt: row?.startsAt || null,
     endsAt: row?.endsAt || null,
-    productIds,
+    productIds: productTargets.map((target) => target.productId),
+    productTargets,
   }
 }
 
 export function automaticOfferLabel(offer) {
   if (!offer?.active) return ''
   if (offer.label) return offer.label
-  return offer.type === 'PERCENT'
-    ? `${offer.value}% OFF`
-    : `₹${offer.value.toLocaleString('en-IN')} OFF`
+  if (offer.type === 'PERCENT') return `${offer.value}% OFF`
+  if (offer.type === 'FIXED_PRICE') return `SALE PRICE ₹${offer.value.toLocaleString('en-IN')}`
+  return `₹${offer.value.toLocaleString('en-IN')} OFF`
 }
 
 /**
@@ -140,7 +175,12 @@ export async function getActiveAutomaticOffers(productIds = []) {
     include: {
       products: {
         ...(ids.length ? { where: { productId: { in: ids } } } : {}),
-        select: { productId: true },
+        select: {
+          productId: true,
+          offerType: true,
+          offerValue: true,
+          offerLabel: true,
+        },
       },
     },
     orderBy: { createdAt: 'asc' },
@@ -161,14 +201,25 @@ export function resolveAutomaticOffer(productId, listPrice, offers = []) {
   let winner = null
   for (const offer of Array.isArray(offers) ? offers : []) {
     if (!offer?.active) continue
-    const matches =
-      offer.scope === 'ALL_PRODUCTS' ||
-      (offer.scope === 'PRODUCTS' && offer.productIds?.includes(String(productId)))
+    const productTarget = offer.productTargets?.find(
+      (target) => target.productId === String(productId),
+    )
+    const matches = offer.scope === 'ALL_PRODUCTS' || (offer.scope === 'PRODUCTS' && productTarget)
     if (!matches) continue
-    const discountedPrice = applyFlatOfferToUnitPrice(price, offer)
+    // A populated target rule overrides the campaign default for this product.
+    // A blank target inherits the parent type/value/label.
+    const effectiveOffer = productTarget?.offerType
+      ? {
+          ...offer,
+          type: productTarget.offerType,
+          value: productTarget.offerValue,
+          label: productTarget.offerLabel || offer.label,
+        }
+      : offer
+    const discountedPrice = applyFlatOfferToUnitPrice(price, effectiveOffer)
     if (!(discountedPrice < price)) continue
 
-    const candidate = { ...offer, discountedPrice }
+    const candidate = { ...effectiveOffer, discountedPrice }
     if (!winner || candidate.discountedPrice < winner.discountedPrice) {
       winner = candidate
       continue

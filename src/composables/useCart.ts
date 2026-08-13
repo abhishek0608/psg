@@ -164,7 +164,7 @@ export function useCart() {
   // --- Promo code ---
   // Entered at checkout and worth whatever the server said it was worth, so the
   // figure here can never drift from the one that gets charged. It comes off
-  // what is left after the flat offer, which is the subtotal the shopper sees.
+  // what is left after automatic product offers, which is the subtotal the shopper sees.
   const promoAmount = computed(() => {
     const promo = appliedPromo.value
     if (!promo) return 0

@@ -156,7 +156,8 @@ const aboutMessage = ref('')
 // Automatic offers can cover the whole catalog or a selected product set. A
 // one-product offer is simply a selected set with one member. Promo codes stay
 // separate because they do nothing until the shopper enters a code at checkout.
-type OfferTypeDraft = 'PERCENT' | 'AMOUNT'
+type PromoOfferTypeDraft = 'PERCENT' | 'AMOUNT'
+type AutomaticOfferTypeDraft = PromoOfferTypeDraft | 'FIXED_PRICE'
 type OfferScopeDraft = 'ALL_PRODUCTS' | 'PRODUCTS'
 
 interface OfferProductOption {
@@ -164,12 +165,16 @@ interface OfferProductOption {
   slug: string
   title: string
   category: string
+  /** Blank means inherit the campaign's default pricing rule. */
+  pricingType: '' | AutomaticOfferTypeDraft
+  pricingValue: number | null
+  pricingLabel: string
 }
 
 interface AutomaticOfferDraft {
   id: string
   name: string
-  type: OfferTypeDraft
+  type: '' | AutomaticOfferTypeDraft
   value: number | null
   label: string
   scope: OfferScopeDraft
@@ -194,7 +199,7 @@ let offerProductSearchDebounce: ReturnType<typeof setTimeout> | undefined
 interface PromoCodeDraft {
   id: string
   code: string
-  type: OfferTypeDraft
+  type: PromoOfferTypeDraft
   value: number | null
   minOrderPaise: number | null
   startsAt: string
@@ -1099,7 +1104,7 @@ function automaticOfferRowToDraft(row: Record<string, unknown>): AutomaticOfferD
   return {
     id: String(row?.id || ''),
     name: String(row?.name || ''),
-    type: String(row?.type || '').toUpperCase() === 'AMOUNT' ? 'AMOUNT' : 'PERCENT',
+    type: (row?.type ? parseAutomaticOfferType(row.type) : '') as AutomaticOfferDraft['type'],
     value: Number(row?.value) || null,
     label: String(row?.label || ''),
     scope: String(row?.scope || '').toUpperCase() === 'PRODUCTS' ? 'PRODUCTS' : 'ALL_PRODUCTS',
@@ -1113,9 +1118,18 @@ function automaticOfferRowToDraft(row: Record<string, unknown>): AutomaticOfferD
         slug: String(item.slug || ''),
         title: String(item.title || ''),
         category: String(item.category || ''),
+        pricingType: (item.pricingType ? parseAutomaticOfferType(item.pricingType) : '') as OfferProductOption['pricingType'],
+        pricingValue: Number(item.pricingValue) || null,
+        pricingLabel: String(item.pricingLabel || ''),
       }
     }).filter((product) => product.id),
   }
+}
+
+function parseAutomaticOfferType(value: unknown): AutomaticOfferTypeDraft {
+  const type = String(value || '').toUpperCase()
+  if (type === 'FIXED_PRICE') return 'FIXED_PRICE'
+  return type === 'AMOUNT' ? 'AMOUNT' : 'PERCENT'
 }
 
 function blankAutomaticOfferDraft(): AutomaticOfferDraft {
@@ -1191,6 +1205,9 @@ async function loadOfferProductOptions() {
         slug: String(product.slug || ''),
         title: String(product.title || ''),
         category: String(product.category || ''),
+        pricingType: '',
+        pricingValue: null,
+        pricingLabel: '',
       }),
     )
   } catch (e) {
@@ -1214,7 +1231,7 @@ function toggleOfferProduct(product: OfferProductOption) {
   if (!draft) return
   const index = draft.products.findIndex((selected) => selected.id === product.id)
   if (index >= 0) draft.products.splice(index, 1)
-  else draft.products.push({ ...product })
+  else draft.products.push({ ...product, pricingType: '', pricingValue: null, pricingLabel: '' })
 }
 
 function selectVisibleOfferProducts() {
@@ -1222,7 +1239,9 @@ function selectVisibleOfferProducts() {
   if (!draft) return
   const selected = new Set(draft.products.map((product) => product.id))
   for (const product of offerProductOptions.value) {
-    if (!selected.has(product.id)) draft.products.push({ ...product })
+    if (!selected.has(product.id)) {
+      draft.products.push({ ...product, pricingType: '', pricingValue: null, pricingLabel: '' })
+    }
   }
 }
 
@@ -1234,14 +1253,35 @@ async function saveAutomaticOfferDraft() {
     automaticOfferMessage.value = 'Enter an offer name.'
     return
   }
-  if (!(value > 0) || (draft.type === 'PERCENT' && value > MAX_OFFER_PERCENT)) {
+  if (draft.type && (!(value > 0) || (draft.type === 'PERCENT' && value > MAX_OFFER_PERCENT))) {
     automaticOfferMessage.value = draft.type === 'PERCENT'
       ? `Enter a discount between 1 and ${MAX_OFFER_PERCENT}%.`
-      : 'Enter a discount amount greater than zero.'
+      : draft.type === 'FIXED_PRICE'
+        ? 'Enter a fixed selling price greater than zero.'
+        : 'Enter a discount amount greater than zero.'
     return
   }
   if (draft.scope === 'PRODUCTS' && !draft.products.length) {
     automaticOfferMessage.value = 'Select at least one product for this offer.'
+    return
+  }
+  if (draft.scope === 'ALL_PRODUCTS' && !draft.type) {
+    automaticOfferMessage.value = 'Choose default pricing for an organisation-wide offer.'
+    return
+  }
+  if (draft.scope === 'PRODUCTS' && !draft.type && draft.products.some((product) => !product.pricingType)) {
+    automaticOfferMessage.value = 'Choose default pricing or set a pricing rule for every selected product.'
+    return
+  }
+  const invalidProduct = draft.products.find((product) => {
+    const productValue = Math.floor(Number(product.pricingValue))
+    return product.pricingType && (
+      !(productValue > 0) ||
+      (product.pricingType === 'PERCENT' && productValue > MAX_OFFER_PERCENT)
+    )
+  })
+  if (invalidProduct) {
+    automaticOfferMessage.value = `Enter a valid pricing value for ${invalidProduct.title}.`
     return
   }
 
@@ -1256,13 +1296,20 @@ async function saveAutomaticOfferDraft() {
         id: draft.id || undefined,
         name: draft.name,
         type: draft.type,
-        value,
+        value: draft.type ? value : null,
         label: draft.label,
         scope: draft.scope,
         startsAt: draft.startsAt,
         endsAt: draft.endsAt,
         active: draft.active,
-        productIds: draft.scope === 'PRODUCTS' ? draft.products.map((product) => product.id) : [],
+        products: draft.scope === 'PRODUCTS'
+          ? draft.products.map((product) => ({
+              productId: product.id,
+              pricingType: product.pricingType,
+              pricingValue: product.pricingType ? Math.floor(Number(product.pricingValue)) : null,
+              pricingLabel: product.pricingLabel,
+            }))
+          : [],
       }),
     })
     const data = await res.json().catch(() => ({}))
@@ -1303,13 +1350,18 @@ async function deleteAutomaticOffer(row: AutomaticOfferDraft) {
 }
 
 function automaticOfferSummary(row: AutomaticOfferDraft) {
-  const off = row.type === 'PERCENT'
+  const off = !row.type
+    ? 'Individual product pricing'
+    : row.type === 'PERCENT'
     ? `${row.value}% off`
-    : `₹${Number(row.value).toLocaleString('en-IN')} off`
+    : row.type === 'FIXED_PRICE'
+      ? `₹${Number(row.value).toLocaleString('en-IN')} default sale price`
+      : `₹${Number(row.value).toLocaleString('en-IN')} off`
   const scope = row.scope === 'ALL_PRODUCTS'
     ? 'all products'
     : `${row.products.length} product${row.products.length === 1 ? '' : 's'}`
-  return `${off} · ${scope}`
+  const overrides = row.products.filter((product) => product.pricingType).length
+  return `${off} · ${scope}${overrides ? ` · ${overrides} custom price${overrides === 1 ? '' : 's'}` : ''}`
 }
 
 // --- Promo codes ---
@@ -2710,7 +2762,7 @@ onBeforeUnmount(() => {
               {{ automaticOfferMessage }}
             </p>
 
-            <article v-if="automaticOfferDraft" class="ect-mb-5 ect-max-w-4xl ect-rounded-2xl ect-border ect-border-gold-400 ect-bg-white ect-p-5 ect-space-y-5">
+            <article v-if="automaticOfferDraft" class="ect-mb-5 ect-max-w-6xl ect-rounded-2xl ect-border ect-border-gold-400 ect-bg-white ect-p-5 ect-space-y-5">
               <div class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
                 <label class="ect-block">
                   <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Offer name</span>
@@ -2721,14 +2773,17 @@ onBeforeUnmount(() => {
                   <input v-model="automaticOfferDraft.label" type="text" maxlength="60" placeholder="Clearance · 80% off" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
                 <div>
-                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Discount</span>
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Default product pricing</span>
                   <div class="ect-flex ect-items-center ect-gap-2">
                     <select v-model="automaticOfferDraft.type" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40">
+                      <option v-if="automaticOfferDraft.scope === 'PRODUCTS'" value="">No default — price each product</option>
                       <option value="PERCENT">Percentage off</option>
                       <option value="AMOUNT">Rupees off</option>
+                      <option value="FIXED_PRICE">Fixed selling price</option>
                     </select>
-                    <input v-model.number="automaticOfferDraft.value" type="number" min="1" :max="automaticOfferDraft.type === 'PERCENT' ? MAX_OFFER_PERCENT : undefined" step="1" class="ect-w-28 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                    <input v-model.number="automaticOfferDraft.value" type="number" min="1" :max="automaticOfferDraft.type === 'PERCENT' ? MAX_OFFER_PERCENT : undefined" step="1" :disabled="!automaticOfferDraft.type" :placeholder="automaticOfferDraft.type === 'PERCENT' ? '%' : '₹'" class="ect-w-28 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal disabled:ect-bg-charcoal/5 disabled:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </div>
+                  <p class="ect-mt-2 ect-font-body ect-text-micro ect-text-charcoal/40">Selected products can override this default individually below.</p>
                 </div>
                 <div>
                   <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Applies to</span>
@@ -2765,12 +2820,6 @@ onBeforeUnmount(() => {
                   <button type="button" class="ect-font-body ect-text-xs ect-font-semibold ect-text-gold-700 hover:ect-text-charcoal disabled:ect-opacity-40" :disabled="!offerProductOptions.length" @click="selectVisibleOfferProducts">Select visible results</button>
                 </div>
 
-                <div v-if="automaticOfferDraft.products.length" class="ect-flex ect-flex-wrap ect-gap-2">
-                  <button v-for="product in automaticOfferDraft.products" :key="product.id" type="button" class="ect-inline-flex ect-items-center ect-gap-1 ect-rounded-full ect-bg-white ect-border ect-border-sand ect-px-2.5 ect-py-1 ect-font-body ect-text-xs ect-text-charcoal" :title="`Remove ${product.title}`" @click="toggleOfferProduct(product)">
-                    {{ product.title }} <span class="ect-text-charcoal/35">×</span>
-                  </button>
-                </div>
-
                 <div v-if="offerProductOptionsLoading" class="ect-h-24 ect-rounded-xl ect-bg-white ect-animate-pulse" />
                 <div v-else class="ect-max-h-64 ect-overflow-y-auto ect-rounded-xl ect-border ect-border-sand ect-bg-white ect-divide-y ect-divide-sand">
                   <label v-for="product in offerProductOptions" :key="product.id" class="ect-flex ect-cursor-pointer ect-items-start ect-gap-3 ect-px-3 ect-py-2.5 hover:ect-bg-cream/60">
@@ -2782,6 +2831,54 @@ onBeforeUnmount(() => {
                   </label>
                   <p v-if="!offerProductOptions.length" class="ect-p-4 ect-font-body ect-text-sm ect-text-charcoal/45">No matching active products.</p>
                 </div>
+
+                <section v-if="automaticOfferDraft.products.length" class="ect-space-y-2 ect-pt-2">
+                  <div>
+                    <h3 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Selected product pricing</h3>
+                    <p class="ect-font-body ect-text-xs ect-text-charcoal/45">Choose “Campaign default” for shared pricing, or set a different rule and value for any product.</p>
+                  </div>
+                  <div class="ect-overflow-x-auto ect-rounded-xl ect-border ect-border-sand ect-bg-white">
+                    <table class="ect-w-full ect-min-w-[860px] ect-border-collapse">
+                      <thead class="ect-bg-cream">
+                        <tr class="ect-text-left">
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Product</th>
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Pricing rule</th>
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Value</th>
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Label</th>
+                          <th class="ect-w-12"><span class="ect-sr-only">Remove</span></th>
+                        </tr>
+                      </thead>
+                      <tbody class="ect-divide-y ect-divide-sand">
+                        <tr v-for="product in automaticOfferDraft.products" :key="product.id">
+                          <td class="ect-px-3 ect-py-2.5">
+                            <span class="ect-block ect-max-w-56 ect-truncate ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal" :title="product.title">{{ product.title }}</span>
+                            <span class="ect-block ect-font-body ect-text-micro ect-text-charcoal/40">{{ product.slug }}</span>
+                          </td>
+                          <td class="ect-px-3 ect-py-2.5">
+                            <select v-model="product.pricingType" class="ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-bg-white ect-px-2.5 ect-py-2 ect-font-body ect-text-xs ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40">
+                              <option value="">Campaign default</option>
+                              <option value="PERCENT">Percentage off</option>
+                              <option value="AMOUNT">Rupees off</option>
+                              <option value="FIXED_PRICE">Fixed selling price</option>
+                            </select>
+                          </td>
+                          <td class="ect-px-3 ect-py-2.5">
+                            <input v-model.number="product.pricingValue" type="number" min="1" :max="product.pricingType === 'PERCENT' ? MAX_OFFER_PERCENT : undefined" step="1" :disabled="!product.pricingType" :placeholder="product.pricingType === 'PERCENT' ? '%' : '₹'" class="ect-w-28 ect-rounded-lg ect-border ect-border-charcoal/15 ect-px-2.5 ect-py-2 ect-font-body ect-text-xs ect-text-charcoal disabled:ect-bg-charcoal/5 disabled:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                          </td>
+                          <td class="ect-px-3 ect-py-2.5">
+                            <input v-model="product.pricingLabel" type="text" maxlength="60" :disabled="!product.pricingType" placeholder="Optional product label" class="ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-px-2.5 ect-py-2 ect-font-body ect-text-xs ect-text-charcoal disabled:ect-bg-charcoal/5 disabled:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                          </td>
+                          <td class="ect-pr-2 ect-text-right">
+                            <button type="button" class="ect-rounded-full ect-p-2 ect-text-charcoal/30 hover:ect-bg-red-50 hover:ect-text-red-500" :aria-label="`Remove ${product.title}`" @click="toggleOfferProduct(product)">
+                              <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="ect-font-body ect-text-micro ect-text-charcoal/40">A fixed selling price must be below the product’s current list price; otherwise that product remains at list price.</p>
+                </section>
               </section>
 
               <label class="ect-flex ect-items-center ect-gap-3 ect-cursor-pointer">
@@ -2819,7 +2916,7 @@ onBeforeUnmount(() => {
               <div>
                 <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Campaigns</p>
                 <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Promo codes</h2>
-                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Codes a shopper types in at checkout. Catalog prices stay as they are; the discount comes off the order total, on top of any flat offer.</p>
+                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Codes a shopper types in at checkout. Catalog prices stay as they are; the discount comes off the order total, on top of automatic product offers.</p>
               </div>
               <div class="ect-flex ect-flex-wrap ect-gap-2">
                 <button

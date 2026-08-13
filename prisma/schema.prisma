@@ -207,8 +207,10 @@ model PromoCode {
 model Offer {
   id        String   @id @default(cuid())
   name      String
-  type      String   @default("PERCENT")
-  value     Int
+  // Optional for selected-product campaigns when every product row defines
+  // its own pricing. Organisation-wide campaigns always require a default.
+  type      String?
+  value     Int?
   label     String?
   scope     String   @default("ALL_PRODUCTS")
   startsAt  DateTime? @db.Timestamptz(3)
@@ -224,6 +226,12 @@ model Offer {
 model OfferProduct {
   offerId   String
   productId String
+  // Optional per-product pricing override. Null fields inherit the parent
+  // campaign's type/value/label; populated fields allow one campaign to carry
+  // many distinct fixed prices or discounts.
+  offerType  String?
+  offerValue Int?
+  offerLabel String?
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   offer     Offer   @relation(fields: [offerId], references: [id], onDelete: Cascade)
   product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)

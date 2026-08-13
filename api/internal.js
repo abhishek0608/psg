@@ -16,6 +16,8 @@ import { getAllHomepageSlides } from '../server/api/homepage-slides-source.js'
 import { getSiteConfig, saveSiteConfig } from '../server/api/site-config-source.js'
 import {
   MAX_OFFER_PERCENT,
+  normalizeAutomaticOfferType,
+  normalizeAutomaticOfferValue,
   normalizeOfferScope,
   normalizeOfferType,
   normalizeOfferValue,
@@ -412,8 +414,8 @@ function toAutomaticOfferRow(row) {
   return {
     id: row.id,
     name: row.name,
-    type: row.type,
-    value: row.value,
+    type: row.type || '',
+    value: row.value ?? null,
     label: row.label || '',
     scope: row.scope,
     startsAt: row.startsAt ? row.startsAt.toISOString().slice(0, 10) : '',
@@ -424,6 +426,9 @@ function toAutomaticOfferRow(row) {
       slug: target.product.slug,
       title: target.product.title,
       category: target.product.category,
+      pricingType: target.offerType || '',
+      pricingValue: target.offerValue || null,
+      pricingLabel: target.offerLabel || '',
     })),
   }
 }
@@ -474,25 +479,67 @@ async function handleOffersResource(req, res, body) {
 
     const name = String(body?.name || '').trim().slice(0, 100)
     if (!name) return res.status(400).json({ message: 'Enter an offer name.' })
-    const type = normalizeOfferType(body?.type)
-    const value = normalizeOfferValue(body?.value, type)
-    if (!(value > 0)) {
+    const scope = normalizeOfferScope(body?.scope)
+    const rawType = String(body?.type || '').trim()
+    const type = rawType ? normalizeAutomaticOfferType(rawType) : null
+    const value = type ? normalizeAutomaticOfferValue(body?.value, type) : null
+    if (type && !(value > 0)) {
       return res.status(400).json({
         message:
           type === 'PERCENT'
             ? `Enter a discount between 1 and ${MAX_OFFER_PERCENT}%.`
-            : 'Enter a discount amount greater than zero.',
+            : type === 'FIXED_PRICE'
+              ? 'Enter a fixed selling price greater than zero.'
+              : 'Enter a discount amount greater than zero.',
       })
     }
-
-    const scope = normalizeOfferScope(body?.scope)
-    const productIds = [...new Set(
-      (Array.isArray(body?.productIds) ? body.productIds : [])
-        .map((productId) => String(productId || '').trim())
-        .filter(Boolean),
-    )].slice(0, 1000)
+    // `productIds` remains accepted for compatibility with the first scoped-
+    // offer UI. New clients send product rows whose optional pricing fields
+    // override the campaign default.
+    const rawProducts = Array.isArray(body?.products)
+      ? body.products
+      : (Array.isArray(body?.productIds) ? body.productIds : []).map((productId) => ({ productId }))
+    const seenProductIds = new Set()
+    const products = rawProducts
+      .map((raw) => {
+        const productId = String(raw?.productId || raw?.id || '').trim()
+        const rawPricingType = String(raw?.pricingType || '').trim()
+        const pricingType = rawPricingType ? normalizeAutomaticOfferType(rawPricingType) : null
+        const pricingValue = pricingType
+          ? normalizeAutomaticOfferValue(raw?.pricingValue, pricingType)
+          : null
+        return {
+          productId,
+          offerType: pricingType,
+          offerValue: pricingType ? pricingValue : null,
+          offerLabel: pricingType
+            ? String(raw?.pricingLabel || '').trim().slice(0, 60) || null
+            : null,
+        }
+      })
+      .filter((product) => {
+        if (!product.productId || seenProductIds.has(product.productId)) return false
+        seenProductIds.add(product.productId)
+        return true
+      })
+      .slice(0, 1000)
+    const productIds = products.map((product) => product.productId)
     if (scope === 'PRODUCTS' && !productIds.length) {
       return res.status(400).json({ message: 'Select at least one product for this offer.' })
+    }
+    const invalidOverride = products.find(
+      (product) => product.offerType && !(Number(product.offerValue) > 0),
+    )
+    if (invalidOverride) {
+      return res.status(400).json({ message: 'Every product override needs a value greater than zero.' })
+    }
+    if (scope === 'ALL_PRODUCTS' && !type) {
+      return res.status(400).json({ message: 'Choose default pricing for an organisation-wide offer.' })
+    }
+    if (scope === 'PRODUCTS' && !type && products.some((product) => !product.offerType)) {
+      return res.status(400).json({
+        message: 'Choose default pricing or set a pricing rule for every selected product.',
+      })
     }
 
     const startsAt = parseOptionalDate(body?.startsAt)
@@ -526,7 +573,7 @@ async function handleOffersResource(req, res, body) {
         await tx.offerProduct.deleteMany({ where: { offerId: row.id } })
         if (scope === 'PRODUCTS') {
           await tx.offerProduct.createMany({
-            data: productIds.map((productId) => ({ offerId: row.id, productId })),
+            data: products.map((product) => ({ offerId: row.id, ...product })),
           })
         }
         return row.id

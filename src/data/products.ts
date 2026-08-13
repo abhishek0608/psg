@@ -29,7 +29,7 @@ export interface ProductAttributes {
 export interface ProductOffer {
   id: string
   name: string
-  type: 'PERCENT' | 'AMOUNT'
+  type: 'PERCENT' | 'AMOUNT' | 'FIXED_PRICE'
   value: number
   label: string
   scope: 'ALL_PRODUCTS' | 'PRODUCTS'

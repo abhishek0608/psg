@@ -13,7 +13,7 @@ import type { ProductOffer } from '../data/products'
  *   Automatic offer — org-wide or product-scoped. The catalog API resolves
  *                     the winning offer for every product.
  *   Promo code  — typed in at checkout. Leaves catalog prices alone and comes
- *                 off the subtotal, on top of the flat offer.
+ *                 off the subtotal, on top of automatic product offers.
  */
 
 export interface AppliedPromo {
@@ -28,7 +28,7 @@ const promoError = ref('')
 const promoChecking = ref(false)
 
 /**
- * The price a single unit sells for under the flat offer.
+ * The price a single unit sells for under its resolved automatic offer.
  *
  * A rupee-amount offer is skipped on pieces that cost no more than the offer
  * itself — "₹5,000 off" on a ₹4,000 piece would otherwise price it at zero.
@@ -39,6 +39,7 @@ export function unitPriceWithOffer(listPrice: number, offer?: ProductOffer | nul
   const resolved = Math.round(Number(offer.discountedPrice))
   if (Number.isFinite(resolved) && resolved > 0 && resolved < price) return resolved
   if (offer.type === 'PERCENT') return Math.round((price * (100 - offer.value)) / 100)
+  if (offer.type === 'FIXED_PRICE') return offer.value < price ? offer.value : price
   return price > offer.value ? price - offer.value : price
 }
 

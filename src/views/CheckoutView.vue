@@ -844,7 +844,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
 
             <hr class="ect-border-sand ect-mb-4" />
 
-            <!-- Promo code. Unlike the flat offer this is not part of the
+            <!-- Promo code. Unlike automatic product offers this is not part of the
                  catalog price, so it lives here at the last step where the
                  shopper can still act on it. -->
             <section v-if="listTotal > 0" class="ect-mb-4">
