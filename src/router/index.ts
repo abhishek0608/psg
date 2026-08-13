@@ -22,6 +22,7 @@ const router = createRouter({
     { path: '/product/:slug', name: 'product', component: () => import('../views/ProductDetailView.vue') },
     { path: '/cart', name: 'cart', component: () => import('../views/CartView.vue'), meta: { title: 'Cart', noindex: true } },
     { path: '/wishlist', name: 'wishlist', component: () => import('../views/WishlistView.vue'), meta: { title: 'Wishlist', noindex: true } },
+    { path: '/recently-viewed', name: 'recently-viewed', component: () => import('../views/RecentlyViewedView.vue'), meta: { title: 'Recently Viewed', noindex: true } },
     { path: '/orders', name: 'orders', component: () => import('../views/MyOrdersView.vue'), meta: { title: 'My Orders', noindex: true } },
     { path: '/checkout', name: 'checkout', component: () => import('../views/CheckoutView.vue'), meta: { title: 'Checkout', noindex: true } },
     { path: '/order-confirmation', name: 'order-confirmation', component: () => import('../views/OrderConfirmationView.vue'), meta: { title: 'Order Confirmation', noindex: true } },

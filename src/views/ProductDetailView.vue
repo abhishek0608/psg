@@ -7,6 +7,7 @@ import ImageWatermark from '../components/ImageWatermark.vue'
 import { useCart } from '../composables/useCart'
 import { useOffers } from '../composables/useOffers'
 import { useVideoCallList } from '../composables/useVideoCallList'
+import { useRecentlyViewed } from '../composables/useRecentlyViewed'
 import { useProductsApi } from '../composables/useProductsApi'
 import { setPageMeta, setProductJsonLd } from '../composables/useSeo'
 import { SITE_SETTINGS } from '../config/site-settings'
@@ -31,6 +32,7 @@ const {
   maxItems: videoCallMaxItems,
 } = useVideoCallList()
 const { products, ensureProductsLoaded, loading } = useProductsApi()
+const { record: recordRecentlyViewed } = useRecentlyViewed()
 
 const product = computed(() => products.value.find((p) => p.slug === String(route.params.slug || '')))
 const addedImages = ref<string[]>([])
@@ -320,6 +322,7 @@ watch(product, (item) => {
   activeImage.value = 0
   addedImages.value = []
   if (item) {
+    recordRecentlyViewed(item)
     setPageMeta({ title: item.title, description: item.description })
     setProductJsonLd(item)
   }

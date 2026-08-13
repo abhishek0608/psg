@@ -10,6 +10,9 @@ import {
   useSavedAddresses,
   COUNTRY_OPTIONS,
   countryDisplayName,
+  isSupportedCountry,
+  normalizeCountryCode,
+  type SupportedCountryCode,
   type SavedAddressEntry,
 } from '../composables/useSavedAddresses'
 import { useAuth } from '../composables/useAuth'
@@ -43,7 +46,7 @@ const { addOrder } = useOrders()
 const { addQuote } = useQuotes()
 const { createOrder, openCheckout } = useRazorpay()
 const {
-  recentAddresses: savedAddresses,
+  recentAddresses: allSavedAddresses,
   getById,
   findMatching,
   uniqueLabel,
@@ -53,6 +56,10 @@ const {
 const { user } = useAuth()
 const isProcessing = ref(false)
 const paymentError = ref('')
+
+const savedAddresses = computed(() =>
+  allSavedAddresses.value.filter((address) => isSupportedCountry(address.country)),
+)
 
 const form = ref({
   name: '',
@@ -80,8 +87,6 @@ const selectedAddress = computed(() =>
 // when the shopper asked to tweak the chosen address for this order.
 const showDetailFields = computed(() => !selectedAddress.value || isEditingDetails.value)
 
-const knownCountryCodes = new Set<string>(COUNTRY_OPTIONS.map((c) => c.code))
-
 function applySavedAddress(a: SavedAddressEntry) {
   form.value.name = a.name
   form.value.email = a.email
@@ -89,9 +94,7 @@ function applySavedAddress(a: SavedAddressEntry) {
   form.value.address = a.address
   form.value.city = a.city
   form.value.state = a.state
-  let c = a.country.trim()
-  if (c === 'India') c = 'IN'
-  form.value.country = knownCountryCodes.has(c) ? c : 'OTHER'
+  form.value.country = normalizeCountryCode(a.country) ?? 'IN'
   form.value.pincode = a.pincode
 }
 
@@ -178,11 +181,15 @@ function saveCurrentAddress() {
     !form.value.state.trim() ||
     !form.value.pincode.trim()
   ) {
-    saveAddressMessage.value = 'Fill in street, city, state, postal code, and country first.'
+    saveAddressMessage.value = 'Fill in street, city or district, state or province, postal code, and country first.'
     return
   }
   if (!form.value.name.trim() || !form.value.email.trim() || !form.value.phone.trim()) {
     saveAddressMessage.value = 'Fill in contact details before saving.'
+    return
+  }
+  if (hasInvalidPostalCode()) {
+    saveAddressMessage.value = addressFields.value.postalTitle + '.'
     return
   }
   saveAddress({
@@ -410,10 +417,66 @@ function hasIncompleteDetails(): boolean {
   return ![f.name, f.email, f.phone, f.address, f.city, f.state, f.pincode].every((v) => v.trim())
 }
 
+const ADDRESS_FIELDS: Record<SupportedCountryCode, {
+  cityLabel: string
+  cityPlaceholder: string
+  stateLabel: string
+  statePlaceholder: string
+  postalLabel: string
+  postalPlaceholder: string
+  postalPattern: string
+  postalTitle: string
+  phonePlaceholder: string
+}> = {
+  IN: {
+    cityLabel: 'City',
+    cityPlaceholder: 'Mumbai',
+    stateLabel: 'State',
+    statePlaceholder: 'Maharashtra',
+    postalLabel: 'PIN code',
+    postalPlaceholder: '400001',
+    postalPattern: '[1-9][0-9]{5}',
+    postalTitle: 'Enter a valid 6-digit Indian PIN code',
+    phonePlaceholder: '+91 98765 43210',
+  },
+  TH: {
+    cityLabel: 'City / District',
+    cityPlaceholder: 'Bangkok',
+    stateLabel: 'Province',
+    statePlaceholder: 'Bangkok',
+    postalLabel: 'Postal code',
+    postalPlaceholder: '10110',
+    postalPattern: '[0-9]{5}',
+    postalTitle: 'Enter a valid 5-digit Thai postal code',
+    phonePlaceholder: '+66 81 234 5678',
+  },
+  US: {
+    cityLabel: 'City',
+    cityPlaceholder: 'New York',
+    stateLabel: 'State',
+    statePlaceholder: 'New York',
+    postalLabel: 'ZIP code',
+    postalPlaceholder: '10001',
+    postalPattern: '[0-9]{5}(-[0-9]{4})?',
+    postalTitle: 'Enter a valid 5-digit or ZIP+4 US ZIP code',
+    phonePlaceholder: '+1 212 555 0123',
+  },
+}
+
+const addressFields = computed(() => ADDRESS_FIELDS[form.value.country as SupportedCountryCode] ?? ADDRESS_FIELDS.IN)
+
+function hasInvalidPostalCode(): boolean {
+  return !new RegExp(`^(?:${addressFields.value.postalPattern})$`).test(form.value.pincode.trim())
+}
+
 async function handleSubmit() {
   paymentError.value = ''
   if (!showDetailFields.value && hasIncompleteDetails()) {
     paymentError.value = 'This saved address is missing some details. Choose “Edit for this order” to complete them.'
+    return
+  }
+  if (hasInvalidPostalCode()) {
+    paymentError.value = addressFields.value.postalTitle + '.'
     return
   }
   isProcessing.value = true
@@ -486,9 +549,6 @@ async function handleSubmit() {
 }
 
 const inputClass = 'ect-w-full ect-px-4 ect-py-3 ect-bg-white ect-border ect-border-sand ect-rounded-xl ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-border-gold-400 focus:ect-ring-2 focus:ect-ring-gold-400/25 ect-transition-all'
-
-const pinPlaceholder = computed(() => (form.value.country === 'IN' ? '400001' : 'Postal / ZIP code'))
-const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code' : 'Postal code'))
 </script>
 
 <template>
@@ -632,7 +692,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
               </label>
               <label class="ect-block sm:ect-col-span-2">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Mobile Number *</span>
-                <input v-model="form.phone" type="tel" required placeholder="+91 98765 43210" :class="inputClass" />
+                <input v-model="form.phone" type="tel" required autocomplete="tel" :placeholder="addressFields.phonePlaceholder" :class="inputClass" />
               </label>
             </section>
           </section>
@@ -650,31 +710,33 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
             <section class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
               <label class="ect-block sm:ect-col-span-2">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Street Address *</span>
-                <input v-model="form.address" type="text" required placeholder="Flat / House no., Street, Area" :class="inputClass" />
+                <input v-model="form.address" type="text" required autocomplete="street-address" placeholder="Flat / House no., Street, Area" :class="inputClass" />
               </label>
               <label class="ect-block">
-                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">City *</span>
-                <input v-model="form.city" type="text" required placeholder="Mumbai" :class="inputClass" />
+                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">{{ addressFields.cityLabel }} *</span>
+                <input v-model="form.city" type="text" required autocomplete="address-level2" :placeholder="addressFields.cityPlaceholder" :class="inputClass" />
               </label>
               <label class="ect-block">
-                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">State / Province *</span>
-                <input v-model="form.state" type="text" required placeholder="Maharashtra" :class="inputClass" />
+                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">{{ addressFields.stateLabel }} *</span>
+                <input v-model="form.state" type="text" required autocomplete="address-level1" :placeholder="addressFields.statePlaceholder" :class="inputClass" />
               </label>
               <label class="ect-block">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Country *</span>
-                <select v-model="form.country" required :class="inputClass">
+                <select v-model="form.country" required autocomplete="country" :class="inputClass">
                   <option v-for="c in COUNTRY_OPTIONS" :key="c.code" :value="c.code">{{ c.name }}</option>
                 </select>
               </label>
               <label class="ect-block">
-                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Postal code *</span>
+                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">{{ addressFields.postalLabel }} *</span>
                 <input
                   v-model="form.pincode"
                   type="text"
                   required
-                  :pattern="form.country === 'IN' ? '[0-9]{6}' : undefined"
-                  :placeholder="pinPlaceholder"
-                  :title="pinTitle"
+                  :inputmode="form.country === 'US' ? 'text' : 'numeric'"
+                  autocomplete="postal-code"
+                  :pattern="addressFields.postalPattern"
+                  :placeholder="addressFields.postalPlaceholder"
+                  :title="addressFields.postalTitle"
                   :class="inputClass"
                 />
               </label>

@@ -6,6 +6,7 @@ import { useAuth } from '../composables/useAuth'
 import { useSearch } from '../composables/useSearch'
 import { useCart } from '../composables/useCart'
 import { useWishlist } from '../composables/useWishlist'
+import { useRecentlyViewed } from '../composables/useRecentlyViewed'
 import { useVideoCallList } from '../composables/useVideoCallList'
 import { useOrders } from '../composables/useOrders'
 import { COLLECTION_LINKS, type CollectionLink } from '../data/collections'
@@ -20,6 +21,7 @@ const { user, isLoggedIn, isInternalUser, refreshCurrentUser, logout } = useAuth
 const { query, submitTextSearch } = useSearch()
 const { totalItems } = useCart()
 const { count: wishlistCount } = useWishlist()
+const { count: recentlyViewedCount } = useRecentlyViewed()
 const { count: videoCallCount } = useVideoCallList()
 const { orders } = useOrders()
 const menuOpen = ref(false)
@@ -152,9 +154,8 @@ function toggleNotifications() {
 
     <!-- Main nav -->
     <nav class="ect-relative ect-z-20 ect-bg-white/95 ect-backdrop-blur-xl lg:ect-border-b lg:ect-border-sand">
-      <!-- `px-4` below `sm`: at 320px the fixed left cluster (hamburger + logo)
-           and the four right icons need every pixel of the row, and the one
-           that fell off the end was the cart. -->
+      <!-- At 320px the logo stays compact so the left cluster and all five
+           customer action icons remain on one row. -->
       <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-5 ect-flex ect-items-center ect-justify-between ect-h-16">
         <!-- Left: mobile hamburger + logo (mobile) / logo only (desktop) -->
         <section class="ect-flex ect-items-center ect-gap-3 ect-shrink-0">
@@ -174,7 +175,7 @@ function toggleNotifications() {
             :to="isInternalPath ? { path: '/internal', query: { tab: 'orders' } } : '/'"
             class="ect-flex ect-items-center ect-gap-2.5 ect-shrink-0"
           >
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-10 ect-w-auto ect-max-w-[104px] sm:ect-max-w-[140px] lg:ect-max-w-[180px] ect-object-contain" />
+            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-10 ect-w-auto ect-max-w-[80px] min-[360px]:ect-max-w-[104px] sm:ect-max-w-[140px] lg:ect-max-w-[180px] ect-object-contain" />
           </RouterLink>
         </section>
 
@@ -230,6 +231,15 @@ function toggleNotifications() {
             </svg>
             <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Wishlist</span>
             <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
+          </RouterLink>
+
+          <!-- Recently viewed -->
+          <RouterLink v-if="!isInternalPath" to="/recently-viewed" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Recently viewed">
+            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-9-9 8.96 8.96 0 016.36 2.64M18 3v4h-4" />
+            </svg>
+            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Recently viewed</span>
+            <span v-if="recentlyViewedCount > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-gold-600 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ recentlyViewedCount }}</span>
           </RouterLink>
 
           <!-- Cart -->
@@ -360,10 +370,10 @@ function toggleNotifications() {
           </RouterLink>
         </section>
 
-        <!-- Mobile right: search, video call, wishlist, cart (sign-in lives in the drawer).
+        <!-- Mobile right: search, video call, wishlist, recently viewed, cart (sign-in lives in the drawer).
              Search is icon-only here — the text field lives on /search and in the drawer,
              so the top bar stays a single row of icons. -->
-        <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-1 sm:ect-gap-1.5">
+        <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-0 sm:ect-gap-1">
           <RouterLink v-if="!isInternalPath" to="/search" class="ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Search">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -380,6 +390,12 @@ function toggleNotifications() {
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
             </svg>
             <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
+          </RouterLink>
+          <RouterLink v-if="!isInternalPath" to="/recently-viewed" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Recently viewed">
+            <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-9-9 8.96 8.96 0 016.36 2.64M18 3v4h-4" />
+            </svg>
+            <span v-if="recentlyViewedCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-gold-600 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ recentlyViewedCount }}</span>
           </RouterLink>
           <RouterLink v-if="!isInternalPath" to="/cart" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-charcoal ect-transition-colors" aria-label="Cart">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -689,6 +705,17 @@ function toggleNotifications() {
 
           <!-- Link rows -->
           <nav v-if="!isInternalPath" class="ect-border-t ect-border-charcoal/[0.08]">
+            <RouterLink
+              to="/recently-viewed"
+              @click="mobileNavOpen = false"
+              class="ect-flex ect-items-center ect-justify-between ect-py-4 ect-border-b ect-border-charcoal/[0.08] ect-font-body ect-text-ui-lg ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
+            >
+              <span>Recently Viewed</span>
+              <span class="ect-flex ect-items-center ect-gap-2">
+                <span v-if="recentlyViewedCount > 0" class="ect-min-w-[20px] ect-h-5 ect-px-1.5 ect-rounded-full ect-bg-gold-600 ect-text-white ect-font-body ect-text-xs ect-font-bold ect-flex ect-items-center ect-justify-center">{{ recentlyViewedCount }}</span>
+                <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+              </span>
+            </RouterLink>
             <RouterLink
               to="/video-consultation"
               @click="mobileNavOpen = false"
