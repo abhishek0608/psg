@@ -26,6 +26,17 @@ export interface ProductAttributes {
   diamondQuantity?: string
 }
 
+export interface ProductOffer {
+  id: string
+  name: string
+  type: 'PERCENT' | 'AMOUNT'
+  value: number
+  label: string
+  scope: 'ALL_PRODUCTS' | 'PRODUCTS'
+  /** Whole rupees after this product's winning automatic offer. */
+  discountedPrice: number
+}
+
 export type Material = 'gold' | 'silver'
 export type Color = 'yellow' | 'white' | 'rose' | 'oxidised'
 export type ProductSubtype =
@@ -124,6 +135,8 @@ export interface Product {
   reviewCount?: number
   customizationOptions?: ProductCustomizationOptions
   productAttributes?: ProductAttributes
+  /** Best currently active automatic offer resolved by the catalog API. */
+  offer?: ProductOffer | null
 }
 
 export interface Review {

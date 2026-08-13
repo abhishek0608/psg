@@ -194,8 +194,8 @@ const hasRetailPrice = computed(() => listPriceValue.value > 0)
 
 // The flat offer is part of the sticker price, so the page leads with what the
 // piece costs today and keeps the old price beside it, struck through.
-const { priceDisplay, offerLabel } = useOffers()
-const pricing = computed(() => priceDisplay(listPriceValue.value))
+const { priceDisplay } = useOffers()
+const pricing = computed(() => priceDisplay(listPriceValue.value, product.value?.offer))
 
 const technicalDetailRows = computed<Array<{ label: string; value: string }>>(() => {
   const desc = product.value?.description?.trim() || ''
@@ -516,7 +516,7 @@ function handleAddToVideoCall() {
               <template v-if="pricing.hasOffer">
                 <span class="ect-price ect-text-base ect-text-charcoal/40 ect-line-through">{{ pricing.formattedList }}</span>
                 <span class="ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#1f3f37] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9]">
-                  {{ offerLabel }}
+                  {{ pricing.label }}
                 </span>
               </template>
             </span>
@@ -678,7 +678,7 @@ function handleAddToVideoCall() {
               v-if="pricing.hasOffer"
               class="ect-flex ect-items-center ect-justify-between ect-gap-4 ect-pt-3 ect-border-t ect-border-sand"
             >
-              <dt class="ect-font-body ect-text-sm ect-text-charcoal/60">{{ offerLabel }}</dt>
+              <dt class="ect-font-body ect-text-sm ect-text-charcoal/60">{{ pricing.label }}</dt>
               <dd class="ect-font-body ect-text-sm ect-text-[#1f3f37] ect-tabular-nums">
                 − {{ formatInr(pricing.list - pricing.discounted) }}
               </dd>

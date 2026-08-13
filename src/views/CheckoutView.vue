@@ -33,7 +33,6 @@ const {
 } = useCart()
 const {
   offerPrice,
-  offerLabel,
   appliedPromo,
   promoError,
   promoChecking,
@@ -810,7 +809,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                   <p class="ect-font-body ect-text-xs ect-text-charcoal/50">{{ item.product.category }}</p>
                 </section>
                 <span v-if="isPriceOnRequestCartItem(item)" class="ect-font-body ect-text-xs ect-text-gold-700 ect-font-medium ect-whitespace-nowrap">Price on request</span>
-                <span v-else class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal ect-whitespace-nowrap">{{ formatInr(offerPrice(item.product.priceValue)) }}</span>
+                <span v-else class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal ect-whitespace-nowrap">{{ formatInr(offerPrice(item.product.priceValue, item.product.offer)) }}</span>
               </li>
             </ul>
 
@@ -822,7 +821,7 @@ const pinTitle = computed(() => (form.value.country === 'IN' ? '6-digit PIN code
                 <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ flatOfferAmount > 0 ? formattedListTotal : formattedTotal }}</span>
               </article>
               <article v-if="flatOfferAmount > 0" class="ect-flex ect-justify-between">
-                <span class="ect-font-body ect-text-sm ect-text-[#1f3f37]">{{ offerLabel }}</span>
+                <span class="ect-font-body ect-text-sm ect-text-[#1f3f37]">Product offers</span>
                 <span class="ect-price ect-font-semibold ect-text-sm ect-text-[#1f3f37]">− {{ formattedFlatOffer }}</span>
               </article>
               <article v-if="promoAmount > 0" class="ect-flex ect-justify-between">

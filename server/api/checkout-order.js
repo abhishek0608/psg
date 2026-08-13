@@ -14,7 +14,11 @@
 import { prisma } from './db.js'
 import { pickVariantForPricing, pickPriceFromPriceBook } from './product-presenter.js'
 import { getSiteConfig } from './site-config-source.js'
-import { applyFlatOfferToUnitPrice, resolvePromoCode } from './offers-source.js'
+import {
+  getActiveAutomaticOffers,
+  resolveAutomaticOffer,
+  resolvePromoCode,
+} from './offers-source.js'
 
 export const RUPEES_TO_PAISE = 100
 
@@ -34,7 +38,8 @@ export function normalizeRequestedItems(rawItems) {
  * trusted, so a tampered cart cannot invent its own discount.
  *
  * Discounts are layered in the order a shopper sees them:
- *   1. flat offer — reduces each unit price, exactly as the catalog displayed it
+ *   1. automatic offer — the best matching org/product campaign reduces each
+ *      unit price, exactly as the catalog displayed it
  *   2. volume tier — dormant (no admin surface); contributes 0 unless a B2B
  *      channel re-enables volumeDiscountEnabled directly in the database
  *   3. promo code — typed in at checkout, applied to what is left
@@ -68,11 +73,13 @@ export async function priceCheckoutLines({ items, cartItems, promoCode } = {}) {
   })
   const bySlug = new Map(products.map((product) => [product.slug, product]))
 
-  // Config drives both the unit prices and the tier below, so it is read once
-  // up front. A config read that fails leaves every offer off rather than
-  // guessing — charging list price is the safe direction to fail in.
-  const config = await getSiteConfig().catch(() => null)
-  const flatOffer = config?.flatOffer || null
+  // Config drives the dormant quantity tier. Automatic offers are separate
+  // records and are loaded for only the products in this checkout. Either read
+  // failing falls back toward list price, which is the safe direction.
+  const [config, automaticOffers] = await Promise.all([
+    getSiteConfig().catch(() => null),
+    getActiveAutomaticOffers(products.map((product) => product.id)).catch(() => []),
+  ])
 
   const lines = []
   for (const item of requested) {
@@ -97,10 +104,11 @@ export async function priceCheckoutLines({ items, cartItems, promoCode } = {}) {
         { statusCode: 400 },
       )
     }
-    // The flat offer is part of the sticker price, so it is baked into the unit
-    // price the order line records — an invoice then reads the same as the
-    // product page did.
-    const unitPrice = applyFlatOfferToUnitPrice(listPrice, flatOffer)
+    // The winning automatic offer is part of the sticker price, so it is baked
+    // into the unit price the order line records. Overlapping offers do not
+    // stack; the resolver chooses the lowest customer price.
+    const automaticOffer = resolveAutomaticOffer(product.id, listPrice, automaticOffers)
+    const unitPrice = automaticOffer?.discountedPrice ?? listPrice
     lines.push({
       slug: product.slug,
       variantId: variant.id,
@@ -109,12 +117,15 @@ export async function priceCheckoutLines({ items, cartItems, promoCode } = {}) {
       unitPrice,
       qty: item.qty,
       currency: variant.currency || 'INR',
+      automaticOffer: automaticOffer
+        ? { id: automaticOffer.id, name: automaticOffer.name, label: automaticOffer.label }
+        : null,
     })
   }
 
   const listSubtotal = lines.reduce((sum, line) => sum + line.listPrice * line.qty, 0)
   const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.qty, 0)
-  const flatOfferAmount = listSubtotal - subtotal
+  const automaticOfferAmount = listSubtotal - subtotal
   // Quantity that decides the tier: the whole cart when it was sent, and every
   // slug in it has to be a live product.
   const countedLines = wholeCart.length ? wholeCart.filter((item) => bySlug.has(item.slug)) : lines
@@ -150,14 +161,15 @@ export async function priceCheckoutLines({ items, cartItems, promoCode } = {}) {
     lines,
     listSubtotal,
     subtotal,
-    flatOffer,
-    flatOfferAmount,
+    automaticOfferAmount,
+    // Backward-compatible field name for older order-note callers.
+    flatOfferAmount: automaticOfferAmount,
     volumePercent,
     volumeAmount,
     promoCode: promo?.code || null,
     promoAmount,
     // Everything taken off the priced subtotal, which is what the Order's
-    // discountPaise column records. The flat offer is not part of it — it is
+    // discountPaise column records. Automatic offers are not part of it — they are
     // already inside each line's unit price.
     discountAmount,
     total,
@@ -190,8 +202,8 @@ export async function createPendingOrder({
           .filter(Boolean)
           .join(', ')}`
       : null,
-    pricing.flatOfferAmount
-      ? `Flat offer: −₹${pricing.flatOfferAmount.toLocaleString('en-IN')} (in unit prices)`
+    pricing.automaticOfferAmount || pricing.flatOfferAmount
+      ? `Automatic product offers: −₹${(pricing.automaticOfferAmount || pricing.flatOfferAmount).toLocaleString('en-IN')} (in unit prices)`
       : null,
     pricing.volumePercent ? `Volume discount: ${pricing.volumePercent}%` : null,
     pricing.promoCode

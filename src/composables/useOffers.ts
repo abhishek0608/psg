@@ -1,7 +1,7 @@
-import { computed, ref } from 'vue'
-import { useSiteConfig, type FlatOffer } from './useSiteConfig'
+import { ref } from 'vue'
 import { API_BASE } from '../config-api'
 import { formatInr } from '../utils/currency'
+import type { ProductOffer } from '../data/products'
 
 /**
  * The storefront half of offer pricing. Mirrors server/api/offers-source.js —
@@ -10,8 +10,8 @@ import { formatInr } from '../utils/currency'
  * card. The two must agree, so any change to the maths belongs in both.
  *
  * Two kinds of offer, deliberately different:
- *   Flat offer  — site-wide and automatic. Baked into the price on every
- *                 product card, so what the shopper sees is what they pay.
+ *   Automatic offer — org-wide or product-scoped. The catalog API resolves
+ *                     the winning offer for every product.
  *   Promo code  — typed in at checkout. Leaves catalog prices alone and comes
  *                 off the subtotal, on top of the flat offer.
  */
@@ -33,45 +33,35 @@ const promoChecking = ref(false)
  * A rupee-amount offer is skipped on pieces that cost no more than the offer
  * itself — "₹5,000 off" on a ₹4,000 piece would otherwise price it at zero.
  */
-export function unitPriceWithOffer(listPrice: number, offer: FlatOffer): number {
+export function unitPriceWithOffer(listPrice: number, offer?: ProductOffer | null): number {
   const price = Math.round(Number(listPrice) || 0)
-  if (!offer.enabled || !(price > 0)) return price
+  if (!offer || !(price > 0)) return price
+  const resolved = Math.round(Number(offer.discountedPrice))
+  if (Number.isFinite(resolved) && resolved > 0 && resolved < price) return resolved
   if (offer.type === 'PERCENT') return Math.round((price * (100 - offer.value)) / 100)
   return price > offer.value ? price - offer.value : price
 }
 
 export function useOffers() {
-  const { flatOffer } = useSiteConfig()
-
-  const offerActive = computed(() => flatOffer.value.enabled && flatOffer.value.value > 0)
-
-  /** Badge copy: the admin's own wording when set, else one built from the value. */
-  const offerLabel = computed(() => {
-    if (!offerActive.value) return ''
-    if (flatOffer.value.label) return flatOffer.value.label
-    return flatOffer.value.type === 'PERCENT'
-      ? `${flatOffer.value.value}% OFF`
-      : `${formatInr(flatOffer.value.value)} OFF`
-  })
-
-  /** Discounted unit price for a list price, or the list price when no offer runs. */
-  function offerPrice(listPrice: number): number {
-    return unitPriceWithOffer(listPrice, flatOffer.value)
+  /** Discounted unit price for a product's resolved offer, else list price. */
+  function offerPrice(listPrice: number, offer?: ProductOffer | null): number {
+    return unitPriceWithOffer(listPrice, offer)
   }
 
   /**
    * What a product card needs in one call: whether this piece is actually
    * discounted (a rupee offer can skip cheap pieces), and both prices to show.
    */
-  function priceDisplay(listPrice: number) {
+  function priceDisplay(listPrice: number, offer?: ProductOffer | null) {
     const list = Math.round(Number(listPrice) || 0)
-    const discounted = Math.min(offerPrice(list), list)
+    const discounted = Math.min(offerPrice(list, offer), list)
     return {
       discounted,
       list,
       hasOffer: discounted < list,
       formattedDiscounted: formatInr(discounted),
       formattedList: formatInr(list),
+      label: offer?.label || '',
     }
   }
 
@@ -120,9 +110,6 @@ export function useOffers() {
   }
 
   return {
-    flatOffer,
-    offerActive,
-    offerLabel,
     offerPrice,
     priceDisplay,
     appliedPromo,

@@ -20,9 +20,9 @@ const {
   removeFromCart,
   clearCart,
 } = useCart()
-// A promo code is entered at checkout, so the cart only reflects the flat
-// offer — it shows the saving already baked into these prices.
-const { offerPrice, offerLabel } = useOffers()
+// A promo code is entered at checkout, so the cart only reflects automatic
+// product offers already baked into catalog prices.
+const { offerPrice } = useOffers()
 const rowLoading = ref<Record<string, boolean>>({})
 
 function isRowLoading(id: string) {
@@ -77,7 +77,7 @@ const quoteNote = computed(() => {
 // the product card quoted.
 function itemSubtotal(item: CartItem) {
   if (isItemCustomized(item)) return null
-  return formatInr(offerPrice(item.product.priceValue) * item.qty)
+  return formatInr(offerPrice(item.product.priceValue, item.product.offer) * item.qty)
 }
 
 function customizationEntries(item: CartItem) {
@@ -313,7 +313,7 @@ function customizationEntries(item: CartItem) {
                   <span class="ect-price ect-font-semibold ect-text-sm ect-text-charcoal">{{ flatOfferAmount > 0 ? formattedListTotal : formattedTotal }}</span>
                 </article>
                 <article v-if="flatOfferAmount > 0" class="ect-flex ect-justify-between">
-                  <span class="ect-font-body ect-text-sm ect-text-[#1f3f37] ect-flex ect-items-center ect-gap-1.5">{{ offerLabel }}</span>
+                  <span class="ect-font-body ect-text-sm ect-text-[#1f3f37] ect-flex ect-items-center ect-gap-1.5">Product offers</span>
                   <span class="ect-price ect-font-semibold ect-text-sm ect-text-[#1f3f37]">− {{ formattedFlatOffer }}</span>
                 </article>
                 <article v-if="hasCustomItems" class="ect-flex ect-justify-between">

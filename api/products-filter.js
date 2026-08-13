@@ -114,11 +114,13 @@ export default async function handler(req, res) {
     try {
       const catalog = await getCatalogProducts()
       const imagesBySlug = new Map(catalog.map((p) => [p.slug, p.images]))
+      const offersBySlug = new Map(catalog.map((p) => [p.slug, p.offer || null]))
       for (const product of products) {
         if (!product.images?.length) {
           const merged = imagesBySlug.get(product.slug)
           if (merged?.length) product.images = merged
         }
+        product.offer = offersBySlug.get(product.slug) || null
       }
     } catch (err) {
       console.error('Catalog image overlay failed (serving DB images only):', err?.message || err)
