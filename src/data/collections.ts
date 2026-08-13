@@ -21,6 +21,7 @@ export const COLLECTION_LINKS: CollectionLink[] = [
   { slug: 'pendants', label: 'Pendant', title: 'Pendants', description: 'Delicate pendants to layer or wear solo.', icon: 'pendant', preset: { subtypes: ['pendant'] } },
   { slug: 'bracelets', label: 'Bracelet / Bangle', title: 'Bracelets & Bangles', description: 'Cuffs, chains and classic bangles.', icon: 'bracelet', preset: { category: 'Bracelets' } },
   { slug: 'necklaces', label: 'Necklace', title: 'Necklaces', description: 'Statement necklaces and timeless chains.', icon: 'necklace', preset: { category: 'Necklaces' } },
+  { slug: 'mangalsutras', label: 'Mangalsutra', title: 'Mangalsutras', description: 'Traditional meaning, reimagined for today.', icon: 'necklace', preset: { category: 'Mangal Sutra' } },
 ]
 
 export function findCollectionBySlug(slug: string): CollectionLink | null {

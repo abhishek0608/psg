@@ -17,6 +17,8 @@ const COLOR_IDS: Color[] = ['yellow', 'white', 'rose', 'oxidised']
 function presetFromQuery(): CollectionPreset {
   const q = route.query
   const p: CollectionPreset = { tab: 'all' }
+  const tab = String(q.tab || '')
+  if (tab === 'new' || tab === 'bestseller' || tab === 'all') p.tab = tab
   const metal = String(q.metal || '')
   if ((MATERIALS as string[]).includes(metal)) p.material = metal as Material
   const color = String(q.color || '')

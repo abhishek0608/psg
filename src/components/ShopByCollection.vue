@@ -26,12 +26,21 @@ const tileBgs = [
   'linear-gradient(150deg,#f0e9dc,#d3c5ab)',
 ]
 
+const fallbackImages: Record<string, string> = {
+  rings: '/ring-1.jpg',
+  earrings: '/earring-1.jpg',
+  pendants: '/pendant-1.jpg',
+  bracelets: '/bracelet-1.jpg',
+  necklaces: '/necklace-1.jpg',
+  mangalsutras: '/raaga-mangalsutra-1.png',
+}
+
 // The configured image for a collection (if any). Rendered via an <img> element
 // rather than a CSS background-image: iOS/mobile Safari silently refuses to
 // paint background-images whose decoded area exceeds a memory threshold (large
 // uploaded photos easily hit it), leaving only the gradient on mobile while
 // desktop renders fine. <img> decodes progressively and has no such limit.
-const collectionImage = (slug: string) => collectionImages.value[slug] || ''
+const collectionImage = (slug: string) => collectionImages.value[slug] || fallbackImages[slug] || ''
 
 function goToCollection(slug: string) {
   void router.push(`/collections/${slug}`)
@@ -55,7 +64,7 @@ function goToCollection(slug: string) {
       </RouterLink>
     </header>
 
-    <div class="ect-grid ect-grid-cols-3 lg:ect-grid-cols-5 ect-gap-3 sm:ect-gap-4">
+    <div class="ect-grid ect-grid-cols-3 lg:ect-grid-cols-6 ect-gap-3 sm:ect-gap-4">
       <!--
         `flex flex-col` rather than `block`: grid stretches each tile to the row
         height, and a stretched <button> vertically centres its content by UA
