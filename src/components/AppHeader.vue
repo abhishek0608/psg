@@ -50,8 +50,28 @@ const collectionItems: CollectionLink[] = COLLECTION_LINKS
 
 // Bluestone-style mega menu: the dark category bar opens a full-width panel
 // for the hovered collection.
+//
+// "All Jewellery" opens the same panel with an extra category rail on the left:
+// hovering a category there swaps the rest of the panel to that category's
+// content, so the entry point differs but the menu body is identical.
+// The panel body is driven by MEGA_MENUS, so the rail only lists collections
+// that have menu data — a collection added to COLLECTION_LINKS without a
+// MEGA_MENUS entry would otherwise blank the whole panel when hovered.
+const ALL_JEWELLERY_KEY = '__all__'
+const railCollections = collectionItems.filter((c) => MEGA_MENUS[c.slug])
+const allJewelleryItem = ref(railCollections[0]?.slug ?? '')
+const isAllJewelleryOpen = computed(() => activeDropdown.value === ALL_JEWELLERY_KEY)
+
+function openAllJewellery() {
+  activeDropdown.value = ALL_JEWELLERY_KEY
+  allJewelleryItem.value = railCollections[0]?.slug ?? ''
+}
+
+const activeMegaSlug = computed(() =>
+  isAllJewelleryOpen.value ? allJewelleryItem.value : activeDropdown.value,
+)
 const activeMegaItem = computed(
-  () => collectionItems.find((c) => c.slug === activeDropdown.value) ?? null,
+  () => collectionItems.find((c) => c.slug === activeMegaSlug.value) ?? null,
 )
 const activeMegaMenu = computed(() =>
   activeMegaItem.value ? MEGA_MENUS[activeMegaItem.value.slug] ?? null : null,
@@ -468,10 +488,12 @@ function toggleNotifications() {
             {{ item.title }}
           </RouterLink>
         </li>
-        <li @mouseenter="activeDropdown = null">
+        <li @mouseenter="openAllJewellery">
           <RouterLink
             to="/collections"
-            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-label ect-text-cream/85 hover:ect-text-white ect-transition-colors"
+            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-label ect-transition-colors"
+            :class="isAllJewelleryOpen ? 'ect-bg-white ect-text-espresso-800' : 'ect-text-cream/85 hover:ect-text-white'"
+            @click="activeDropdown = null"
           >
             All Jewellery
           </RouterLink>
@@ -493,11 +515,46 @@ function toggleNotifications() {
           v-if="activeMegaMenu && activeMegaItem"
           class="ect-absolute ect-top-full ect-left-0 ect-right-0 ect-bg-white ect-shadow-2xl ect-shadow-charcoal/[0.18] ect-border-t ect-border-sand"
         >
-          <div class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-py-7 ect-grid ect-grid-cols-[1.35fr_1fr_1fr_1.15fr] ect-gap-x-10">
+          <div
+            class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-py-7 ect-grid"
+            :class="isAllJewelleryOpen
+              ? 'ect-grid-cols-[12.5rem_1fr_1fr_1fr_1.35fr] ect-gap-x-7'
+              : 'ect-grid-cols-[1.35fr_1fr_1fr_1.15fr] ect-gap-x-10'"
+          >
+            <!-- Category rail (All Jewellery only): hovering a row swaps the
+                 columns to the right to that category's menu. -->
+            <section v-if="isAllJewelleryOpen">
+              <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4 ect-min-h-[2.375rem]">Shop By Category</h3>
+              <ul class="ect-list-none ect-m-0 ect-p-0">
+                <li v-for="c in railCollections" :key="c.slug">
+                  <RouterLink
+                    :to="`/collections/${c.slug}`"
+                    class="ect-flex ect-items-center ect-justify-between ect-gap-2 ect-py-2 ect-pl-3 ect-pr-2 ect-rounded-sm ect-font-body ect-text-sm ect-whitespace-nowrap ect-transition-colors"
+                    :class="activeMegaSlug === c.slug
+                      ? 'ect-bg-champagne/60 ect-text-espresso-800 ect-font-semibold'
+                      : 'ect-text-charcoal/65 hover:ect-text-gold-700'"
+                    @mouseenter="allJewelleryItem = c.slug"
+                    @focus="allJewelleryItem = c.slug"
+                    @click="activeDropdown = null"
+                  >
+                    {{ c.title }}
+                    <svg class="ect-w-3.5 ect-h-3.5 ect-shrink-0 ect-opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                  </RouterLink>
+                </li>
+              </ul>
+              <RouterLink
+                to="/collections"
+                class="ect-mt-5 ect-inline-flex ect-w-full ect-items-center ect-justify-center ect-py-2.5 ect-border ect-border-espresso-800/30 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-espresso-800 hover:ect-bg-espresso-800 hover:ect-text-white ect-transition-colors"
+                @click="activeDropdown = null"
+              >
+                View All Jewellery
+              </RouterLink>
+            </section>
+
             <!-- Popular types -->
-            <section>
-              <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4">{{ activeMegaMenu.typesHeading }}</h3>
-              <ul class="ect-grid ect-grid-cols-2 ect-gap-x-6 ect-list-none ect-m-0 ect-p-0">
+            <section :class="isAllJewelleryOpen ? 'ect-border-l ect-border-sand/70 ect-pl-8' : ''">
+              <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4" :class="isAllJewelleryOpen ? 'ect-min-h-[2.375rem]' : ''">{{ activeMegaMenu.typesHeading }}</h3>
+              <ul class="ect-grid ect-gap-x-6 ect-list-none ect-m-0 ect-p-0" :class="isAllJewelleryOpen ? 'ect-grid-cols-1' : 'ect-grid-cols-2'">
                 <li v-for="t in activeMegaMenu.types" :key="t.label">
                   <RouterLink
                     :to="{ path: `/collections/${activeMegaItem.slug}`, query: t.query }"
@@ -519,7 +576,7 @@ function toggleNotifications() {
 
             <!-- Price ranges -->
             <section class="ect-border-l ect-border-sand/70 ect-pl-8">
-              <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4">By Price Range</h3>
+              <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4" :class="isAllJewelleryOpen ? 'ect-min-h-[2.375rem]' : ''">By Price Range</h3>
               <ul class="ect-list-none ect-m-0 ect-p-0">
                 <li v-for="pr in MEGA_PRICE_RANGES" :key="pr.label">
                   <RouterLink
@@ -535,7 +592,7 @@ function toggleNotifications() {
 
             <!-- Metals & stones -->
             <section class="ect-border-l ect-border-sand/70 ect-pl-8">
-              <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4">By Metals &amp; Stones</h3>
+              <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide ect-mb-4" :class="isAllJewelleryOpen ? 'ect-min-h-[2.375rem]' : ''">By Metals &amp; Stones</h3>
               <ul class="ect-list-none ect-m-0 ect-p-0">
                 <li v-for="m in activeMegaMenu.metals" :key="m.label">
                   <RouterLink
@@ -551,9 +608,9 @@ function toggleNotifications() {
 
             <!-- Browse by collections -->
             <section class="ect-border-l ect-border-sand/70 ect-pl-8">
-              <header class="ect-flex ect-items-center ect-justify-between ect-mb-4">
+              <header class="ect-flex ect-items-center ect-justify-between ect-mb-4" :class="isAllJewelleryOpen ? 'ect-min-h-[2.375rem]' : ''">
                 <h3 class="ect-font-body ect-text-ui ect-font-semibold ect-text-charcoal ect-tracking-wide">Browse By Collections</h3>
-                <RouterLink to="/collections" class="ect-inline-flex ect-items-center ect-gap-1 ect-font-body ect-text-xs ect-font-semibold ect-text-espresso-600 hover:ect-text-espresso-800 ect-transition-colors" @click="activeDropdown = null">
+                <RouterLink to="/collections" class="ect-inline-flex ect-shrink-0 ect-items-center ect-gap-1 ect-whitespace-nowrap ect-font-body ect-text-xs ect-font-semibold ect-text-espresso-600 hover:ect-text-espresso-800 ect-transition-colors" @click="activeDropdown = null">
                   View All
                   <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12l-7.5 7.5M21 12H3"/></svg>
                 </RouterLink>
