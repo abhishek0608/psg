@@ -113,4 +113,17 @@ export const MEGA_MENUS: Record<string, MegaCollectionMenu> = {
       { label: 'Rose Gold', query: { metal: 'gold', color: 'rose' } },
     ],
   },
+  mangalsutras: {
+    typesHeading: 'Popular Mangalsutra Styles',
+    fallbackImage: '/raaga-mangalsutra-1.png',
+    types: [
+      { label: 'Modern', query: { type: 'mangal-sutra' } },
+      { label: 'Traditional', query: { type: 'mangal-sutra' } },
+      { label: 'All Mangalsutras' },
+    ],
+    metals: [
+      { label: 'Gold', query: { metal: 'gold' } },
+      { label: 'Yellow Gold', query: { metal: 'gold', color: 'yellow' } },
+    ],
+  },
 }

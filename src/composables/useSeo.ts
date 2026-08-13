@@ -70,9 +70,12 @@ export function setProductJsonLd(product: Product) {
   }
 
   if (product.priceValue > 0) {
+    const currentPrice = product.offer?.discountedPrice && product.offer.discountedPrice > 0
+      ? product.offer.discountedPrice
+      : product.priceValue
     data.offers = {
       '@type': 'Offer',
-      price: product.priceValue,
+      price: currentPrice,
       priceCurrency: 'INR',
       availability: 'https://schema.org/InStock',
       url: `${window.location.origin}/product/${product.slug}`,

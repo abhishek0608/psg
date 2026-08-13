@@ -9,6 +9,7 @@ import UiSelect from '../components/UiSelect.vue'
 import { API_BASE } from '../config-api'
 import { useAuth } from '../composables/useAuth'
 import { invalidateHomepageSlides } from '../composables/useHomepageSlides'
+import { invalidateProductsCache } from '../composables/useProductsApi'
 import { invalidateSiteConfig, DEFAULT_LOGO_SRC } from '../composables/useSiteConfig'
 import { useInternalWorkspaceTab } from '../composables/useInternalWorkspaceTab'
 import { useOrders } from '../composables/useOrders'
@@ -20,6 +21,7 @@ import {
   type VideoCallStatus,
 } from '../composables/useVideoCallBookings'
 import { COLLECTION_LINKS } from '../data/collections'
+import { CATEGORIES } from '../data/products'
 
 
 interface AuditFields {
@@ -151,24 +153,53 @@ const aboutUploading = ref(false)
 const aboutMessage = ref('')
 
 // --- Offers config ---
-// Two kinds, deliberately different. The flat offer is site-wide and automatic:
-// it changes the price on every product card, so shoppers see it before they
-// ever reach the cart. A promo code changes nothing until it is typed in at
-// checkout. Quantity tiers used to live here too and no longer do — PSG sells
-// direct to consumers, so volume pricing had no audience.
-type OfferTypeDraft = 'PERCENT' | 'AMOUNT'
+// Automatic offers can cover the whole catalog or a selected product set. A
+// one-product offer is simply a selected set with one member. Promo codes stay
+// separate because they do nothing until the shopper enters a code at checkout.
+type PromoOfferTypeDraft = 'PERCENT' | 'AMOUNT'
+type AutomaticOfferTypeDraft = PromoOfferTypeDraft | 'FIXED_PRICE'
+type OfferScopeDraft = 'ALL_PRODUCTS' | 'PRODUCTS'
 
-const flatOfferEnabled = ref(false)
-const flatOfferType = ref<OfferTypeDraft>('PERCENT')
-const flatOfferValue = ref<number | null>(null)
-const flatOfferLabel = ref('')
-const offerSaving = ref(false)
-const offerMessage = ref('')
+interface OfferProductOption {
+  id: string
+  slug: string
+  title: string
+  category: string
+  /** Blank means inherit the campaign's default pricing rule. */
+  pricingType: '' | AutomaticOfferTypeDraft
+  pricingValue: number | null
+  pricingLabel: string
+}
+
+interface AutomaticOfferDraft {
+  id: string
+  name: string
+  type: '' | AutomaticOfferTypeDraft
+  value: number | null
+  label: string
+  scope: OfferScopeDraft
+  startsAt: string
+  endsAt: string
+  active: boolean
+  products: OfferProductOption[]
+}
+
+const automaticOffers = ref<AutomaticOfferDraft[]>([])
+const automaticOffersLoading = ref(false)
+const automaticOfferSavingId = ref('')
+const automaticOfferMessage = ref('')
+const automaticOfferDraft = ref<AutomaticOfferDraft | null>(null)
+const offerProductOptions = ref<OfferProductOption[]>([])
+const offerProductSearch = ref('')
+const offerProductCategory = ref('')
+const offerProductCreatedBefore = ref('')
+const offerProductOptionsLoading = ref(false)
+let offerProductSearchDebounce: ReturnType<typeof setTimeout> | undefined
 
 interface PromoCodeDraft {
   id: string
   code: string
-  type: OfferTypeDraft
+  type: PromoOfferTypeDraft
   value: number | null
   minOrderPaise: number | null
   startsAt: string
@@ -1058,7 +1089,6 @@ async function loadSiteConfig() {
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data.message || 'Unable to load branding settings.')
     logoUrl.value = String(data?.siteConfig?.logoUrl || '')
-    applyFlatOfferToView(data?.siteConfig?.flatOffer)
     collectionImages.value = normalizeCollectionImagesForView(data?.siteConfig?.collectionImages)
     applyAboutContentToView(data?.siteConfig?.aboutContent)
     applyVideoCallSettings(data?.siteConfig)
@@ -1069,58 +1099,269 @@ async function loadSiteConfig() {
   }
 }
 
-function applyFlatOfferToView(raw: unknown) {
-  const offer = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
-  flatOfferEnabled.value = Boolean(offer.enabled)
-  flatOfferType.value = String(offer.type || '').toUpperCase() === 'AMOUNT' ? 'AMOUNT' : 'PERCENT'
-  const value = Math.floor(Number(offer.value))
-  flatOfferValue.value = Number.isFinite(value) && value > 0 ? value : null
-  flatOfferLabel.value = typeof offer.label === 'string' ? offer.label : ''
+function automaticOfferRowToDraft(row: Record<string, unknown>): AutomaticOfferDraft {
+  const rawProducts = Array.isArray(row?.products) ? row.products : []
+  return {
+    id: String(row?.id || ''),
+    name: String(row?.name || ''),
+    type: (row?.type ? parseAutomaticOfferType(row.type) : '') as AutomaticOfferDraft['type'],
+    value: Number(row?.value) || null,
+    label: String(row?.label || ''),
+    scope: String(row?.scope || '').toUpperCase() === 'PRODUCTS' ? 'PRODUCTS' : 'ALL_PRODUCTS',
+    startsAt: String(row?.startsAt || ''),
+    endsAt: String(row?.endsAt || ''),
+    active: row?.active !== false,
+    products: rawProducts.map((product) => {
+      const item = product as Record<string, unknown>
+      return {
+        id: String(item.id || ''),
+        slug: String(item.slug || ''),
+        title: String(item.title || ''),
+        category: String(item.category || ''),
+        pricingType: (item.pricingType ? parseAutomaticOfferType(item.pricingType) : '') as OfferProductOption['pricingType'],
+        pricingValue: Number(item.pricingValue) || null,
+        pricingLabel: String(item.pricingLabel || ''),
+      }
+    }).filter((product) => product.id),
+  }
 }
 
-/** Live preview of what the storefront badge will read once this is saved. */
-const flatOfferPreview = computed(() => {
-  if (flatOfferLabel.value.trim()) return flatOfferLabel.value.trim()
-  const value = Number(flatOfferValue.value)
-  if (!Number.isFinite(value) || value <= 0) return '—'
-  return flatOfferType.value === 'PERCENT' ? `${value}% OFF` : `₹${value.toLocaleString('en-IN')} OFF`
-})
+function parseAutomaticOfferType(value: unknown): AutomaticOfferTypeDraft {
+  const type = String(value || '').toUpperCase()
+  if (type === 'FIXED_PRICE') return 'FIXED_PRICE'
+  return type === 'AMOUNT' ? 'AMOUNT' : 'PERCENT'
+}
 
-async function saveFlatOffer() {
+function blankAutomaticOfferDraft(): AutomaticOfferDraft {
+  return {
+    id: '',
+    name: '',
+    type: 'PERCENT',
+    value: null,
+    label: '',
+    scope: 'ALL_PRODUCTS',
+    startsAt: '',
+    endsAt: '',
+    active: true,
+    products: [],
+  }
+}
+
+async function loadAutomaticOffers() {
   if (!isInternalUser.value || !user.value?.id) return
-  const value = Math.floor(Number(flatOfferValue.value))
-  if (flatOfferEnabled.value && !(Number.isFinite(value) && value > 0)) {
-    offerMessage.value = 'Enter a discount greater than zero, or switch the offer off.'
-    return
-  }
-  if (flatOfferEnabled.value && flatOfferType.value === 'PERCENT' && value > MAX_OFFER_PERCENT) {
-    offerMessage.value = `A percentage offer can be at most ${MAX_OFFER_PERCENT}%.`
-    return
-  }
-  offerSaving.value = true
-  offerMessage.value = ''
+  automaticOffersLoading.value = true
   try {
-    const res = await fetch(`${API_BASE}/api/internal?resource=site-config`, {
-      method: 'PUT',
+    const res = await fetch(
+      `${API_BASE}/api/internal?resource=offers&userId=${encodeURIComponent(user.value.id)}`,
+    )
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || 'Unable to load offers.')
+    automaticOffers.value = (Array.isArray(data?.offers) ? data.offers : []).map(automaticOfferRowToDraft)
+  } catch (e) {
+    automaticOfferMessage.value = e instanceof Error ? e.message : 'Unable to load offers.'
+  } finally {
+    automaticOffersLoading.value = false
+  }
+}
+
+function startNewAutomaticOffer() {
+  automaticOfferDraft.value = blankAutomaticOfferDraft()
+  automaticOfferMessage.value = ''
+  offerProductOptions.value = []
+  void loadOfferProductOptions()
+}
+
+function editAutomaticOffer(row: AutomaticOfferDraft) {
+  automaticOfferDraft.value = { ...row, products: row.products.map((product) => ({ ...product })) }
+  automaticOfferMessage.value = ''
+  offerProductOptions.value = []
+  void loadOfferProductOptions()
+}
+
+function cancelAutomaticOfferDraft() {
+  automaticOfferDraft.value = null
+  automaticOfferMessage.value = ''
+}
+
+async function loadOfferProductOptions() {
+  if (!isInternalUser.value || !user.value?.id) return
+  offerProductOptionsLoading.value = true
+  try {
+    const params = new URLSearchParams({
+      resource: 'products-list',
+      userId: user.value.id,
+      status: 'active',
+      skip: '0',
+    })
+    if (offerProductSearch.value.trim()) params.set('search', offerProductSearch.value.trim())
+    if (offerProductCategory.value) params.set('category', offerProductCategory.value)
+    if (offerProductCreatedBefore.value) params.set('createdBefore', offerProductCreatedBefore.value)
+    const res = await fetch(`${API_BASE}/api/internal?${params.toString()}`)
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || 'Unable to load products.')
+    offerProductOptions.value = (Array.isArray(data?.products) ? data.products : []).map(
+      (product: Record<string, unknown>) => ({
+        id: String(product.id || ''),
+        slug: String(product.slug || ''),
+        title: String(product.title || ''),
+        category: String(product.category || ''),
+        pricingType: '',
+        pricingValue: null,
+        pricingLabel: '',
+      }),
+    )
+  } catch (e) {
+    automaticOfferMessage.value = e instanceof Error ? e.message : 'Unable to load products.'
+  } finally {
+    offerProductOptionsLoading.value = false
+  }
+}
+
+function onOfferProductSearchInput() {
+  if (offerProductSearchDebounce) clearTimeout(offerProductSearchDebounce)
+  offerProductSearchDebounce = setTimeout(() => void loadOfferProductOptions(), 300)
+}
+
+function offerHasProduct(productId: string) {
+  return Boolean(automaticOfferDraft.value?.products.some((product) => product.id === productId))
+}
+
+function toggleOfferProduct(product: OfferProductOption) {
+  const draft = automaticOfferDraft.value
+  if (!draft) return
+  const index = draft.products.findIndex((selected) => selected.id === product.id)
+  if (index >= 0) draft.products.splice(index, 1)
+  else draft.products.push({ ...product, pricingType: '', pricingValue: null, pricingLabel: '' })
+}
+
+function selectVisibleOfferProducts() {
+  const draft = automaticOfferDraft.value
+  if (!draft) return
+  const selected = new Set(draft.products.map((product) => product.id))
+  for (const product of offerProductOptions.value) {
+    if (!selected.has(product.id)) {
+      draft.products.push({ ...product, pricingType: '', pricingValue: null, pricingLabel: '' })
+    }
+  }
+}
+
+async function saveAutomaticOfferDraft() {
+  const draft = automaticOfferDraft.value
+  if (!draft || !isInternalUser.value || !user.value?.id) return
+  const value = Math.floor(Number(draft.value))
+  if (!draft.name.trim()) {
+    automaticOfferMessage.value = 'Enter an offer name.'
+    return
+  }
+  if (draft.type && (!(value > 0) || (draft.type === 'PERCENT' && value > MAX_OFFER_PERCENT))) {
+    automaticOfferMessage.value = draft.type === 'PERCENT'
+      ? `Enter a discount between 1 and ${MAX_OFFER_PERCENT}%.`
+      : draft.type === 'FIXED_PRICE'
+        ? 'Enter a fixed selling price greater than zero.'
+        : 'Enter a discount amount greater than zero.'
+    return
+  }
+  if (draft.scope === 'PRODUCTS' && !draft.products.length) {
+    automaticOfferMessage.value = 'Select at least one product for this offer.'
+    return
+  }
+  if (draft.scope === 'ALL_PRODUCTS' && !draft.type) {
+    automaticOfferMessage.value = 'Choose default pricing for an organisation-wide offer.'
+    return
+  }
+  if (draft.scope === 'PRODUCTS' && !draft.type && draft.products.some((product) => !product.pricingType)) {
+    automaticOfferMessage.value = 'Choose default pricing or set a pricing rule for every selected product.'
+    return
+  }
+  const invalidProduct = draft.products.find((product) => {
+    const productValue = Math.floor(Number(product.pricingValue))
+    return product.pricingType && (
+      !(productValue > 0) ||
+      (product.pricingType === 'PERCENT' && productValue > MAX_OFFER_PERCENT)
+    )
+  })
+  if (invalidProduct) {
+    automaticOfferMessage.value = `Enter a valid pricing value for ${invalidProduct.title}.`
+    return
+  }
+
+  automaticOfferSavingId.value = draft.id || 'new'
+  automaticOfferMessage.value = ''
+  try {
+    const res = await fetch(`${API_BASE}/api/internal?resource=offers`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         userId: user.value.id,
-        flatOfferEnabled: flatOfferEnabled.value,
-        flatOfferType: flatOfferType.value,
-        flatOfferValue: Number.isFinite(value) && value > 0 ? value : 0,
-        flatOfferLabel: flatOfferLabel.value,
+        id: draft.id || undefined,
+        name: draft.name,
+        type: draft.type,
+        value: draft.type ? value : null,
+        label: draft.label,
+        scope: draft.scope,
+        startsAt: draft.startsAt,
+        endsAt: draft.endsAt,
+        active: draft.active,
+        products: draft.scope === 'PRODUCTS'
+          ? draft.products.map((product) => ({
+              productId: product.id,
+              pricingType: product.pricingType,
+              pricingValue: product.pricingType ? Math.floor(Number(product.pricingValue)) : null,
+              pricingLabel: product.pricingLabel,
+            }))
+          : [],
       }),
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data.message || 'Unable to save the offer.')
-    applyFlatOfferToView(data?.siteConfig?.flatOffer)
-    invalidateSiteConfig()
-    offerMessage.value = 'Offer saved.'
+    automaticOfferDraft.value = null
+    invalidateProductsCache()
+    await loadAutomaticOffers()
+    automaticOfferMessage.value = 'Offer saved.'
   } catch (e) {
-    offerMessage.value = e instanceof Error ? e.message : 'Unable to save the offer.'
+    automaticOfferMessage.value = e instanceof Error ? e.message : 'Unable to save the offer.'
   } finally {
-    offerSaving.value = false
+    automaticOfferSavingId.value = ''
   }
+}
+
+async function deleteAutomaticOffer(row: AutomaticOfferDraft) {
+  if (!isInternalUser.value || !user.value?.id || !row.id) return
+  if (!window.confirm(`Delete the offer "${row.name}"? Existing orders keep their charged prices.`)) return
+  automaticOfferSavingId.value = row.id
+  automaticOfferMessage.value = ''
+  try {
+    const res = await fetch(`${API_BASE}/api/internal?resource=offers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.value.id, action: 'delete', id: row.id }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data.message || 'Unable to delete the offer.')
+    if (automaticOfferDraft.value?.id === row.id) automaticOfferDraft.value = null
+    invalidateProductsCache()
+    await loadAutomaticOffers()
+    automaticOfferMessage.value = 'Offer deleted.'
+  } catch (e) {
+    automaticOfferMessage.value = e instanceof Error ? e.message : 'Unable to delete the offer.'
+  } finally {
+    automaticOfferSavingId.value = ''
+  }
+}
+
+function automaticOfferSummary(row: AutomaticOfferDraft) {
+  const off = !row.type
+    ? 'Individual product pricing'
+    : row.type === 'PERCENT'
+    ? `${row.value}% off`
+    : row.type === 'FIXED_PRICE'
+      ? `₹${Number(row.value).toLocaleString('en-IN')} default sale price`
+      : `₹${Number(row.value).toLocaleString('en-IN')} off`
+  const scope = row.scope === 'ALL_PRODUCTS'
+    ? 'all products'
+    : `${row.products.length} product${row.products.length === 1 ? '' : 's'}`
+  const overrides = row.products.filter((product) => product.pricingType).length
+  return `${off} · ${scope}${overrides ? ` · ${overrides} custom price${overrides === 1 ? '' : 's'}` : ''}`
 }
 
 // --- Promo codes ---
@@ -1586,6 +1827,7 @@ onMounted(() => {
   void loadProducts(true)
   void loadHomepageSlides()
   void loadSiteConfig()
+  void loadAutomaticOffers()
   void loadPromoCodes()
   document.addEventListener('click', closeProductMoreOnOutsideClick)
 })
@@ -2493,88 +2735,178 @@ onBeforeUnmount(() => {
 
         <div v-else-if="activeTabId === 'offers'" class="ect-p-4 sm:ect-p-5 ect-space-y-8">
 
-          <!-- Flat offer: automatic, site-wide, and visible on every product
-               card. This is the one that changes catalog prices. -->
+          <!-- Automatic catalog offers can target the whole organisation or a
+               selected set. One selected product is the single-product case. -->
           <section>
             <div class="ect-mb-5 ect-flex ect-flex-col ect-gap-3 sm:ect-flex-row sm:ect-items-center sm:ect-justify-between">
               <div>
                 <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Pricing</p>
-                <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Flat offer</h2>
-                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">A site-wide discount applied automatically to every priced piece. The catalog, cart and checkout all show the reduced price, so shoppers see it before they reach the bag.</p>
+                <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Automatic offers</h2>
+                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Discount the whole catalog, one product, or a selected group. If campaigns overlap, the offer giving the shopper the lowest price wins.</p>
               </div>
-              <div class="ect-flex ect-flex-wrap ect-gap-2">
-                <button
-                  type="button"
-                  class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60"
-                  :disabled="offerSaving || logoLoading"
-                  @click="saveFlatOffer"
-                >
-                  {{ offerSaving ? 'Saving…' : 'Save offer' }}
-                </button>
-              </div>
+              <button
+                type="button"
+                class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60"
+                :disabled="automaticOffersLoading || Boolean(automaticOfferDraft)"
+                @click="startNewAutomaticOffer"
+              >
+                + New offer
+              </button>
             </div>
 
             <p
-              v-if="offerMessage"
+              v-if="automaticOfferMessage"
               class="ect-mb-4 ect-font-body ect-text-sm"
-              :class="offerMessage === 'Offer saved.' ? 'ect-text-emerald-700' : 'ect-text-red-600'"
+              :class="automaticOfferMessage.endsWith('saved.') || automaticOfferMessage.endsWith('deleted.') ? 'ect-text-emerald-700' : 'ect-text-red-600'"
             >
-              {{ offerMessage }}
+              {{ automaticOfferMessage }}
             </p>
 
-            <div v-if="logoLoading" class="ect-h-40 ect-max-w-xl ect-rounded-2xl ect-bg-cream ect-animate-pulse" />
-
-            <article v-else class="ect-max-w-xl ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-p-5 ect-space-y-5">
-              <label class="ect-flex ect-items-center ect-gap-3 ect-cursor-pointer">
-                <input v-model="flatOfferEnabled" type="checkbox" class="ect-h-4 ect-w-4 ect-rounded ect-border-charcoal/25 ect-text-gold-700 focus:ect-ring-gold-400/40" />
-                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Show this offer on the storefront</span>
-              </label>
-
-              <div :class="flatOfferEnabled ? '' : 'ect-opacity-50 ect-pointer-events-none'" class="ect-space-y-4">
+            <article v-if="automaticOfferDraft" class="ect-mb-5 ect-max-w-6xl ect-rounded-2xl ect-border ect-border-gold-400 ect-bg-white ect-p-5 ect-space-y-5">
+              <div class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
+                <label class="ect-block">
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Offer name</span>
+                  <input v-model="automaticOfferDraft.name" type="text" maxlength="100" placeholder="Old collection clearance" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                </label>
+                <label class="ect-block">
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Storefront label (optional)</span>
+                  <input v-model="automaticOfferDraft.label" type="text" maxlength="60" placeholder="Clearance · 80% off" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                </label>
                 <div>
-                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Discount</span>
-                  <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-2">
-                    <select
-                      v-model="flatOfferType"
-                      class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
-                    >
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Default product pricing</span>
+                  <div class="ect-flex ect-items-center ect-gap-2">
+                    <select v-model="automaticOfferDraft.type" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40">
+                      <option v-if="automaticOfferDraft.scope === 'PRODUCTS'" value="">No default — price each product</option>
                       <option value="PERCENT">Percentage off</option>
                       <option value="AMOUNT">Rupees off</option>
+                      <option value="FIXED_PRICE">Fixed selling price</option>
                     </select>
-                    <input
-                      v-model.number="flatOfferValue"
-                      type="number"
-                      min="1"
-                      :max="flatOfferType === 'PERCENT' ? MAX_OFFER_PERCENT : undefined"
-                      step="1"
-                      :placeholder="flatOfferType === 'PERCENT' ? '%' : '₹'"
-                      class="ect-w-28 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
-                    />
-                    <span class="ect-font-body ect-text-sm ect-text-charcoal/55">
-                      {{ flatOfferType === 'PERCENT' ? `% off every piece (max ${MAX_OFFER_PERCENT}%)` : 'off every piece' }}
-                    </span>
+                    <input v-model.number="automaticOfferDraft.value" type="number" min="1" :max="automaticOfferDraft.type === 'PERCENT' ? MAX_OFFER_PERCENT : undefined" step="1" :disabled="!automaticOfferDraft.type" :placeholder="automaticOfferDraft.type === 'PERCENT' ? '%' : '₹'" class="ect-w-28 ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal disabled:ect-bg-charcoal/5 disabled:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                   </div>
-                  <p v-if="flatOfferType === 'AMOUNT'" class="ect-mt-2 ect-font-body ect-text-micro ect-text-charcoal/40">
-                    Pieces priced at or below this amount are left at full price — a ₹5,000 discount on a ₹4,000 piece would otherwise make it free.
-                  </p>
+                  <p class="ect-mt-2 ect-font-body ect-text-micro ect-text-charcoal/40">Selected products can override this default individually below.</p>
+                </div>
+                <div>
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Applies to</span>
+                  <select v-model="automaticOfferDraft.scope" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40">
+                    <option value="ALL_PRODUCTS">All products (organisation-wide)</option>
+                    <option value="PRODUCTS">Selected products</option>
+                  </select>
+                </div>
+                <label class="ect-block">
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Starts (optional)</span>
+                  <input v-model="automaticOfferDraft.startsAt" type="date" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                </label>
+                <label class="ect-block">
+                  <span class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Ends (optional)</span>
+                  <input v-model="automaticOfferDraft.endsAt" type="date" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                </label>
+              </div>
+
+              <section v-if="automaticOfferDraft.scope === 'PRODUCTS'" class="ect-rounded-2xl ect-bg-cream/70 ect-p-4 ect-space-y-3">
+                <div class="ect-flex ect-flex-col lg:ect-flex-row ect-gap-2">
+                  <input v-model="offerProductSearch" type="search" placeholder="Search name, SKU, category or material…" class="ect-min-w-0 ect-flex-1 ect-rounded-xl ect-border ect-border-charcoal/15 ect-bg-white ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" @input="onOfferProductSearchInput" />
+                  <select v-model="offerProductCategory" class="ect-rounded-xl ect-border ect-border-charcoal/15 ect-bg-white ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal" @change="loadOfferProductOptions">
+                    <option value="">All categories</option>
+                    <option v-for="category in CATEGORIES" :key="category" :value="category">{{ category }}</option>
+                  </select>
+                  <label class="ect-flex ect-items-center ect-gap-2 ect-rounded-xl ect-border ect-border-charcoal/15 ect-bg-white ect-px-3 ect-py-2">
+                    <span class="ect-font-body ect-text-xs ect-text-charcoal/45 ect-whitespace-nowrap">Created before</span>
+                    <input v-model="offerProductCreatedBefore" type="date" class="ect-min-w-0 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none" @change="loadOfferProductOptions" />
+                  </label>
                 </div>
 
-                <div>
-                  <label class="ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45 ect-block ect-mb-2">Badge text (optional)</label>
-                  <input
-                    v-model="flatOfferLabel"
-                    type="text"
-                    maxlength="60"
-                    placeholder="e.g. Festive Sale"
-                    class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40"
-                  />
-                  <p class="ect-mt-2 ect-font-body ect-text-micro ect-text-charcoal/40">
-                    Shown on product cards. Leave blank to use the discount itself. Preview:
-                    <span class="ect-ml-1 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#1f3f37] ect-px-2 ect-py-0.5 ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9]">{{ flatOfferPreview }}</span>
-                  </p>
+                <div class="ect-flex ect-items-center ect-justify-between ect-gap-3">
+                  <p class="ect-font-body ect-text-xs ect-text-charcoal/55">{{ automaticOfferDraft.products.length }} selected</p>
+                  <button type="button" class="ect-font-body ect-text-xs ect-font-semibold ect-text-gold-700 hover:ect-text-charcoal disabled:ect-opacity-40" :disabled="!offerProductOptions.length" @click="selectVisibleOfferProducts">Select visible results</button>
                 </div>
+
+                <div v-if="offerProductOptionsLoading" class="ect-h-24 ect-rounded-xl ect-bg-white ect-animate-pulse" />
+                <div v-else class="ect-max-h-64 ect-overflow-y-auto ect-rounded-xl ect-border ect-border-sand ect-bg-white ect-divide-y ect-divide-sand">
+                  <label v-for="product in offerProductOptions" :key="product.id" class="ect-flex ect-cursor-pointer ect-items-start ect-gap-3 ect-px-3 ect-py-2.5 hover:ect-bg-cream/60">
+                    <input type="checkbox" class="ect-mt-0.5 ect-h-4 ect-w-4 ect-rounded ect-border-charcoal/25 ect-text-gold-700 focus:ect-ring-gold-400/40" :checked="offerHasProduct(product.id)" @change="toggleOfferProduct(product)" />
+                    <span class="ect-min-w-0">
+                      <span class="ect-block ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ product.title }}</span>
+                      <span class="ect-block ect-font-body ect-text-micro ect-text-charcoal/45">{{ product.slug }} · {{ product.category }}</span>
+                    </span>
+                  </label>
+                  <p v-if="!offerProductOptions.length" class="ect-p-4 ect-font-body ect-text-sm ect-text-charcoal/45">No matching active products.</p>
+                </div>
+
+                <section v-if="automaticOfferDraft.products.length" class="ect-space-y-2 ect-pt-2">
+                  <div>
+                    <h3 class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Selected product pricing</h3>
+                    <p class="ect-font-body ect-text-xs ect-text-charcoal/45">Choose “Campaign default” for shared pricing, or set a different rule and value for any product.</p>
+                  </div>
+                  <div class="ect-overflow-x-auto ect-rounded-xl ect-border ect-border-sand ect-bg-white">
+                    <table class="ect-w-full ect-min-w-[860px] ect-border-collapse">
+                      <thead class="ect-bg-cream">
+                        <tr class="ect-text-left">
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Product</th>
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Pricing rule</th>
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Value</th>
+                          <th class="ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Label</th>
+                          <th class="ect-w-12"><span class="ect-sr-only">Remove</span></th>
+                        </tr>
+                      </thead>
+                      <tbody class="ect-divide-y ect-divide-sand">
+                        <tr v-for="product in automaticOfferDraft.products" :key="product.id">
+                          <td class="ect-px-3 ect-py-2.5">
+                            <span class="ect-block ect-max-w-56 ect-truncate ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal" :title="product.title">{{ product.title }}</span>
+                            <span class="ect-block ect-font-body ect-text-micro ect-text-charcoal/40">{{ product.slug }}</span>
+                          </td>
+                          <td class="ect-px-3 ect-py-2.5">
+                            <select v-model="product.pricingType" class="ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-bg-white ect-px-2.5 ect-py-2 ect-font-body ect-text-xs ect-text-charcoal focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40">
+                              <option value="">Campaign default</option>
+                              <option value="PERCENT">Percentage off</option>
+                              <option value="AMOUNT">Rupees off</option>
+                              <option value="FIXED_PRICE">Fixed selling price</option>
+                            </select>
+                          </td>
+                          <td class="ect-px-3 ect-py-2.5">
+                            <input v-model.number="product.pricingValue" type="number" min="1" :max="product.pricingType === 'PERCENT' ? MAX_OFFER_PERCENT : undefined" step="1" :disabled="!product.pricingType" :placeholder="product.pricingType === 'PERCENT' ? '%' : '₹'" class="ect-w-28 ect-rounded-lg ect-border ect-border-charcoal/15 ect-px-2.5 ect-py-2 ect-font-body ect-text-xs ect-text-charcoal disabled:ect-bg-charcoal/5 disabled:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                          </td>
+                          <td class="ect-px-3 ect-py-2.5">
+                            <input v-model="product.pricingLabel" type="text" maxlength="60" :disabled="!product.pricingType" placeholder="Optional product label" class="ect-w-full ect-rounded-lg ect-border ect-border-charcoal/15 ect-px-2.5 ect-py-2 ect-font-body ect-text-xs ect-text-charcoal disabled:ect-bg-charcoal/5 disabled:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
+                          </td>
+                          <td class="ect-pr-2 ect-text-right">
+                            <button type="button" class="ect-rounded-full ect-p-2 ect-text-charcoal/30 hover:ect-bg-red-50 hover:ect-text-red-500" :aria-label="`Remove ${product.title}`" @click="toggleOfferProduct(product)">
+                              <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p class="ect-font-body ect-text-micro ect-text-charcoal/40">A fixed selling price must be below the product’s current list price; otherwise that product remains at list price.</p>
+                </section>
+              </section>
+
+              <label class="ect-flex ect-items-center ect-gap-3 ect-cursor-pointer">
+                <input v-model="automaticOfferDraft.active" type="checkbox" class="ect-h-4 ect-w-4 ect-rounded ect-border-charcoal/25 ect-text-gold-700 focus:ect-ring-gold-400/40" />
+                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">Active on the storefront</span>
+              </label>
+
+              <div class="ect-flex ect-flex-wrap ect-gap-2">
+                <button type="button" class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors disabled:ect-opacity-60" :disabled="Boolean(automaticOfferSavingId)" @click="saveAutomaticOfferDraft">{{ automaticOfferSavingId ? 'Saving…' : 'Save offer' }}</button>
+                <button type="button" class="ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-border ect-border-charcoal/20 ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal/70 hover:ect-bg-cream ect-transition-colors" @click="cancelAutomaticOfferDraft">Cancel</button>
               </div>
             </article>
+
+            <div v-if="automaticOffersLoading" class="ect-h-24 ect-max-w-4xl ect-rounded-2xl ect-bg-cream ect-animate-pulse" />
+            <p v-else-if="!automaticOffers.length" class="ect-font-body ect-text-sm ect-text-charcoal/45 ect-py-3">No automatic offers yet.</p>
+            <ul v-else class="ect-list-none ect-m-0 ect-p-0 ect-max-w-4xl ect-space-y-2">
+              <li v-for="row in automaticOffers" :key="row.id" class="ect-flex ect-flex-wrap ect-items-center ect-gap-3 ect-rounded-2xl ect-border ect-border-sand ect-bg-white ect-px-4 ect-py-3">
+                <span class="ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal">{{ row.name }}</span>
+                <span class="ect-inline-flex ect-items-center ect-rounded-full ect-px-2 ect-py-0.5 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label" :class="row.active ? 'ect-bg-emerald-50 ect-text-emerald-700' : 'ect-bg-charcoal/5 ect-text-charcoal/45'">{{ row.active ? 'Active' : 'Off' }}</span>
+                <span class="ect-font-body ect-text-sm ect-text-charcoal/55">{{ automaticOfferSummary(row) }}</span>
+                <span class="ect-ml-auto ect-flex ect-items-center ect-gap-1">
+                  <button type="button" class="ect-rounded-full ect-px-3 ect-py-1.5 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 hover:ect-bg-cream ect-transition-colors" @click="editAutomaticOffer(row)">Edit</button>
+                  <button type="button" class="ect-p-1.5 ect-rounded-full ect-text-charcoal/30 hover:ect-bg-red-50 hover:ect-text-red-500 ect-transition-colors disabled:ect-opacity-40" :disabled="automaticOfferSavingId === row.id" aria-label="Delete offer" @click="deleteAutomaticOffer(row)">
+                    <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </span>
+              </li>
+            </ul>
           </section>
 
           <!-- Promo codes: nothing changes on the catalog until a shopper types
@@ -2584,7 +2916,7 @@ onBeforeUnmount(() => {
               <div>
                 <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Campaigns</p>
                 <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Promo codes</h2>
-                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Codes a shopper types in at checkout. Catalog prices stay as they are; the discount comes off the order total, on top of any flat offer.</p>
+                <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Codes a shopper types in at checkout. Catalog prices stay as they are; the discount comes off the order total, on top of automatic product offers.</p>
               </div>
               <div class="ect-flex ect-flex-wrap ect-gap-2">
                 <button

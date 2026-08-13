@@ -97,11 +97,11 @@ const listPriceValue = computed(() => {
 })
 const hasRetailPrice = computed(() => listPriceValue.value > 0)
 
-// A running flat offer is part of the sticker price, so the card shows what the
+// A running automatic offer is part of the sticker price, so the card shows what the
 // piece actually costs today with the old price struck through beside it. The
 // server recomputes the same figure at checkout — this is display only.
 const { priceDisplay } = useOffers()
-const pricing = computed(() => priceDisplay(listPriceValue.value))
+const pricing = computed(() => priceDisplay(listPriceValue.value, props.product?.offer))
 
 // Listing cards carry no star rating: reviews belong on the product page,
 // where the full set is readable and the number has context. On a grid the
@@ -112,6 +112,7 @@ const pricing = computed(() => priceDisplay(listPriceValue.value))
 // the shot and hid part of the piece, and best sellers already have their own
 // section and collection tab.
 const productTag = computed(() => {
+  if (pricing.value.hasOffer && props.product?.offer?.scope === 'PRODUCTS') return pricing.value.label
   if (props.product?.isNewArrival) return 'New'
   if (props.product?.priceValue && props.product.priceValue <= 50000) return 'Under ₹50k'
   return ''
@@ -143,10 +144,9 @@ const productTag = computed(() => {
         <!-- Hover overlay -->
         <span class="ect-absolute ect-inset-0 ect-bg-charcoal/0 group-hover:ect-bg-charcoal/[0.035] ect-transition-colors ect-duration-300" />
 
-        <!-- Listing badge (top-left). The flat offer deliberately gets no badge
-             here: it is site-wide, so every card in the grid would carry the
-             same pill and it would read as wallpaper rather than news. The
-             struck-through price below already marks the piece as reduced. -->
+        <!-- Listing badge (top-left). Selected-product offers take priority so
+             a targeted campaign is visible; organisation-wide offers rely on
+             the struck-through price instead of repeating a pill on every card. -->
         <span v-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#b79a56] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#2b2723]">
           {{ productTag }}
         </span>

@@ -102,7 +102,7 @@ let cartSyncBound = false
 
 export function useCart() {
   const { user } = useAuth()
-  const { volumeDiscountEnabled, volumeDiscountTiers, flatOffer } = useSiteConfig()
+  const { volumeDiscountEnabled, volumeDiscountTiers } = useSiteConfig()
   const { appliedPromo } = useOffers()
   const totalItems = computed(() => items.reduce((sum, i) => sum + i.qty, 0))
 
@@ -117,15 +117,14 @@ export function useCart() {
     items.reduce((sum, i) => (isCustomizedCartItem(i) ? sum : sum + lineListPrice(i) * i.qty), 0),
   )
 
-  // The subtotal at the prices actually shown on the catalog: the flat offer is
-  // applied per unit, exactly as the product card displayed it, so the cart
-  // total is the sum of the prices the shopper was quoted.
+  // The subtotal at the prices shown in the catalog. Each product already
+  // carries its own server-resolved winning automatic offer.
   const totalPrice = computed(() =>
     items.reduce(
       (sum, i) =>
         isCustomizedCartItem(i)
           ? sum
-          : sum + unitPriceWithOffer(lineListPrice(i), flatOffer.value) * i.qty,
+          : sum + unitPriceWithOffer(lineListPrice(i), i.product.offer) * i.qty,
       0,
     ),
   )
@@ -165,7 +164,7 @@ export function useCart() {
   // --- Promo code ---
   // Entered at checkout and worth whatever the server said it was worth, so the
   // figure here can never drift from the one that gets charged. It comes off
-  // what is left after the flat offer, which is the subtotal the shopper sees.
+  // what is left after automatic product offers, which is the subtotal the shopper sees.
   const promoAmount = computed(() => {
     const promo = appliedPromo.value
     if (!promo) return 0

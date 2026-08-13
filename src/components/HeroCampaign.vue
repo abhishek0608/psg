@@ -272,6 +272,17 @@ onUnmounted(() => {
              visual voice, and the document keeps a title for search engines
              and for anyone navigating by headings. -->
         <h1 class="ect-sr-only">{{ heroHeading }}</h1>
+        <button
+          v-if="currentSlide.ctaLabel && currentSlide.ctaHref"
+          type="button"
+          class="ect-absolute ect-bottom-7 ect-left-1/2 -ect-translate-x-1/2 ect-z-[3] ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-[#1f3f37] ect-px-6 ect-py-3 sm:ect-bottom-9 sm:ect-px-8 sm:ect-py-3.5 ect-font-body ect-text-ui ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#f4ecd9] ect-shadow-[0_12px_30px_rgba(26,22,19,0.22)] hover:ect-bg-[#17342d] ect-transition-colors"
+          @click="navigateTo(currentSlide.ctaHref)"
+        >
+          {{ currentSlide.ctaLabel }}
+          <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
       </template>
 
       <!-- Editorial placeholder, only once we know no slides are configured -->
@@ -346,4 +357,3 @@ onUnmounted(() => {
     </div>
   </section>
 </template>
-

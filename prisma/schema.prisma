@@ -69,6 +69,7 @@ model Product {
   priceBookMap PriceBookItem[]
   wishlists    WishlistItem[]
   imageEmbeddings ProductImageEmbedding[]
+  offerTargets OfferProduct[]
 }
 
 // One row per product photo, embedded as an IMAGE (Bedrock Titan multimodal,
@@ -197,6 +198,48 @@ model PromoCode {
   updatedAt     DateTime  @updatedAt
 
   @@index([active])
+}
+
+// Automatic catalog offers. Scope is either ALL_PRODUCTS (the whole
+// organisation's catalog) or PRODUCTS (one or more rows in OfferProduct). A
+// single-product offer is therefore the same durable model as a curated group,
+// with one target instead of many.
+model Offer {
+  id        String   @id @default(cuid())
+  name      String
+  // Optional for selected-product campaigns when every product row defines
+  // its own pricing. Organisation-wide campaigns always require a default.
+  type      String?
+  value     Int?
+  label     String?
+  scope     String   @default("ALL_PRODUCTS")
+  startsAt  DateTime? @db.Timestamptz(3)
+  endsAt    DateTime? @db.Timestamptz(3)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  products  OfferProduct[]
+
+  @@index([active, startsAt, endsAt])
+}
+
+model OfferProduct {
+  offerId   String
+  productId String
+  // Optional per-product pricing override. Null fields inherit the parent
+  // campaign's type/value/label; populated fields allow one campaign to carry
+  // many distinct fixed prices or discounts.
+  offerType  String?
+  offerValue Int?
+  offerLabel String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  offer     Offer   @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([offerId, productId])
+  // The composite primary key serves offer -> products. This reverse index is
+  // required for product -> offers lookups and efficient product deletion.
+  @@index([productId, offerId])
 }
 
 model ProductImage {

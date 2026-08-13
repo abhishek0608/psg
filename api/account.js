@@ -255,13 +255,15 @@ async function enrichWithCatalogImages(products) {
   try {
     const catalog = await getCatalogProducts()
     if (!Array.isArray(catalog) || !catalog.length) return
-    const imagesBySlug = new Map(catalog.map((p) => [p.slug, p.images]))
+    const catalogBySlug = new Map(catalog.map((product) => [product.slug, product]))
     for (const product of targets) {
       const hasImages = Array.isArray(product.images) && product.images.length
-      const catalogImages = imagesBySlug.get(product.slug)
+      const catalogProduct = catalogBySlug.get(product.slug)
+      const catalogImages = catalogProduct?.images
       if (Array.isArray(catalogImages) && catalogImages.length && !hasImages) {
         product.images = catalogImages
       }
+      product.offer = catalogProduct?.offer || null
     }
   } catch (err) {
     console.error('Catalog image enrich failed:', err?.message || err)

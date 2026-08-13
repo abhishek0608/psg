@@ -16,6 +16,9 @@ import { getAllHomepageSlides } from '../server/api/homepage-slides-source.js'
 import { getSiteConfig, saveSiteConfig } from '../server/api/site-config-source.js'
 import {
   MAX_OFFER_PERCENT,
+  normalizeAutomaticOfferType,
+  normalizeAutomaticOfferValue,
+  normalizeOfferScope,
   normalizeOfferType,
   normalizeOfferValue,
   normalizePromoCode,
@@ -283,6 +286,9 @@ async function handleProductsListResource(req, res, body) {
     const skip = Math.max(Number(req?.query?.skip) || 0, 0)
     // Status filter: 'active' → active only, 'hidden' → hidden only, anything else → all.
     const status = String(req?.query?.status || '').trim().toLowerCase()
+    const category = String(req?.query?.category || '').trim()
+    const createdBeforeRaw = String(req?.query?.createdBefore || '').trim()
+    const createdBefore = createdBeforeRaw ? new Date(createdBeforeRaw) : null
 
     // Case-insensitive match across the fields shown in the products table.
     const where = {}
@@ -296,6 +302,8 @@ async function handleProductsListResource(req, res, body) {
     }
     if (status === 'active') where.active = true
     else if (status === 'hidden') where.active = false
+    if (category) where.category = category
+    if (createdBefore && !Number.isNaN(createdBefore.getTime())) where.createdAt = { lt: createdBefore }
 
     // "Priced" mirrors the storefront rule: an active variant above zero, or a
     // live B2C price-book row above zero. Everything else is hidden from
@@ -396,6 +404,192 @@ async function handleProductsListResource(req, res, body) {
     console.error('Internal products list failed:', err)
     return res.status(500).json({ message: 'Unable to load products.' })
   }
+}
+
+// ---------------------------------------------------------------------------
+// Automatic offers (resource=offers)
+// ---------------------------------------------------------------------------
+
+function toAutomaticOfferRow(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.type || '',
+    value: row.value ?? null,
+    label: row.label || '',
+    scope: row.scope,
+    startsAt: row.startsAt ? row.startsAt.toISOString().slice(0, 10) : '',
+    endsAt: row.endsAt ? row.endsAt.toISOString().slice(0, 10) : '',
+    active: row.active,
+    products: (row.products || []).map((target) => ({
+      id: target.product.id,
+      slug: target.product.slug,
+      title: target.product.title,
+      category: target.product.category,
+      pricingType: target.offerType || '',
+      pricingValue: target.offerValue || null,
+      pricingLabel: target.offerLabel || '',
+    })),
+  }
+}
+
+const automaticOfferInclude = {
+  products: {
+    include: {
+      product: { select: { id: true, slug: true, title: true, category: true } },
+    },
+    orderBy: { createdAt: 'asc' },
+  },
+}
+
+async function handleOffersResource(req, res, body) {
+  const userId = String(req?.query?.userId || body?.userId || '').trim()
+  const internalUser = await assertInternalUser(userId)
+  if (!internalUser) return res.status(403).json({ message: 'Internal access required.' })
+
+  if (req.method === 'GET') {
+    try {
+      const rows = await prisma.offer.findMany({
+        include: automaticOfferInclude,
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+      })
+      return res.status(200).json({ offers: rows.map(toAutomaticOfferRow) })
+    } catch (error) {
+      console.error('[internal-offers] list failed:', error)
+      return res.status(500).json({ message: 'Unable to load offers.' })
+    }
+  }
+
+  if (req.method === 'POST') {
+    const action = String(body?.action || '').trim()
+    const id = String(body?.id || '').trim()
+    if (action === 'delete') {
+      if (!id) return res.status(400).json({ message: 'Missing offer id.' })
+      try {
+        await prisma.offer.delete({ where: { id } })
+        invalidateCatalogProductsCache()
+        return res.status(200).json({ ok: true })
+      } catch (error) {
+        if (error?.code === 'P2025') return res.status(404).json({ message: 'Offer not found.' })
+        console.error('[internal-offers] delete failed:', error)
+        return res.status(500).json({ message: 'Unable to delete the offer.' })
+      }
+    }
+
+    const name = String(body?.name || '').trim().slice(0, 100)
+    if (!name) return res.status(400).json({ message: 'Enter an offer name.' })
+    const scope = normalizeOfferScope(body?.scope)
+    const rawType = String(body?.type || '').trim()
+    const type = rawType ? normalizeAutomaticOfferType(rawType) : null
+    const value = type ? normalizeAutomaticOfferValue(body?.value, type) : null
+    if (type && !(value > 0)) {
+      return res.status(400).json({
+        message:
+          type === 'PERCENT'
+            ? `Enter a discount between 1 and ${MAX_OFFER_PERCENT}%.`
+            : type === 'FIXED_PRICE'
+              ? 'Enter a fixed selling price greater than zero.'
+              : 'Enter a discount amount greater than zero.',
+      })
+    }
+    // `productIds` remains accepted for compatibility with the first scoped-
+    // offer UI. New clients send product rows whose optional pricing fields
+    // override the campaign default.
+    const rawProducts = Array.isArray(body?.products)
+      ? body.products
+      : (Array.isArray(body?.productIds) ? body.productIds : []).map((productId) => ({ productId }))
+    const seenProductIds = new Set()
+    const products = rawProducts
+      .map((raw) => {
+        const productId = String(raw?.productId || raw?.id || '').trim()
+        const rawPricingType = String(raw?.pricingType || '').trim()
+        const pricingType = rawPricingType ? normalizeAutomaticOfferType(rawPricingType) : null
+        const pricingValue = pricingType
+          ? normalizeAutomaticOfferValue(raw?.pricingValue, pricingType)
+          : null
+        return {
+          productId,
+          offerType: pricingType,
+          offerValue: pricingType ? pricingValue : null,
+          offerLabel: pricingType
+            ? String(raw?.pricingLabel || '').trim().slice(0, 60) || null
+            : null,
+        }
+      })
+      .filter((product) => {
+        if (!product.productId || seenProductIds.has(product.productId)) return false
+        seenProductIds.add(product.productId)
+        return true
+      })
+      .slice(0, 1000)
+    const productIds = products.map((product) => product.productId)
+    if (scope === 'PRODUCTS' && !productIds.length) {
+      return res.status(400).json({ message: 'Select at least one product for this offer.' })
+    }
+    const invalidOverride = products.find(
+      (product) => product.offerType && !(Number(product.offerValue) > 0),
+    )
+    if (invalidOverride) {
+      return res.status(400).json({ message: 'Every product override needs a value greater than zero.' })
+    }
+    if (scope === 'ALL_PRODUCTS' && !type) {
+      return res.status(400).json({ message: 'Choose default pricing for an organisation-wide offer.' })
+    }
+    if (scope === 'PRODUCTS' && !type && products.some((product) => !product.offerType)) {
+      return res.status(400).json({
+        message: 'Choose default pricing or set a pricing rule for every selected product.',
+      })
+    }
+
+    const startsAt = parseOptionalDate(body?.startsAt)
+    const endsAt = parseOptionalDate(body?.endsAt, true)
+    if (startsAt && endsAt && endsAt < startsAt) {
+      return res.status(400).json({ message: 'The end date cannot be before the start date.' })
+    }
+
+    try {
+      if (scope === 'PRODUCTS') {
+        const productCount = await prisma.product.count({ where: { id: { in: productIds } } })
+        if (productCount !== productIds.length) {
+          return res.status(400).json({ message: 'One or more selected products no longer exist.' })
+        }
+      }
+
+      const data = {
+        name,
+        type,
+        value,
+        label: String(body?.label || '').trim().slice(0, 60) || null,
+        scope,
+        startsAt,
+        endsAt,
+        active: body?.active !== false,
+      }
+      const offerId = await prisma.$transaction(async (tx) => {
+        const row = id
+          ? await tx.offer.update({ where: { id }, data })
+          : await tx.offer.create({ data })
+        await tx.offerProduct.deleteMany({ where: { offerId: row.id } })
+        if (scope === 'PRODUCTS') {
+          await tx.offerProduct.createMany({
+            data: products.map((product) => ({ offerId: row.id, ...product })),
+          })
+        }
+        return row.id
+      })
+      const row = await prisma.offer.findUnique({ where: { id: offerId }, include: automaticOfferInclude })
+      invalidateCatalogProductsCache()
+      return res.status(200).json({ offer: toAutomaticOfferRow(row) })
+    } catch (error) {
+      if (error?.code === 'P2025') return res.status(404).json({ message: 'Offer not found.' })
+      console.error('[internal-offers] save failed:', error)
+      return res.status(500).json({ message: 'Unable to save the offer.' })
+    }
+  }
+
+  res.setHeader('Allow', 'GET,POST')
+  return res.status(405).json({ message: 'Method not allowed' })
 }
 
 // ---------------------------------------------------------------------------
@@ -1747,10 +1941,10 @@ async function handleSiteConfigResource(req, res, body) {
 // ---------------------------------------------------------------------------
 
 /** Optional date bound off the admin form; a blank field means "no bound". */
-function parseOptionalDate(value) {
+function parseOptionalDate(value, endOfDay = false) {
   const raw = String(value || '').trim()
   if (!raw) return null
-  const parsed = new Date(raw)
+  const parsed = new Date(endOfDay && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T23:59:59.999Z` : raw)
   return Number.isNaN(parsed.getTime()) ? null : parsed
 }
 
@@ -1813,7 +2007,7 @@ async function handlePromoCodesResource(req, res, body) {
     }
 
     const startsAt = parseOptionalDate(body?.startsAt)
-    const endsAt = parseOptionalDate(body?.endsAt)
+    const endsAt = parseOptionalDate(body?.endsAt, true)
     if (startsAt && endsAt && endsAt < startsAt) {
       return res.status(400).json({ message: 'The end date cannot be before the start date.' })
     }
@@ -2010,6 +2204,7 @@ export default async function handler(req, res) {
   if (resource === 'product') return handleProductResource(req, res, body)
   if (resource === 'homepage-slides') return handleSlidesResource(req, res, body)
   if (resource === 'site-config') return handleSiteConfigResource(req, res, body)
+  if (resource === 'offers') return handleOffersResource(req, res, body)
   if (resource === 'promo-codes') return handlePromoCodesResource(req, res, body)
   if (resource === 'stone-sizes') return handleStoneSizesResource(req, res, body)
   if (resource === 'upload-image') return handleUploadImageResource(req, res, body)

@@ -7,7 +7,8 @@ const loading = ref(false)
 const loaded = ref(false)
 const error = ref<string | null>(null)
 
-const CACHE_KEY = 'bluestone:catalog-products:v1'
+// v2 adds each product's resolved automatic offer to the cached payload.
+const CACHE_KEY = 'bluestone:catalog-products:v2'
 const CACHE_TTL_MS = 5 * 60 * 1000
 
 function readCachedProducts() {

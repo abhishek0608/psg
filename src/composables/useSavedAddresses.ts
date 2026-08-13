@@ -4,19 +4,34 @@ const STORAGE_KEY = 'jewelet-saved-addresses-v1'
 
 export const COUNTRY_OPTIONS = [
   { code: 'IN', name: 'India' },
+  { code: 'TH', name: 'Thailand' },
   { code: 'US', name: 'United States' },
-  { code: 'GB', name: 'United Kingdom' },
-  { code: 'AE', name: 'United Arab Emirates' },
-  { code: 'SG', name: 'Singapore' },
-  { code: 'AU', name: 'Australia' },
-  { code: 'CA', name: 'Canada' },
-  { code: 'DE', name: 'Germany' },
-  { code: 'FR', name: 'France' },
-  { code: 'OTHER', name: 'Other' },
 ] as const
 
+export type SupportedCountryCode = (typeof COUNTRY_OPTIONS)[number]['code']
+
+const COUNTRY_ALIASES: Record<string, SupportedCountryCode> = {
+  IN: 'IN',
+  INDIA: 'IN',
+  TH: 'TH',
+  THAILAND: 'TH',
+  US: 'US',
+  USA: 'US',
+  'UNITED STATES': 'US',
+  'UNITED STATES OF AMERICA': 'US',
+}
+
+export function normalizeCountryCode(country: string): SupportedCountryCode | undefined {
+  return COUNTRY_ALIASES[country.trim().toLocaleUpperCase()]
+}
+
+export function isSupportedCountry(country: string): boolean {
+  return normalizeCountryCode(country) !== undefined
+}
+
 export function countryDisplayName(code: string): string {
-  return COUNTRY_OPTIONS.find((c) => c.code === code)?.name ?? code
+  const normalized = normalizeCountryCode(code)
+  return COUNTRY_OPTIONS.find((c) => c.code === normalized)?.name ?? code
 }
 
 export interface SavedAddressEntry {
@@ -35,10 +50,10 @@ export interface SavedAddressEntry {
 }
 
 /** The fields that identify a delivery destination, ignoring its label. */
-type AddressDetails = Pick<SavedAddressEntry, 'address' | 'city' | 'pincode' | 'phone'>
+type AddressDetails = Pick<SavedAddressEntry, 'address' | 'city' | 'state' | 'country' | 'pincode' | 'phone'>
 
 function matchKey(a: AddressDetails): string {
-  return [a.address, a.city, a.pincode, a.phone]
+  return [a.address, a.city, a.state, normalizeCountryCode(a.country) ?? a.country, a.pincode, a.phone]
     .map((v) => String(v || '').trim().toLocaleLowerCase().replace(/\s+/g, ' '))
     .join('|')
 }

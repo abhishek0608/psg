@@ -1,15 +1,14 @@
 /**
- * Offer pricing — the single source of truth for both storefront discounts.
+ * Offer pricing — the single source of truth for storefront discounts.
  *
  * There are exactly two, and they behave differently on purpose:
  *
- *   Flat offer  — site-wide, automatic, and part of the sticker price. Every
- *                 priced piece in the catalog is displayed and charged at its
- *                 discounted unit price, so there is no surprise at checkout.
+ *   Automatic offer — targets the whole catalog or selected products and is
+ *                     part of each matching product's sticker price.
  *   Promo code  — typed in at checkout. Catalog prices are untouched; the code
  *                 reduces the order subtotal once it has been entered.
  *
- * A promo code applies to the subtotal *after* the flat offer, which is the
+ * A promo code applies to the subtotal *after* automatic product offers, which is the
  * behaviour a shopper expects once the discounted price is the price they were
  * shown. The two therefore stack.
  *
@@ -19,6 +18,7 @@
 import { prisma } from './db.js'
 
 export const OFFER_TYPES = ['PERCENT', 'AMOUNT']
+export const AUTOMATIC_OFFER_TYPES = ['PERCENT', 'AMOUNT', 'FIXED_PRICE']
 
 // A percent offer is capped below 100 so enabling one can never drive an order
 // to ₹0 and take checkout down with it — Razorpay cannot charge nothing.
@@ -34,6 +34,19 @@ export function normalizeOfferValue(value, type) {
   const parsed = Math.floor(Number(value))
   if (!Number.isFinite(parsed) || parsed <= 0) return 0
   if (normalizeOfferType(type) === 'PERCENT') return Math.min(MAX_OFFER_PERCENT, parsed)
+  return Math.min(100_000_000, parsed)
+}
+
+/** Automatic campaigns also support a product's exact temporary sale price. */
+export function normalizeAutomaticOfferType(value) {
+  const type = String(value || '').trim().toUpperCase()
+  return AUTOMATIC_OFFER_TYPES.includes(type) ? type : 'PERCENT'
+}
+
+export function normalizeAutomaticOfferValue(value, type) {
+  const parsed = Math.floor(Number(value))
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0
+  if (normalizeAutomaticOfferType(type) === 'PERCENT') return Math.min(MAX_OFFER_PERCENT, parsed)
   return Math.min(100_000_000, parsed)
 }
 
@@ -70,11 +83,169 @@ export function flatOfferLabel(offer) {
  */
 export function applyFlatOfferToUnitPrice(listPrice, offer) {
   const price = Math.round(Number(listPrice) || 0)
-  if (!offer?.enabled || !(price > 0)) return price
+  const enabled = Boolean(offer?.enabled ?? offer?.active)
+  if (!enabled || !(price > 0)) return price
   if (offer.type === 'PERCENT') {
     return Math.round((price * (100 - offer.value)) / 100)
   }
+  if (offer.type === 'FIXED_PRICE') {
+    return offer.value < price ? offer.value : price
+  }
   return price > offer.value ? price - offer.value : price
+}
+
+// ---------------------------------------------------------------------------
+// Scoped automatic offers
+// ---------------------------------------------------------------------------
+
+export const OFFER_SCOPES = ['ALL_PRODUCTS', 'PRODUCTS']
+
+export function normalizeOfferScope(value) {
+  const scope = String(value || '').trim().toUpperCase()
+  return OFFER_SCOPES.includes(scope) ? scope : 'ALL_PRODUCTS'
+}
+
+/** Normalized internal shape shared by catalog and checkout resolution. */
+export function normalizeAutomaticOffer(row) {
+  const rawType = String(row?.type || '').trim()
+  const type = rawType ? normalizeAutomaticOfferType(rawType) : null
+  const value = type ? normalizeAutomaticOfferValue(row?.value, type) : null
+  const productTargets = Array.isArray(row?.products)
+    ? row.products
+        .map((target) => {
+          const productId = String(target?.productId || '')
+          const rawType = String(target?.offerType || '').trim()
+          const offerType = rawType ? normalizeAutomaticOfferType(rawType) : null
+          const offerValue = offerType
+            ? normalizeAutomaticOfferValue(target?.offerValue, offerType)
+            : null
+          return {
+            productId,
+            offerType: offerType && offerValue > 0 ? offerType : null,
+            offerValue: offerType && offerValue > 0 ? offerValue : null,
+            offerLabel:
+              typeof target?.offerLabel === 'string' ? target.offerLabel.trim().slice(0, 60) : '',
+          }
+        })
+        .filter((target) => target.productId)
+    : []
+  return {
+    id: String(row?.id || ''),
+    name: typeof row?.name === 'string' ? row.name.trim().slice(0, 100) : '',
+    type,
+    value,
+    label: typeof row?.label === 'string' ? row.label.trim().slice(0, 60) : '',
+    scope: normalizeOfferScope(row?.scope),
+    active: Boolean(row?.active),
+    startsAt: row?.startsAt || null,
+    endsAt: row?.endsAt || null,
+    productIds: productTargets.map((target) => target.productId),
+    productTargets,
+  }
+}
+
+export function automaticOfferLabel(offer) {
+  if (!offer?.active) return ''
+  if (offer.label) return offer.label
+  if (offer.type === 'PERCENT') return `${offer.value}% OFF`
+  if (offer.type === 'FIXED_PRICE') return `SALE PRICE ₹${offer.value.toLocaleString('en-IN')}`
+  return `₹${offer.value.toLocaleString('en-IN')} OFF`
+}
+
+/**
+ * Loads every currently active offer that can match one of the supplied
+ * products. Date checks happen in Postgres so expired campaigns are not sent
+ * through the rest of the pricing path.
+ */
+export async function getActiveAutomaticOffers(productIds = []) {
+  const ids = [...new Set((Array.isArray(productIds) ? productIds : []).map(String).filter(Boolean))]
+  const now = new Date()
+  const targetClause = ids.length
+    ? [{ scope: 'PRODUCTS', products: { some: { productId: { in: ids } } } }]
+    : []
+  const rows = await prisma.offer.findMany({
+    where: {
+      active: true,
+      AND: [
+        { OR: [{ startsAt: null }, { startsAt: { lte: now } }] },
+        { OR: [{ endsAt: null }, { endsAt: { gte: now } }] },
+        { OR: [{ scope: 'ALL_PRODUCTS' }, ...targetClause] },
+      ],
+    },
+    include: {
+      products: {
+        ...(ids.length ? { where: { productId: { in: ids } } } : {}),
+        select: {
+          productId: true,
+          offerType: true,
+          offerValue: true,
+          offerLabel: true,
+        },
+      },
+    },
+    orderBy: { createdAt: 'asc' },
+  })
+  return rows.map(normalizeAutomaticOffer).filter((offer) => offer.active)
+}
+
+/**
+ * Resolves overlapping campaigns in the shopper's favour: automatic offers
+ * never stack; the one producing the lowest unit price wins. On an exact tie,
+ * a selected-product campaign wins over an organisation-wide campaign, then
+ * id order keeps the result deterministic.
+ */
+export function resolveAutomaticOffer(productId, listPrice, offers = []) {
+  const price = Math.max(0, Math.round(Number(listPrice) || 0))
+  if (!(price > 0)) return null
+
+  let winner = null
+  for (const offer of Array.isArray(offers) ? offers : []) {
+    if (!offer?.active) continue
+    const productTarget = offer.productTargets?.find(
+      (target) => target.productId === String(productId),
+    )
+    const matches = offer.scope === 'ALL_PRODUCTS' || (offer.scope === 'PRODUCTS' && productTarget)
+    if (!matches) continue
+    // A populated target rule overrides the campaign default for this product.
+    // A blank target inherits the parent type/value/label.
+    const effectiveOffer = productTarget?.offerType
+      ? {
+          ...offer,
+          type: productTarget.offerType,
+          value: productTarget.offerValue,
+          label: productTarget.offerLabel || offer.label,
+        }
+      : offer
+    const discountedPrice = applyFlatOfferToUnitPrice(price, effectiveOffer)
+    if (!(discountedPrice < price)) continue
+
+    const candidate = { ...effectiveOffer, discountedPrice }
+    if (!winner || candidate.discountedPrice < winner.discountedPrice) {
+      winner = candidate
+      continue
+    }
+    if (candidate.discountedPrice !== winner.discountedPrice) continue
+    if (candidate.scope === 'PRODUCTS' && winner.scope !== 'PRODUCTS') {
+      winner = candidate
+      continue
+    }
+    if (candidate.scope === winner.scope && candidate.id.localeCompare(winner.id) < 0) winner = candidate
+  }
+  return winner
+}
+
+/** Public product payload; excludes schedules and target membership. */
+export function toProductOfferPayload(offer) {
+  if (!offer) return null
+  return {
+    id: offer.id,
+    name: offer.name,
+    type: offer.type,
+    value: offer.value,
+    label: automaticOfferLabel(offer),
+    scope: offer.scope,
+    discountedPrice: offer.discountedPrice,
+  }
 }
 
 // ---------------------------------------------------------------------------
