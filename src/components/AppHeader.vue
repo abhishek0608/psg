@@ -174,7 +174,7 @@ function toggleNotifications() {
 
     <!-- Main nav -->
     <nav class="ect-relative ect-z-20 ect-bg-white/95 ect-backdrop-blur-xl lg:ect-border-b lg:ect-border-sand">
-      <!-- At 320px the logo stays compact so the left cluster and all five
+      <!-- At 320px the logo stays compact so the left cluster and the
            customer action icons remain on one row. -->
       <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-5 ect-flex ect-items-center ect-justify-between ect-h-16">
         <!-- Left: mobile hamburger + logo (mobile) / logo only (desktop) -->
@@ -398,10 +398,12 @@ function toggleNotifications() {
           </RouterLink>
         </section>
 
-        <!-- Mobile right: search, video call, wishlist, recently viewed, cart (sign-in lives in the drawer).
+        <!-- Mobile right: search, support, video call, wishlist, recently viewed, cart (sign-in lives in the drawer).
              Search is icon-only here — the text field lives on /search and in the drawer,
-             so the top bar stays a single row of icons. -->
-        <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-0 sm:ect-gap-1">
+             so the top bar stays a single row of icons. Support hides below 360px and
+             recently viewed below `sm` so the remaining icons keep a comfortable gap;
+             both are still reachable from the drawer. -->
+        <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-1.5 min-[375px]:ect-gap-2 sm:ect-gap-2.5">
           <RouterLink v-if="!isInternalPath" to="/search" class="ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Search">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -424,7 +426,7 @@ function toggleNotifications() {
             </svg>
             <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
           </RouterLink>
-          <RouterLink v-if="!isInternalPath" to="/recently-viewed" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Recently viewed">
+          <RouterLink v-if="!isInternalPath" to="/recently-viewed" class="ect-relative ect-hidden sm:ect-block ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Recently viewed">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-9-9 8.96 8.96 0 016.36 2.64M18 3v4h-4" />
             </svg>
