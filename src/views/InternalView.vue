@@ -882,7 +882,7 @@ async function compressImageFile(file: File) {
 // image callers only; video has no inline fallback and must surface the error.
 async function uploadHomepageImageToS3(
   file: File,
-  target: 'desktop' | 'mobile' | 'collection' | 'about' | 'video' | 'mobile-video',
+  target: 'desktop' | 'mobile' | 'collection' | 'about',
 ): Promise<string | null> {
   const userId = user.value?.id
   if (!userId) return null
@@ -955,53 +955,6 @@ async function onHomepageSlideFileChange(index: number, event: Event, target: 'd
     applyUrl(dataUrl)
   } catch (error) {
     homepageMessage.value = error instanceof Error ? error.message : 'Unable to read image.'
-  } finally {
-    homepageUploading.value = false
-    if (input) input.value = ''
-  }
-}
-
-// Hero videos are S3-only: they're far too large to inline as base64 the way
-// the image fallback does, so an unconfigured bucket is a hard error here
-// rather than a silent downgrade.
-const MAX_HOMEPAGE_VIDEO_BYTES = 12 * 1024 * 1024
-
-async function onHomepageSlideVideoChange(
-  index: number,
-  event: Event,
-  target: 'desktop' | 'mobile',
-) {
-  const input = event.target as HTMLInputElement | null
-  const file = input?.files?.[0]
-  homepageMessage.value = ''
-  if (!file) return
-  if (file.type !== 'video/mp4' && file.type !== 'video/webm') {
-    homepageMessage.value = 'Please choose an MP4 or WEBM video.'
-    if (input) input.value = ''
-    return
-  }
-  if (file.size > MAX_HOMEPAGE_VIDEO_BYTES) {
-    homepageMessage.value =
-      'Please choose a video smaller than 12 MB — a hero clip should be a few seconds, muted, and compressed.'
-    if (input) input.value = ''
-    return
-  }
-
-  const field = target === 'desktop' ? 'videoUrl' : 'mobileVideoUrl'
-  homepageUploading.value = true
-  try {
-    const publicUrl = await uploadHomepageImageToS3(file, target === 'desktop' ? 'video' : 'mobile-video')
-    if (!publicUrl) {
-      homepageMessage.value =
-        'Video uploads need S3 storage configured. Paste a hosted video URL instead.'
-      return
-    }
-    const nextSlides = [...homepageSlides.value]
-    if (!nextSlides[index]) return
-    nextSlides[index] = { ...nextSlides[index], [field]: publicUrl }
-    homepageSlides.value = nextSlides
-  } catch (error) {
-    homepageMessage.value = error instanceof Error ? error.message : 'Unable to upload video.'
   } finally {
     homepageUploading.value = false
     if (input) input.value = ''
@@ -2148,7 +2101,7 @@ onBeforeUnmount(() => {
             <div>
               <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-text-gold-700 ect-mb-1">Storefront hero</p>
               <div class="ect-flex ect-items-center ect-gap-2">
-                <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Homepage full-screen images</h2>
+                <h2 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal">Homepage image carousel</h2>
                 <span
                   class="ect-group ect-relative ect-inline-flex"
                   tabindex="0"
@@ -2164,10 +2117,10 @@ onBeforeUnmount(() => {
                     class="ect-pointer-events-none ect-absolute ect-left-0 ect-top-full ect-z-30 ect-mt-2 ect-w-[20rem] ect-max-w-[80vw] ect-rounded-xl ect-border ect-border-charcoal/10 ect-bg-white ect-p-4 ect-text-left ect-font-body ect-text-charcoal/70 ect-opacity-0 ect-shadow-[0_18px_50px_-20px_rgba(0,0,0,0.45)] ect-transition-opacity ect-duration-150 group-hover:ect-opacity-100 group-focus-within:ect-opacity-100"
                   >
                     <span class="ect-mb-2 ect-block ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal">For crisp, undistorted banners</span>
-                    <span class="ect-mb-2.5 ect-block ect-text-xs ect-leading-relaxed ect-text-charcoal/55">The hero stretches each image to fill the frame (no cropping), so the image’s shape must match the slot or it will look squished.</span>
+                    <span class="ect-mb-2.5 ect-block ect-text-xs ect-leading-relaxed ect-text-charcoal/55">Images fill the banner without stretching. Match these proportions to keep artwork and text from being cropped.</span>
                     <span class="ect-block ect-space-y-1.5 ect-text-xs ect-leading-relaxed">
-                      <span class="ect-flex ect-justify-between ect-gap-3"><span class="ect-text-charcoal/55">Desktop</span><span class="ect-font-semibold ect-text-charcoal">2560 × 1440 px · 16:9 landscape</span></span>
-                      <span class="ect-flex ect-justify-between ect-gap-3"><span class="ect-text-charcoal/55">Mobile</span><span class="ect-font-semibold ect-text-charcoal">1080 × 1920 px · 9:16 portrait</span></span>
+                      <span class="ect-flex ect-justify-between ect-gap-3"><span class="ect-text-charcoal/55">Desktop</span><span class="ect-font-semibold ect-text-charcoal">2500 × 1000 px · 5:2 landscape</span></span>
+                      <span class="ect-flex ect-justify-between ect-gap-3"><span class="ect-text-charcoal/55">Mobile</span><span class="ect-font-semibold ect-text-charcoal">1000 × 1200 px · 5:6 portrait</span></span>
                       <span class="ect-flex ect-justify-between ect-gap-3"><span class="ect-text-charcoal/55">Format</span><span class="ect-font-semibold ect-text-charcoal">WebP, AVIF or JPEG</span></span>
                       <span class="ect-flex ect-justify-between ect-gap-3"><span class="ect-text-charcoal/55">File size</span><span class="ect-font-semibold ect-text-charcoal">up to 15 MB (≈1–2 MB ideal)</span></span>
                     </span>
@@ -2175,7 +2128,7 @@ onBeforeUnmount(() => {
                   </span>
                 </span>
               </div>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Add and reorder full-screen slides for the homepage hero. If no active slides exist, the current default hero stays visible.</p>
+              <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mt-1">Add and reorder image slides for the homepage. Add a mobile image for each slide. Where no active images are configured, the default PSG campaign is shown.</p>
             </div>
             <div class="ect-flex ect-flex-wrap ect-gap-2">
               <button
@@ -2248,7 +2201,7 @@ onBeforeUnmount(() => {
                   </div>
                   <div class="ect-w-24 ect-shrink-0 sm:ect-w-28">
                     <span class="ect-mb-1 ect-block ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Mobile</span>
-                    <div class="ect-relative ect-aspect-[9/16] ect-overflow-hidden ect-rounded-xl ect-bg-charcoal/10">
+                    <div class="ect-relative ect-aspect-[5/6] ect-overflow-hidden ect-rounded-xl ect-bg-charcoal/10">
                       <img
                         v-if="slide.mobileImageUrl"
                         :src="slide.mobileImageUrl"
@@ -2283,34 +2236,7 @@ onBeforeUnmount(() => {
                       @change="onHomepageSlideFileChange(index, $event, 'mobile')"
                     />
                   </label>
-                  <label class="ect-inline-flex ect-cursor-pointer ect-items-center ect-justify-center ect-rounded-full ect-border ect-border-charcoal/20 ect-px-3 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 hover:ect-border-gold-400 hover:ect-text-gold-700 hover:ect-bg-cream">
-                    Upload desktop video
-                    <input
-                      type="file"
-                      accept="video/mp4,video/webm"
-                      class="ect-hidden"
-                      @change="onHomepageSlideVideoChange(index, $event, 'desktop')"
-                    />
-                  </label>
-                  <label class="ect-inline-flex ect-cursor-pointer ect-items-center ect-justify-center ect-rounded-full ect-border ect-border-charcoal/20 ect-px-3 ect-py-2 ect-font-body ect-text-xs ect-font-semibold ect-text-charcoal/70 hover:ect-border-gold-400 hover:ect-text-gold-700 hover:ect-bg-cream">
-                    Upload mobile video
-                    <input
-                      type="file"
-                      accept="video/mp4,video/webm"
-                      class="ect-hidden"
-                      @change="onHomepageSlideVideoChange(index, $event, 'mobile')"
-                    />
-                  </label>
                 </div>
-
-                <p
-                  v-if="slide.videoUrl || slide.mobileVideoUrl"
-                  class="ect-rounded-xl ect-bg-cream ect-px-3 ect-py-2 ect-font-body ect-text-micro ect-leading-5 ect-text-charcoal/60"
-                >
-                  This slide plays a video. The image above is still used as its
-                  poster frame — keep one set so the banner paints instantly while
-                  the video loads. Videos play muted and cannot carry audio.
-                </p>
 
                 <label class="ect-block">
                   <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Desktop image URL</span>
@@ -2321,17 +2247,6 @@ onBeforeUnmount(() => {
                   <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Mobile image URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
                   <input v-model="slide.mobileImageUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
                 </label>
-
-                <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
-                  <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Desktop video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
-                    <input v-model="slide.videoUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
-                  </label>
-                  <label class="ect-block">
-                    <span class="ect-mb-1.5 ect-block ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/45">Mobile video URL <span class="ect-normal-case ect-font-normal ect-text-charcoal/35">(optional)</span></span>
-                    <input v-model="slide.mobileVideoUrl" type="text" placeholder="https://…" class="ect-w-full ect-rounded-xl ect-border ect-border-charcoal/15 ect-px-4 ect-py-2.5 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/30 focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-gold-400/40" />
-                  </label>
-                </div>
 
                 <div class="ect-grid ect-gap-4 sm:ect-grid-cols-2">
                   <label class="ect-block">

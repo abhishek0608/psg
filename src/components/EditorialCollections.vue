@@ -33,7 +33,7 @@ const edits = [
       <div>
         <p class="ect-eyebrow ect-text-gold-600">Handpicked for you</p>
         <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
-          Find your next favourite
+          For every version of you
         </h2>
       </div>
       <RouterLink
@@ -44,12 +44,12 @@ const edits = [
       </RouterLink>
     </header>
 
-    <div class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 lg:ect-grid-rows-2 ect-gap-4 lg:ect-h-[650px]">
+    <div class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 lg:ect-grid-rows-2 ect-gap-4 lg:ect-h-[580px]">
       <RouterLink
         v-for="edit in edits"
         :key="edit.title"
         :to="edit.to"
-        class="ect-group ect-relative ect-min-h-[360px] lg:ect-min-h-0 ect-overflow-hidden ect-rounded-xl ect-bg-[#e9dfce]"
+        class="ect-group ect-relative ect-min-h-[360px] lg:ect-min-h-0 ect-overflow-hidden ect-rounded-sm ect-bg-[#e9dfce]"
         :class="edit.className"
       >
         <img

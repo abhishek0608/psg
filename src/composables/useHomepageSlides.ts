@@ -5,8 +5,8 @@ export interface HomepageSlide {
   id?: string
   imageUrl: string
   mobileImageUrl?: string
-  // Optional hero video. When present it plays in place of the image for that
-  // device, and the image becomes its poster frame.
+  imagePosition?: string
+  // Legacy video fields are retained for compatibility; the hero uses images.
   videoUrl?: string
   mobileVideoUrl?: string
   headline?: string

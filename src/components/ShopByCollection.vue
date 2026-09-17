@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { COLLECTION_LINKS } from '../data/collections'
 import { useSiteConfig } from '../composables/useSiteConfig'
 
-const router = useRouter()
 const collections = COLLECTION_LINKS
 
 const { collectionImages, ensureSiteConfigLoaded } = useSiteConfig()
@@ -41,10 +39,6 @@ const fallbackImages: Record<string, string> = {
 // uploaded photos easily hit it), leaving only the gradient on mobile while
 // desktop renders fine. <img> decodes progressively and has no such limit.
 const collectionImage = (slug: string) => collectionImages.value[slug] || fallbackImages[slug] || ''
-
-function goToCollection(slug: string) {
-  void router.push(`/collections/${slug}`)
-}
 </script>
 
 <template>
@@ -53,7 +47,7 @@ function goToCollection(slug: string) {
       <div>
         <p class="ect-eyebrow ect-text-gold-600">Shop by category</p>
         <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
-          Find your everyday favorite
+          What speaks to you?
         </h2>
       </div>
       <RouterLink
@@ -65,30 +59,21 @@ function goToCollection(slug: string) {
     </header>
 
     <div class="ect-grid ect-grid-cols-3 lg:ect-grid-cols-6 ect-gap-3 sm:ect-gap-4">
-      <!--
-        `flex flex-col` rather than `block`: grid stretches each tile to the row
-        height, and a stretched <button> vertically centres its content by UA
-        default. A label that wraps to two lines ("Bracelets & Bangles" at the
-        3-column breakpoint) makes the row a line taller, which then shunts every
-        single-line sibling down half a line — image and caption both. Laying the
-        button out as a column pins its content to the top so the tiles in a row
-        stay aligned no matter how the captions wrap.
-      -->
-      <button
+      <!-- Keep image and label aligned when a category name wraps. -->
+      <RouterLink
         v-for="(item, index) in collections"
         :key="item.slug"
-        type="button"
-        class="ect-group ect-flex ect-flex-col ect-text-center"
-        @click="goToCollection(item.slug)"
+        class="category-link ect-group ect-flex ect-flex-col ect-text-center"
+        :to="`/collections/${item.slug}`"
       >
         <span
-          class="ect-relative ect-block ect-shrink-0 ect-aspect-square ect-rounded-md ect-overflow-hidden ect-mb-3 ect-ring-1 ect-ring-inset ect-ring-sand group-hover:ect-ring-gold-300 ect-transition-all"
+          class="category-image ect-relative ect-block ect-w-full ect-shrink-0 ect-aspect-[4/5] ect-overflow-hidden ect-mb-3 ect-ring-1 ect-ring-inset ect-ring-sand group-hover:ect-ring-gold-300 ect-transition-all"
           :style="{ background: tileBgs[index % tileBgs.length] }"
         >
           <img
             v-if="collectionImage(item.slug)"
             :src="collectionImage(item.slug)"
-            :alt="item.title"
+            alt=""
             loading="lazy"
             decoding="async"
             class="ect-pointer-events-none ect-absolute ect-inset-0 ect-w-full ect-h-full ect-object-cover ect-transition-transform ect-duration-500 group-hover:ect-scale-[1.04]"
@@ -105,7 +90,17 @@ function goToCollection(slug: string) {
         <span class="ect-font-body ect-text-sm ect-tracking-wide ect-text-[#2b2723] group-hover:ect-text-[#1f5c4d] ect-transition-colors">
           {{ item.title }}
         </span>
-      </button>
+      </RouterLink>
     </div>
   </section>
 </template>
+
+<style scoped>
+.category-image { border-radius: 120px 120px 4px 4px; margin-bottom: 18px; }
+.category-link { min-width: 0; }
+.category-link > span:last-child { width: 100%; font-size: 14px; }
+@media (max-width: 639px) {
+  .category-image { margin-bottom: 10px; }
+  .category-link > span:last-child { font-size: 12px; line-height: 1.4; }
+}
+</style>

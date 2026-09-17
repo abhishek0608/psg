@@ -1,225 +1,117 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import type { ComponentPublicInstance } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHeaderOffset } from '../composables/useHeaderOffset'
-import { useHomepageSlides } from '../composables/useHomepageSlides'
+import { useHomepageSlides, type HomepageSlide } from '../composables/useHomepageSlides'
+import { defaultHomepageSlides } from '../data/homepageCampaign'
 
 const router = useRouter()
-// The header is fixed; offset the hero by its live height so the image is
-// never clipped behind it.
 const { headerOffset } = useHeaderOffset()
 const { slides, loaded, ensureHomepageSlidesLoaded } = useHomepageSlides()
-
-const MOBILE_QUERY = '(max-width: 767px)'
 const isMobile = ref(false)
-let mobileQuery: MediaQueryList | null = null
-function syncIsMobile(event: MediaQueryList | MediaQueryListEvent) {
-  isMobile.value = event.matches
-}
-
-// Some visitors ask the OS to minimise animation; for them the hero video is
-// rendered but never auto-played, so they get a still poster frame instead.
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 const prefersReducedMotion = ref(false)
-let reducedMotionQuery: MediaQueryList | null = null
-function syncReducedMotion(event: MediaQueryList | MediaQueryListEvent) {
-  prefersReducedMotion.value = event.matches
-}
-
-// Resolve the asset a slide should show on the current device. On mobile we use
-// the dedicated mobile asset (a mobile-only slide stores it in `imageUrl`); we
-// never fall back to the desktop image there, because a landscape banner cropped
-// to a portrait frame looks broken.
-function resolveImageUrl(slide: { imageUrl?: string; mobileImageUrl?: string; device?: string } | null) {
-  if (!slide) return ''
-  if (isMobile.value) {
-    if (String(slide.mobileImageUrl || '').trim()) return String(slide.mobileImageUrl)
-    if ((slide.device || 'all') === 'mobile') return String(slide.imageUrl || '')
-    return ''
-  }
-  return String(slide.imageUrl || '')
-}
-
-// Same per-device rules as the image, so a portrait hero video can be uploaded
-// for mobile without it also being stretched across the desktop banner.
-function resolveVideoUrl(slide: { videoUrl?: string; mobileVideoUrl?: string; device?: string } | null) {
-  if (!slide) return ''
-  if (isMobile.value) {
-    if (String(slide.mobileVideoUrl || '').trim()) return String(slide.mobileVideoUrl)
-    if ((slide.device || 'all') === 'mobile') return String(slide.videoUrl || '')
-    return ''
-  }
-  return String(slide.videoUrl || '')
-}
-
-// Every active slide that has usable media for the current device, in order. A
-// slide qualifies on either an image or a video — the image is only the poster
-// frame when a video is present, so it's optional.
-const activeSlides = computed(() =>
-  slides.value
-    .filter((slide) => {
-      if (slide?.active === false) return false
-      const device = slide?.device || 'all'
-      if (device !== 'all' && (isMobile.value ? device !== 'mobile' : device !== 'desktop')) {
-        return false
-      }
-      return Boolean(resolveImageUrl(slide).trim() || resolveVideoUrl(slide).trim())
-    })
-    .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0)),
-)
-
+const paused = ref(false)
+const hovering = ref(false)
+const focusWithin = ref(false)
+const pageHidden = ref(false)
 const activeSlideIndex = ref(0)
+const failedImages = ref(new Set<string>())
+let mobileQuery: MediaQueryList | null = null
+let motionQuery: MediaQueryList | null = null
 let autoRotateHandle: number | null = null
 
+function syncMobile(event: MediaQueryList | MediaQueryListEvent) { isMobile.value = event.matches }
+function syncMotion(event: MediaQueryList | MediaQueryListEvent) { prefersReducedMotion.value = event.matches }
+function syncVisibility() { pageHidden.value = document.hidden }
+function resolveImageUrl(slide: HomepageSlide) {
+  if (!isMobile.value) return slide.imageUrl || ''
+  return slide.mobileImageUrl || (slide.device === 'mobile' ? slide.imageUrl : '')
+}
+function usableSlides(items: HomepageSlide[]) {
+  return items.filter((slide) => {
+    const device = slide.device || 'all'
+    const image = resolveImageUrl(slide)
+    return slide.active !== false &&
+      (device === 'all' || device === (isMobile.value ? 'mobile' : 'desktop')) &&
+      Boolean(image.trim()) && !failedImages.value.has(image)
+  }).sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+}
+// Legacy video-only records do not suppress the new S3 image campaign.
+// Images configured in the internal editor take precedence per device.
+const activeSlides = computed(() => {
+  const configured = usableSlides(slides.value)
+  return configured.length ? configured : usableSlides(defaultHomepageSlides)
+})
 const currentSlide = computed(() => activeSlides.value[activeSlideIndex.value] || null)
-
-// Hold a plain frame until the first slides fetch settles. Without this the
-// editorial placeholder — headline, supporting copy and all — paints for as long
-// as the request is in flight and is then yanked away by the real banner, which
-// reads as stray text sitting on top of the hero video.
 const showSkeleton = computed(() => !loaded.value)
-
-function goToSlide(index: number) {
-  const total = activeSlides.value.length
-  if (!total) {
-    activeSlideIndex.value = 0
-    return
-  }
-  activeSlideIndex.value = ((index % total) + total) % total
-}
-function showNextSlide() {
-  goToSlide(activeSlideIndex.value + 1)
-}
-function showPreviousSlide() {
-  goToSlide(activeSlideIndex.value - 1)
-}
-
-// The <video> element for each slide index, so playback can follow the carousel
-// instead of every slide streaming at once.
-const slideVideos = ref<(HTMLVideoElement | null)[]>([])
-function setVideoRef(el: Element | ComponentPublicInstance | null, index: number) {
-  slideVideos.value[index] = (el as HTMLVideoElement) || null
-}
-
-// A video slide is timed by its own duration (we advance on `ended`) rather than
-// the 5s image timer, so a clip is never cut off mid-shot.
-const currentSlideIsVideo = computed(() => Boolean(resolveVideoUrl(currentSlide.value).trim()))
-
-// The page heading when a banner is carrying the hero. Banners are artwork, so
-// a headline is optional on a slide — falling back to the brand line keeps the
-// homepage from having a heading that reads as empty.
-const heroHeading = computed(
-  () => currentSlide.value?.headline?.trim() || 'Jewelet — fine jewellery, handcrafted',
-)
-
 function stopAutoRotate() {
-  if (autoRotateHandle != null) {
-    window.clearInterval(autoRotateHandle)
-    autoRotateHandle = null
-  }
+  if (autoRotateHandle !== null) window.clearInterval(autoRotateHandle)
+  autoRotateHandle = null
 }
 function startAutoRotate() {
   stopAutoRotate()
-  if (activeSlides.value.length <= 1) return
-  // Videos drive their own advance via @ended. Fall back to the timer if the
-  // visitor has reduced motion on, since nothing will be playing to end.
-  if (currentSlideIsVideo.value && !prefersReducedMotion.value) return
-  autoRotateHandle = window.setInterval(showNextSlide, 5000)
+  if (!loaded.value || activeSlides.value.length <= 1 || prefersReducedMotion.value ||
+      paused.value || hovering.value || focusWithin.value || pageHidden.value) return
+  autoRotateHandle = window.setInterval(showNextSlide, 6000)
 }
-
-// Play only the slide on screen; rewind and pause the rest.
-function syncVideoPlayback() {
-  slideVideos.value.forEach((video, index) => {
-    if (!video) return
-    if (index !== activeSlideIndex.value) {
-      video.pause()
-      // Restart next time it comes around rather than resuming mid-shot.
-      if (video.currentTime) video.currentTime = 0
-      return
-    }
-    if (prefersReducedMotion.value) {
-      video.pause()
-      return
-    }
-    // Autoplay can still be refused (e.g. low-power mode); the poster stays up.
-    void video.play().catch(() => {})
-  })
+function goToSlide(index: number) {
+  const total = activeSlides.value.length
+  activeSlideIndex.value = total ? ((index % total) + total) % total : 0
+  startAutoRotate()
 }
-
-function handleVideoEnded(index: number) {
-  if (index !== activeSlideIndex.value) return
-  if (activeSlides.value.length <= 1) return
-  showNextSlide()
+function showNextSlide() { goToSlide(activeSlideIndex.value + 1) }
+function showPreviousSlide() { goToSlide(activeSlideIndex.value - 1) }
+function onFocusOut(event: FocusEvent) {
+  focusWithin.value = (event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)
 }
-
 function navigateTo(href: string) {
   const target = href.trim()
   if (!target) return
   if (target.startsWith('#')) {
-    document.querySelector(target)?.scrollIntoView({ behavior: 'smooth' })
-    return
-  }
-  if (/^https?:\/\//i.test(target)) {
+    document.getElementById(target.slice(1))?.scrollIntoView({ behavior: prefersReducedMotion.value ? 'auto' : 'smooth' })
+  } else if (/^https?:\/\//i.test(target)) {
     window.location.href = target
-    return
+  } else {
+    void router.push(target)
   }
-  void router.push(target)
 }
-
-watch(activeSlides, async (next) => {
-  if (!next.length) {
-    activeSlideIndex.value = 0
-    stopAutoRotate()
-    return
-  }
-  if (activeSlideIndex.value >= next.length) activeSlideIndex.value = 0
-  // Drop refs for slides that no longer exist (e.g. after a breakpoint change).
-  slideVideos.value.length = next.length
-  await nextTick()
-  syncVideoPlayback()
-  startAutoRotate()
-})
-
-// Each advance re-points playback and re-arms the timer, because whether the
-// timer is used at all depends on the incoming slide being a video or an image.
-watch(activeSlideIndex, () => {
-  syncVideoPlayback()
-  startAutoRotate()
-})
-
-watch(prefersReducedMotion, () => {
-  syncVideoPlayback()
-  startAutoRotate()
-})
-
+watch(activeSlides, () => { activeSlideIndex.value = 0; startAutoRotate() })
+watch([prefersReducedMotion, paused, hovering, focusWithin, pageHidden, loaded], startAutoRotate)
 onMounted(async () => {
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    mobileQuery = window.matchMedia(MOBILE_QUERY)
-    syncIsMobile(mobileQuery)
-    mobileQuery.addEventListener('change', syncIsMobile)
-    reducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY)
-    syncReducedMotion(reducedMotionQuery)
-    reducedMotionQuery.addEventListener('change', syncReducedMotion)
-  }
+  mobileQuery = window.matchMedia('(max-width: 767px)')
+  motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  syncMobile(mobileQuery)
+  syncMotion(motionQuery)
+  mobileQuery.addEventListener('change', syncMobile)
+  motionQuery.addEventListener('change', syncMotion)
+  document.addEventListener('visibilitychange', syncVisibility)
+  syncVisibility()
   await ensureHomepageSlidesLoaded()
   startAutoRotate()
 })
-
 onUnmounted(() => {
   stopAutoRotate()
-  mobileQuery?.removeEventListener('change', syncIsMobile)
-  reducedMotionQuery?.removeEventListener('change', syncReducedMotion)
+  mobileQuery?.removeEventListener('change', syncMobile)
+  motionQuery?.removeEventListener('change', syncMotion)
+  document.removeEventListener('visibilitychange', syncVisibility)
 })
 </script>
 
 <template>
-  <!-- Full-bleed campaign hero (Aurelle design) -->
+  <!-- Campaign artwork stays unobstructed; the introduction sits below it. -->
   <section
     class="ect-relative ect-w-full ect-overflow-hidden ect-bg-[#efe7d6]"
     :style="{ marginTop: headerOffset + 'px' }"
+    aria-label="Featured jewellery collections"
+    aria-roledescription="carousel"
+    @mouseenter="hovering = true"
+    @mouseleave="hovering = false"
+    @focusin="focusWithin = true"
+    @focusout="onFocusOut"
+    @keydown.left.prevent="showPreviousSlide"
+    @keydown.right.prevent="showNextSlide"
   >
-    <div class="ect-relative ect-h-[420px] sm:ect-h-[520px] lg:ect-h-[600px]">
+    <div class="campaign-frame">
       <!-- Loading frame: same height as the banner, deliberately wordless. -->
       <div
         v-if="showSkeleton"
@@ -229,49 +121,35 @@ onUnmounted(() => {
       />
 
       <template v-else-if="activeSlides.length && currentSlide">
-        <!-- All slides stay mounted; the active one cross-fades in via opacity.
-             (A <transition mode="out-in"> here left images stuck at opacity 0
-             when auto-rotation interrupted an in-flight fade.) -->
-        <template v-for="(slide, index) in activeSlides" :key="slide.id || `${slide.imageUrl}-${index}`">
-          <!-- Video slide: muted + playsinline so mobile browsers will autoplay
-               it, with the slide's image as the poster so something paints
-               immediately instead of a black box while the file streams. -->
-          <video
-            v-if="resolveVideoUrl(slide)"
-            :ref="(el) => setVideoRef(el, index)"
-            :src="resolveVideoUrl(slide)"
-            :poster="resolveImageUrl(slide) || undefined"
-            :aria-label="slide.headline || 'Homepage campaign video'"
-            muted
-            playsinline
-            :loop="activeSlides.length <= 1"
-            :autoplay="!prefersReducedMotion"
-            :preload="index === 0 ? 'auto' : 'metadata'"
-            class="ect-absolute ect-inset-0 ect-h-full ect-w-full ect-object-cover ect-transition-opacity ect-duration-500"
-            :class="index === activeSlideIndex ? 'ect-opacity-100' : 'ect-opacity-0'"
-            @ended="handleVideoEnded(index)"
-          />
+        <div
+          v-for="(slide, index) in activeSlides"
+          :key="slide.id || `${slide.imageUrl}-${index}`"
+          class="campaign-slide"
+          :class="{ 'is-active': index === activeSlideIndex }"
+          :aria-hidden="index !== activeSlideIndex"
+          :inert="index !== activeSlideIndex"
+          role="group"
+          aria-roledescription="slide"
+          :aria-label="`${index + 1} of ${activeSlides.length}`"
+        >
           <img
-            v-else
             :src="resolveImageUrl(slide)"
-            :alt="slide.headline || 'Homepage campaign image'"
-            :fetchpriority="index === 0 ? 'high' : undefined"
+            :alt="slide.headline || 'Homepage jewellery campaign'"
+            :style="{ objectPosition: slide.imagePosition || 'center' }"
+            :fetchpriority="index === 0 ? 'high' : 'auto'"
             decoding="async"
-            class="ect-absolute ect-inset-0 ect-h-full ect-w-full ect-object-cover ect-transition-opacity ect-duration-500"
-            :class="index === activeSlideIndex ? 'ect-opacity-100' : 'ect-opacity-0'"
+            class="ect-h-full ect-w-full ect-object-cover"
+            @error="failedImages.add(resolveImageUrl(slide))"
           />
-        </template>
-        <!-- No copy overlay: an uploaded banner or hero video carries its own
-             artwork and typography, so nothing is drawn on top of it.
-
-             That typography is pixels, though. Drawn nothing at all, the
-             homepage shipped without a single heading the moment a banner was
-             configured — the editorial placeholder below owns the only <h1> on
-             the page, and it only renders when no slide exists. So the heading
-             is named here rather than shown: the banner still carries the
-             visual voice, and the document keeps a title for search engines
-             and for anyone navigating by headings. -->
-        <h1 class="ect-sr-only">{{ heroHeading }}</h1>
+          <a
+            v-if="slide.ctaHref && !slide.ctaLabel"
+            :href="slide.ctaHref"
+            class="campaign-artwork-link"
+            :aria-label="`${slide.headline || 'Explore jewellery'} — shop collection`"
+            @click.prevent="navigateTo(slide.ctaHref)"
+          />
+        </div>
+        <!-- Uploaded artwork carries its own typography; the page heading follows below. -->
         <button
           v-if="currentSlide.ctaLabel && currentSlide.ctaHref"
           type="button"
@@ -285,42 +163,23 @@ onUnmounted(() => {
         </button>
       </template>
 
-      <!-- Editorial placeholder, only once we know no slides are configured -->
-      <template v-else>
-        <div
-          class="ect-absolute ect-inset-0"
-          style="background: radial-gradient(circle at 74% 28%, rgba(183,154,86,0.30), transparent 44%), linear-gradient(155deg, #f0e8d7 0%, #faf7f2 48%, #efe0d2 100%)"
-        />
-        <div class="ect-absolute ect-inset-x-0 ect-bottom-0 ect-p-6 sm:ect-p-10 lg:ect-p-14">
-          <div class="ect-max-w-7xl ect-mx-auto">
-            <p class="ect-eyebrow ect-text-[#b79a56]">
-              New diamond arrivals
-            </p>
-            <h1 class="ect-mt-2 ect-font-display ect-text-4xl sm:ect-text-5xl lg:ect-text-6xl ect-font-medium ect-leading-[1.06] ect-text-[#2b2723]">
-              Jewellery that makes every day shine
-            </h1>
-            <p class="ect-mt-4 ect-max-w-xl ect-font-body ect-text-sm sm:ect-text-base ect-leading-7 ect-text-[#7a7264]">
-              Shop certified gold and diamond designs with free shipping, lifetime exchange, and effortless returns.
-            </p>
-            <button
-              type="button"
-              class="ect-mt-6 ect-inline-flex ect-items-center ect-gap-2 ect-rounded-full ect-bg-[#1f3f37] ect-px-7 ect-py-3.5 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#f4ecd9] hover:ect-bg-[#163029] ect-transition-colors"
-              @click="navigateTo('#collections')"
-            >
-              Shop Now
-              <svg class="ect-w-3.5 ect-h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          </div>
+      <!-- A complete editorial hero when no campaign is configured. -->
+      <div v-else class="campaign-fallback">
+        <div class="campaign-fallback-copy">
+          <p class="ect-eyebrow">THE JEWELET COLLECTION</p>
+          <h1 class="ect-font-display">A little brilliance.<br /><em>Every single day.</em></h1>
+          <p>For the moments you celebrate, and the ones you make your own. Discover jewellery that feels like you.</p>
+          <RouterLink to="/collections" class="campaign-shop">Explore jewellery <span aria-hidden="true">↗</span></RouterLink>
         </div>
-      </template>
+        <img src="/editorial-everyday-diamonds.webp" alt="A considered selection of everyday diamond jewellery" fetchpriority="high" />
+      </div>
 
       <!-- Prev / next arrows -->
-      <template v-if="activeSlides.length > 1">
+      <template v-if="!showSkeleton && activeSlides.length > 1">
         <button
           type="button"
           aria-label="Show previous slide"
+          data-carousel-arrow="previous"
           class="ect-absolute ect-left-4 ect-top-1/2 -ect-translate-y-1/2 ect-z-[2] ect-inline-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-[#faf7f2]/85 ect-text-[#2b2723] ect-backdrop-blur-md ect-shadow-card ect-transition-all hover:ect-bg-white"
           @click="showPreviousSlide"
         >
@@ -331,6 +190,7 @@ onUnmounted(() => {
         <button
           type="button"
           aria-label="Show next slide"
+          data-carousel-arrow="next"
           class="ect-absolute ect-right-4 ect-top-1/2 -ect-translate-y-1/2 ect-z-[2] ect-inline-flex ect-h-10 ect-w-10 ect-items-center ect-justify-center ect-rounded-full ect-bg-[#faf7f2]/85 ect-text-[#2b2723] ect-backdrop-blur-md ect-shadow-card ect-transition-all hover:ect-bg-white"
           @click="showNextSlide"
         >
@@ -338,6 +198,15 @@ onUnmounted(() => {
             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
           </svg>
         </button>
+
+        <button
+          v-if="!prefersReducedMotion"
+          type="button"
+          class="campaign-pause"
+          :aria-label="paused ? 'Play slideshow' : 'Pause slideshow'"
+          :aria-pressed="paused"
+          @click="paused = !paused"
+        >{{ paused ? 'Play' : 'Pause' }}</button>
 
         <!-- Slide indicator dots -->
         <div
@@ -350,10 +219,61 @@ onUnmounted(() => {
             class="ect-h-1.5 ect-rounded-full ect-transition-all"
             :class="activeSlideIndex === index ? 'ect-w-7 ect-bg-[#f4ecd9]' : 'ect-w-2 ect-bg-[#f4ecd9]/45 hover:ect-bg-[#f4ecd9]/75'"
             :aria-label="`Show slide ${index + 1}`"
+            :aria-current="activeSlideIndex === index ? 'true' : undefined"
             @click="goToSlide(index)"
           />
         </div>
       </template>
     </div>
+    <div v-if="!showSkeleton && activeSlides.length" class="campaign-intro">
+      <div>
+        <p class="ect-eyebrow">FINE JEWELLERY. PERSONAL BY NATURE.</p>
+        <h1 class="ect-font-display">A little brilliance. <em>Every single day.</em></h1>
+      </div>
+      <div class="campaign-intro-actions">
+        <RouterLink to="/collections" class="campaign-shop">Explore jewellery <span aria-hidden="true">↗</span></RouterLink>
+        <RouterLink :to="{ path: '/collections', query: { tab: 'new' } }" class="campaign-new">Discover new arrivals <span aria-hidden="true">→</span></RouterLink>
+      </div>
+    </div>
   </section>
 </template>
+
+<style scoped>
+.campaign-frame { position: relative; aspect-ratio: 1983 / 793; }
+.campaign-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+.campaign-slide.is-active { opacity: 1; pointer-events: auto; }
+.campaign-artwork-link { position: absolute; inset: 0; }
+.campaign-artwork-link:focus-visible { outline: 3px solid #fff8df; outline-offset: -6px; }
+.campaign-pause { position: absolute; right: 16px; bottom: 16px; z-index: 2; padding: 7px 12px; border-radius: 20px; color: #fff8df; background: #2b272399; font-size: 11px; }
+@media (prefers-reduced-motion: reduce) { .campaign-slide { transition: none; } }
+
+.campaign-intro { display: flex; align-items: center; justify-content: space-between; gap: 36px; padding: 38px max(32px, calc((100vw - 1216px) / 2)); background: #f3eee5; color: #243e35; }
+.campaign-intro .ect-eyebrow, .campaign-fallback .ect-eyebrow { color: #796343; font-size: 10px; line-height: 1.5; }
+.campaign-intro h1 { margin-top: 12px; font-size: clamp(28px, 2.6vw, 40px); line-height: 1.25; font-weight: 400; }
+.campaign-intro h1 em { white-space: nowrap; }
+.campaign-intro-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; }
+.campaign-shop { display: inline-flex; justify-content: space-between; align-items: center; gap: 36px; padding: 15px 24px; background: #243e35; color: #fffaf0; font-size: 13px; transition: background .2s; }
+.campaign-shop:hover { background: #345647; }
+.campaign-shop span { font-size: 20px; line-height: 1; }
+.campaign-new { font-size: 12px; border-bottom: 1px solid #b7b2a4; padding-bottom: 3px; }
+.campaign-new span { margin-left: 12px; }
+.campaign-fallback { display: grid; grid-template-columns: 1fr 1fr; height: 100%; background: #eee7db; }
+.campaign-fallback-copy { align-self: center; padding: 40px 10%; }
+.campaign-fallback h1 { font-size: clamp(36px, 4vw, 60px); line-height: 1.12; margin: 20px 0; color: #243e35; }
+.campaign-fallback-copy > p:not(.ect-eyebrow) { max-width: 380px; font-size: 15px; line-height: 1.7; color: #6b655a; margin-bottom: 24px; }
+.campaign-fallback > img { width: 100%; height: 100%; object-fit: cover; min-height: 0; }
+@media (max-width: 767px) {
+  .campaign-frame { aspect-ratio: 660 / 793; }
+  [data-carousel-arrow] { top: auto; bottom: 14px; transform: none; width: 32px; height: 32px; }
+  [data-carousel-arrow="next"] { left: 56px; right: auto; }
+  .campaign-intro { padding: 28px 20px; flex-direction: column; align-items: flex-start; gap: 24px; }
+  .campaign-intro h1 { max-width: 340px; font-size: 32px; }
+  .campaign-intro h1 em { display: block; }
+  .campaign-intro-actions { flex-direction: row; flex-wrap: wrap; gap: 18px; }
+  .campaign-shop { padding: 12px 18px; gap: 20px; }
+  .campaign-new { font-size: 11px; }
+  .campaign-fallback { grid-template-columns: 1fr; position: relative; }
+  .campaign-fallback-copy { position: relative; z-index: 1; padding: 28px 24px; background: linear-gradient(90deg, #eee7db 30%, #eee7dbdd 70%, #eee7db88); height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+  .campaign-fallback > img { position: absolute; inset: 0; }
+}
+</style>

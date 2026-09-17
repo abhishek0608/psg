@@ -5,7 +5,7 @@ import ProductCard from './ProductCard.vue'
 import { useProductsApi } from '../composables/useProductsApi'
 import { formatInr } from '../utils/currency'
 
-const LIMIT = 8
+const LIMIT = 4
 const UNDER_PRICE = 75000
 
 const { products, ensureProductsLoaded, loading, loaded } = useProductsApi()
@@ -55,7 +55,7 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
          and broke the vertical rhythm down the page. -->
     <header class="ect-flex ect-items-end ect-justify-between ect-gap-4 ect-mb-6">
       <div>
-        <p class="ect-eyebrow ect-text-gold-600">Curated selection</p>
+        <p class="ect-eyebrow ect-text-gold-600">The pieces you come back to</p>
         <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
           Best sellers
         </h2>
@@ -80,6 +80,7 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
             ? 'ect-border-[#1f3f37] ect-bg-[#1f3f37] ect-text-[#f4ecd9]'
             : 'ect-border-[#d8ccb5] ect-bg-white ect-text-[#5c5648] hover:ect-bg-[#efe7d6]'
         "
+        :aria-pressed="activeFilter === f"
         @click="activeFilter = f"
       >
         {{ f }}
@@ -89,7 +90,7 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
     <!-- Skeleton. Mirrors the real card's block so the grid doesn't jump when
          the products resolve. -->
     <ul v-if="showSkeleton" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0">
-      <li v-for="n in 8" :key="`skeleton-${n}`" class="ect-animate-pulse">
+      <li v-for="n in LIMIT" :key="`skeleton-${n}`" class="ect-animate-pulse">
         <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
         <section class="ect-rounded-b-lg ect-border ect-border-t-0 ect-border-[#ece4d5] ect-bg-white ect-px-3 ect-pt-2 ect-pb-3 sm:ect-px-3.5">
           <section class="ect-h-3 ect-w-1/3 ect-rounded ect-bg-[#e6ddce]" />

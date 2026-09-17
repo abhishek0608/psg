@@ -6,14 +6,13 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 // images — this lets the app write objects directly to S3 so banners no longer
 // have to be base64-stuffed into the database.
 //
-// The bucket policy already grants public s3:GetObject on the whole bucket and
-// CORS already allows browser PUT, so an uploaded object is immediately
-// readable at its public URL with no extra configuration.
+// The assets bucket must allow public reads for the upload prefix and CORS PUT
+// from the storefront origins. Product image listing uses AWS_S3_BUCKET separately.
 
 const REGION = process.env.AWS_REGION || 'us-east-1'
-const BUCKET = process.env.AWS_S3_BUCKET || ''
+const BUCKET = process.env.AWS_S3_ASSETS_BUCKET || process.env.AWS_S3_BUCKET || ''
 // Top-level folder for homepage banner uploads. Trailing slash optional.
-const HOMEPAGE_PREFIX = (process.env.AWS_S3_HOMEPAGE_PREFIX || 'kiana-homepage-banners').replace(
+const HOMEPAGE_PREFIX = (process.env.AWS_S3_HOMEPAGE_PREFIX || (process.env.AWS_S3_ASSETS_BUCKET ? 'homepage' : 'kiana-homepage-banners')).replace(
   /\/+$/,
   '',
 )
@@ -37,7 +36,7 @@ let cachedClient = null
 function getClient() {
   if (cachedClient) return cachedClient
   if (!isUploadConfigured()) {
-    throw new Error('S3 not configured: set AWS_S3_BUCKET, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
+    throw new Error('S3 not configured: set AWS_S3_ASSETS_BUCKET (or AWS_S3_BUCKET), AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
   }
   cachedClient = new S3Client({
     region: REGION,

@@ -9,13 +9,14 @@ const props = withDefaults(defineProps<{
   mode?: 'new' | 'under-price'
   priceMax?: number
   excludeSlugs?: string[]
+  limit?: number
 }>(), {
   mode: 'new',
+  limit: 8,
   priceMax: 50000,
   excludeSlugs: () => [],
 })
 
-const LIMIT = 8
 const { products, ensureProductsLoaded, loading, loaded } = useProductsApi()
 
 onMounted(() => {
@@ -33,7 +34,7 @@ const pieces = computed(() => {
     pool = arrivals.length >= 4 ? arrivals : [...arrivals, ...pool.filter((product) => !product.isNewArrival)]
   }
 
-  return pool.slice(0, LIMIT)
+  return pool.slice(0, props.limit)
 })
 
 const browseTo = computed(() => props.mode === 'under-price'
@@ -61,7 +62,7 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
     </header>
 
     <ul v-if="showSkeleton" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-3 sm:ect-gap-x-[22px] sm:ect-gap-y-5 ect-list-none ect-m-0 ect-p-0">
-      <li v-for="n in 4" :key="n" class="ect-animate-pulse">
+      <li v-for="n in props.limit" :key="n" class="ect-animate-pulse">
         <div class="ect-aspect-square ect-rounded-lg ect-bg-[#efe7d6]" />
         <div class="ect-mt-3 ect-h-4 ect-w-3/4 ect-rounded ect-bg-[#e6ddce]" />
         <div class="ect-mt-2 ect-h-4 ect-w-1/2 ect-rounded ect-bg-[#e6ddce]" />

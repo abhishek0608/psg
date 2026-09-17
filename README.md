@@ -71,3 +71,36 @@ How it hangs together:
 - `AppFooter` — Brand, copyright, contact email
 
 Replace the gradient placeholders in `ProductCard` with real image URLs when you have assets.
+
+## Homepage image campaign
+
+The homepage renders images only. The initial customer artwork is served from
+`https://psg-images-855663231212.s3.us-east-1.amazonaws.com/homepage/timeless-gold-v1.png`.
+Desktop shows the complete three-panel banner; mobile shows each panel as a
+separate slide using CSS framing of the same cached image. The default campaign
+is defined in `src/data/homepageCampaign.ts`.
+
+Use **Internal → Homepage image carousel** to upload and order replacement slides.
+Configured image slides take precedence per device. If there are no usable images
+for a device (including legacy video-only records), the default campaign appears.
+Desktop artwork should be approximately 5:2; mobile artwork approximately 5:6.
+Autoplay pauses on hover, keyboard focus, hidden tabs, and reduced-motion settings.
+
+Campaign uploads can use a separate S3 bucket from product images. Set these
+**server-side** environment variables on the deployment before using the new
+bucket for internal uploads:
+
+```dotenv
+AWS_REGION=us-east-1
+AWS_S3_ASSETS_BUCKET=psg-images-855663231212
+AWS_S3_HOMEPAGE_PREFIX=homepage
+```
+
+Keep `AWS_S3_BUCKET` pointing at the existing product bucket. Existing AWS upload
+credentials need `s3:PutObject` on
+`arn:aws:s3:::psg-images-855663231212/homepage/*`.
+The new bucket has ACLs disabled, public read access limited to `homepage/*`, and
+CORS for localhost:5173, 127.0.0.1:5173, psg-three.vercel.app, and
+jewellery-website-ashen.vercel.app. Add any custom storefront domain to its CORS
+origins before uploading from that domain. Use versioned image filenames when
+replacing artwork because these images are cached for one year.
