@@ -37,9 +37,6 @@ const collectionImage = (item: (typeof collections)[number]) => collectionImages
     <header class="ect-flex ect-flex-col ect-items-start sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-3 sm:ect-gap-4 ect-mb-7">
       <div>
         <p class="ect-eyebrow ect-text-gold-600">Shop by category</p>
-        <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
-          What speaks to you?
-        </h2>
       </div>
       <RouterLink
         to="/collections"

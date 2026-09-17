@@ -1,9 +1,9 @@
 import type { HomepageSlide } from '../composables/useHomepageSlides'
 
-// Original customer artwork is served by S3. CSS frames each panel on mobile,
-// so all three slides reuse one cached image without altering the artwork.
-const artworkUrl = 'https://psg-images-855663231212.s3.us-east-1.amazonaws.com/homepage/timeless-gold-v2.png'
-const goldenArtworkUrl = '/homepage/golden-jewellery.png'
+// Clean campaign artwork has no embedded CTA buttons. CSS frames each panel
+// on mobile, so all three slides reuse one cached image.
+const artworkUrl = '/homepage/timeless-gold-clean.png'
+const goldenArtworkUrl = '/homepage/golden-jewellery-clean.png'
 export const defaultHomepageSlides: HomepageSlide[] = [
   { id: 'psg-campaign-desktop', imageUrl: artworkUrl, device: 'desktop', headline: 'Emerald necklace, diamond ring and bracelet, and gemstone earrings.', ctaHref: '/collections' },
   ...[

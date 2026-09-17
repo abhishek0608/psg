@@ -11,9 +11,6 @@ const { slides, loaded, ensureHomepageSlidesLoaded } = useHomepageSlides()
 const isMobile = ref(false)
 const prefersReducedMotion = ref(false)
 const paused = ref(false)
-const hovering = ref(false)
-const focusWithin = ref(false)
-const pageHidden = ref(false)
 const activeSlideIndex = ref(0)
 const failedImages = ref(new Set<string>())
 let mobileQuery: MediaQueryList | null = null
@@ -22,7 +19,6 @@ let autoRotateHandle: number | null = null
 
 function syncMobile(event: MediaQueryList | MediaQueryListEvent) { isMobile.value = event.matches }
 function syncMotion(event: MediaQueryList | MediaQueryListEvent) { prefersReducedMotion.value = event.matches }
-function syncVisibility() { pageHidden.value = document.hidden }
 function resolveImageUrl(slide: HomepageSlide) {
   if (!isMobile.value) return slide.imageUrl || ''
   return slide.mobileImageUrl || (slide.device === 'mobile' ? slide.imageUrl : '')
@@ -51,8 +47,7 @@ function stopAutoRotate() {
 }
 function startAutoRotate() {
   stopAutoRotate()
-  if (!loaded.value || activeSlides.value.length <= 1 || prefersReducedMotion.value ||
-      paused.value || hovering.value || focusWithin.value || pageHidden.value) return
+  if (!loaded.value || activeSlides.value.length <= 1 || prefersReducedMotion.value || paused.value) return
   autoRotateHandle = window.setInterval(showNextSlide, 6000)
 }
 function goToSlide(index: number) {
@@ -62,9 +57,6 @@ function goToSlide(index: number) {
 }
 function showNextSlide() { goToSlide(activeSlideIndex.value + 1) }
 function showPreviousSlide() { goToSlide(activeSlideIndex.value - 1) }
-function onFocusOut(event: FocusEvent) {
-  focusWithin.value = (event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)
-}
 function navigateTo(href: string) {
   const target = href.trim()
   if (!target) return
@@ -77,7 +69,7 @@ function navigateTo(href: string) {
   }
 }
 watch(activeSlides, () => { activeSlideIndex.value = 0; startAutoRotate() })
-watch([prefersReducedMotion, paused, hovering, focusWithin, pageHidden, loaded], startAutoRotate)
+watch([prefersReducedMotion, paused, loaded], startAutoRotate)
 onMounted(async () => {
   mobileQuery = window.matchMedia('(max-width: 767px)')
   motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -85,8 +77,6 @@ onMounted(async () => {
   syncMotion(motionQuery)
   mobileQuery.addEventListener('change', syncMobile)
   motionQuery.addEventListener('change', syncMotion)
-  document.addEventListener('visibilitychange', syncVisibility)
-  syncVisibility()
   await ensureHomepageSlidesLoaded()
   startAutoRotate()
 })
@@ -94,7 +84,6 @@ onUnmounted(() => {
   stopAutoRotate()
   mobileQuery?.removeEventListener('change', syncMobile)
   motionQuery?.removeEventListener('change', syncMotion)
-  document.removeEventListener('visibilitychange', syncVisibility)
 })
 </script>
 
@@ -105,10 +94,6 @@ onUnmounted(() => {
     :style="{ marginTop: headerOffset + 'px' }"
     aria-label="Featured jewellery collections"
     aria-roledescription="carousel"
-    @mouseenter="hovering = true"
-    @mouseleave="hovering = false"
-    @focusin="focusWithin = true"
-    @focusout="onFocusOut"
     @keydown.left.prevent="showPreviousSlide"
     @keydown.right.prevent="showNextSlide"
   >
