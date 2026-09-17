@@ -120,7 +120,7 @@ const productTag = computed(() => {
 </script>
 
 <template>
-  <article class="ect-group ect-relative ect-flex ect-h-full ect-min-h-0 ect-flex-col ect-overflow-hidden ect-rounded-lg ect-border ect-border-[#ece4d5] ect-bg-white ect-transition-all ect-duration-200 hover:-ect-translate-y-0.5 hover:ect-shadow-[0_14px_34px_rgba(31,63,55,0.13)]">
+  <article class="ect-group ect-relative ect-flex ect-h-full ect-min-h-0 ect-flex-col ect-overflow-hidden ect-rounded-md ect-border ect-border-[#ece4d5] ect-bg-white ect-transition-colors hover:ect-border-[#cdbfa6]">
     <RouterLink :to="`/product/${slug}`" class="ect-flex ect-min-h-0 ect-flex-1 ect-flex-col">
 
       <!-- Image / placeholder box -->
@@ -134,28 +134,16 @@ const productTag = computed(() => {
           :alt="title"
           loading="lazy"
           decoding="async"
-          class="ect-w-full ect-h-full ect-object-cover ect-transition-transform ect-duration-[900ms] ect-ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:ect-scale-[1.06]"
+          class="ect-w-full ect-h-full ect-object-cover ect-transition-transform ect-duration-300 group-hover:ect-scale-[1.03]"
         />
         <ImageWatermark v-if="images?.length" :opacity="0.55" :scale="0.15" />
         <svg v-else class="ect-w-12 ect-h-12 ect-text-[#a99f89] ect-transition-transform ect-duration-300 group-hover:ect-scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
         </svg>
-
-        <!-- Hover overlay -->
-        <span class="ect-absolute ect-inset-0 ect-bg-charcoal/0 group-hover:ect-bg-charcoal/[0.035] ect-transition-colors ect-duration-300" />
-
-        <!-- Listing badge (top-left). Selected-product offers take priority so
-             a targeted campaign is visible; organisation-wide offers rely on
-             the struck-through price instead of repeating a pill on every card. -->
         <span v-if="productTag" class="ect-absolute ect-top-3 ect-left-3 ect-inline-flex ect-items-center ect-rounded-full ect-bg-[#b79a56] ect-px-2.5 ect-py-1 ect-font-body ect-text-nano ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#2b2723]">
           {{ productTag }}
         </span>
-
-        <!-- Wishlist button (top-right) — always visible.
-             Most of the catalogue is shot on white, so a translucent white
-             puck disappeared into the backdrop: the ring outline and the
-             drop shadow are what keep both overlay buttons legible on a
-             pure-white shot as much as on a lifestyle photo. -->
+        <!-- Wishlist -->
         <button
           type="button"
           @click="handleWishlist"
@@ -179,18 +167,11 @@ const productTag = computed(() => {
           :aria-label="onVideoCall ? 'Remove from video call' : videoCallDisabled ? 'Video call list is full' : 'Add to video call'"
           :title="onVideoCall ? 'Remove from video call' : videoCallDisabled ? 'Video call list is full' : 'Add to video call'"
         >
-          <!-- Solid emerald when shortlisted, matching how the wishlist heart
-               fills rose — an outline-only colour shift is too quiet to read
-               as a state at this size. -->
           <svg class="ect-w-4 ect-h-4 ect-transition-colors" :class="onVideoCall ? 'ect-text-emerald-600' : 'ect-text-charcoal/70'" :fill="onVideoCall ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h8.25a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H4.5A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
           </svg>
         </button>
       </figure>
-
-      <!-- The card is meant to read as the shot plus a caption, not as a tall
-           column of its own: the meta block stays on two tight lines and the
-           name is clamped to one so every card in a row lines up. -->
       <section class="ect-flex ect-flex-1 ect-flex-col ect-px-3 ect-pt-2 ect-pb-0 sm:ect-px-3.5">
         <p class="ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#a2987f]">{{ category }}</p>
         <h3
@@ -200,21 +181,9 @@ const productTag = computed(() => {
         </h3>
       </section>
     </RouterLink>
-
-    <!-- Price + Add to Cart share one row: stacked, they added ~70px of dead
-         height under an already square image and made the card read as a
-         column. The button keeps its icon-only form on narrow cards, so the row
-         costs no more than the price line did on its own. Which form it takes
-         is decided by the row's own width, not the viewport's — see
-         `.ect-buy-row` in style.css for why that distinction matters. -->
+    <!-- Price + add to bag -->
     <section class="ect-px-3 ect-pb-3 ect-pt-1.5 sm:ect-px-3.5">
       <div class="ect-buy-row ect-flex ect-flex-wrap ect-items-center ect-gap-2">
-        <!-- Under an offer the old price sits on its own tight line above the
-             new one rather than beside it: the row's 260px container query was
-             measured for one price plus the labelled button, and a second
-             amount on the same line would push the label off on narrow cards.
-             The extra line costs ~14px and only appears when an offer runs, so
-             cards still line up across a row. -->
         <div class="ect-min-w-0 ect-shrink-0">
           <p
             v-if="hasRetailPrice && pricing.hasOffer"

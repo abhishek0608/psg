@@ -88,7 +88,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Campaign artwork stays unobstructed. -->
   <section
     class="ect-relative ect-w-full ect-overflow-hidden ect-bg-[#efe7d6]"
     :style="{ marginTop: headerOffset + 'px' }"
@@ -98,7 +97,6 @@ onUnmounted(() => {
     @keydown.right.prevent="showNextSlide"
   >
     <div class="campaign-frame">
-      <!-- Loading frame: same height as the banner, deliberately wordless. -->
       <div
         v-if="showSkeleton"
         class="ect-absolute ect-inset-0 ect-animate-pulse ect-bg-[linear-gradient(110deg,#efe7d6_0%,#faf7f2_45%,#efe7d6_90%)]"
@@ -141,7 +139,6 @@ onUnmounted(() => {
             @click.prevent="navigateTo(slide.ctaHref)"
           />
         </div>
-        <!-- Uploaded artwork carries its own typography. -->
         <button
           v-if="currentSlide.ctaLabel && currentSlide.ctaHref"
           type="button"
@@ -155,11 +152,11 @@ onUnmounted(() => {
         </button>
       </template>
 
-      <!-- A complete editorial hero when no campaign is configured. -->
+      <!-- Fallback when no campaign is configured. -->
       <div v-else class="campaign-fallback">
         <div class="campaign-fallback-copy">
-          <p class="ect-eyebrow">THE JEWELET COLLECTION</p>
-          <p>For the moments you celebrate, and the ones you make your own. Discover jewellery that feels like you.</p>
+          <p class="campaign-fallback-title">Jewelet</p>
+          <p>Certified gold and diamond jewellery, with the full price breakdown on every piece.</p>
         </div>
         <img src="/editorial-everyday-diamonds.webp" alt="A considered selection of everyday diamond jewellery" fetchpriority="high" />
       </div>
@@ -227,10 +224,10 @@ onUnmounted(() => {
 .campaign-pause { position: absolute; right: 16px; bottom: 16px; z-index: 2; padding: 7px 12px; border-radius: 20px; color: #fff8df; background: #2b272399; font-size: 11px; }
 @media (prefers-reduced-motion: reduce) { .campaign-slide { transition: none; } }
 
-.campaign-fallback .ect-eyebrow { color: #796343; font-size: 10px; line-height: 1.5; }
+.campaign-fallback-title { font-family: "Playfair Display", Georgia, serif; font-size: 28px; color: #2b2723; margin-bottom: 12px; }
 .campaign-fallback { display: grid; grid-template-columns: 1fr 1fr; height: 100%; background: #eee7db; }
 .campaign-fallback-copy { align-self: center; padding: 40px 10%; }
-.campaign-fallback-copy > p:not(.ect-eyebrow) { max-width: 380px; font-size: 15px; line-height: 1.7; color: #6b655a; margin-bottom: 24px; }
+.campaign-fallback-copy > p:not(.campaign-fallback-title) { max-width: 380px; font-size: 15px; line-height: 1.7; color: #6b655a; margin-bottom: 24px; }
 .campaign-fallback > img { width: 100%; height: 100%; object-fit: cover; min-height: 0; }
 @media (max-width: 767px) {
   .campaign-frame { aspect-ratio: 660 / 793; }

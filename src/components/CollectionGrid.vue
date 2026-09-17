@@ -239,18 +239,9 @@ watch([activeTab, appliedFilters], () => {
 </script>
 
 <template>
-  <!-- Tighter side padding on mobile (16px vs 24px) buys each card of the
-       two-up grid a few more pixels of width, which is where the phone
-       layout needs them; tablet and up keep the roomier 24px gutter. -->
   <section id="collections" class="ect-px-4 sm:ect-px-6 ect-max-w-7xl ect-mx-auto ect-pb-10 sm:ect-pb-20" :class="hideHeader ? 'ect-pt-2.5 sm:ect-pt-4' : 'ect-pt-12 sm:ect-pt-20'">
     <header v-if="!hideHeader" class="ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-end sm:ect-justify-between ect-gap-2 ect-mb-6">
-      <section>
-        <p class="ect-eyebrow ect-inline-flex ect-items-center ect-gap-2.5 ect-text-gold-700 ect-mb-3">
-          <span class="ect-w-8 ect-h-px ect-bg-gold-400" />
-          The Collection
-        </p>
-        <h2 class="ect-font-display ect-text-3xl sm:ect-text-[2.75rem] ect-font-light ect-leading-tight ect-text-charcoal">Discover Our Pieces</h2>
-      </section>
+      <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-charcoal">All jewellery</h2>
     </header>
 
     <!-- Tabs + Filter (single line on mobile: All, New, Best, icon) -->

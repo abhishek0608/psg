@@ -27,16 +27,13 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <section class="ect-min-h-screen ect-flex ect-items-center ect-justify-center ect-px-4 ect-pt-24 ect-pb-16 ect-bg-gradient-to-b ect-from-cream ect-via-champagne/40 ect-to-cream">
+  <section class="ect-min-h-screen ect-flex ect-items-center ect-justify-center ect-px-4 ect-pt-24 ect-pb-16 ect-bg-cream">
     <article class="ect-w-full ect-max-w-md">
-      <div class="ect-bg-white/90 ect-backdrop-blur-sm ect-rounded-2xl ect-shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] ect-border ect-border-sand ect-overflow-hidden">
-        <div class="ect-h-1 ect-bg-gradient-to-r ect-from-gold-200 ect-via-gold-400 ect-to-gold-200" />
-
+      <div class="ect-bg-white ect-rounded-lg ect-border ect-border-sand">
         <div class="ect-px-8 ect-pt-10 ect-pb-8 sm:ect-px-10 sm:ect-pt-12 sm:ect-pb-10">
           <header class="ect-text-center ect-mb-8">
-            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-espresso-700 ect-mb-3">Jewelet</p>
-            <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal ect-tracking-wide ect-mb-2">Create account</h1>
-            <p class="ect-font-body ect-text-base ect-text-charcoal/60">Join the Jewelet experience</p>
+                        <h1 class="ect-font-display ect-text-3xl ect-text-charcoal ect-mb-2">Create account</h1>
+            <p class="ect-font-body ect-text-base ect-text-charcoal/60">Track orders, save your wishlist and check out faster.</p>
           </header>
 
           <form @submit.prevent="handleSubmit" class="ect-space-y-5">
@@ -110,12 +107,6 @@ async function handleSubmit() {
             <p class="ect-font-body ect-text-sm ect-text-charcoal/60">
               Already have an account?
               <RouterLink to="/login" class="ect-text-gold-700 hover:ect-text-gold-800 ect-font-semibold ect-transition-colors">Sign in</RouterLink>
-            </p>
-            <p class="ect-mt-4 ect-flex ect-items-center ect-justify-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-charcoal/40">
-              <svg class="ect-w-3.5 ect-h-3.5 ect-text-gold-600/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-              </svg>
-              Secure sign up
             </p>
           </footer>
         </div>

@@ -1,464 +1,225 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useSiteConfig } from '../composables/useSiteConfig'
 
 const { aboutContent, ensureSiteConfigLoaded } = useSiteConfig()
 
-const activeTab = ref<'about' | 'contact' | 'careers'>('about')
+type Tab = 'about' | 'contact' | 'careers'
+const activeTab = ref<Tab>('about')
 const name = ref('')
 const email = ref('')
 const message = ref('')
 const submitted = ref(false)
 
 const values = [
-  { n: '01', title: 'Craftsmanship', desc: 'Thoughtful proportions, refined settings and careful finishing bring character to every piece.' },
-  { n: '02', title: 'Considered design', desc: 'We balance contemporary expression with an enduring sense of elegance, creating jewellery made to live beyond a season.' },
-  { n: '03', title: 'Personal service', desc: 'From the first conversation to the final detail, we make choosing jewellery feel warm, clear and personal.' },
+  { title: 'Craftsmanship', desc: 'Careful setting and finishing on every piece, checked by hand before it ships.' },
+  { title: 'Design', desc: 'Contemporary pieces meant to be worn often, not kept for occasions.' },
+  { title: 'Service', desc: 'Help with sizing, stones and budgets, by phone, email or video call.' },
 ]
 
-// Bundled defaults, shown until real photos/copy are configured in the
-// internal workspace (Internal → About page).
+// Defaults until photos and copy are set from Internal → About page.
 const defaultJourney = [
   {
     year: '',
-    place: 'Bangkok, Thailand',
-    title: 'Inspired by the city',
-    desc: 'PSG is shaped by Bangkok — a city where deep jewellery traditions meet bold, contemporary style. That contrast inspires pieces with presence, personality and a distinctly modern spirit.',
+    place: 'Bangkok',
+    title: 'Where we started',
+    desc: 'Jewelet was started in Bangkok, a city with a long jewellery trade. We design there and work with workshops we know well.',
     imageUrl: '/pendant-1.jpg',
   },
   {
     year: '',
-    place: 'Our craft',
-    title: 'Details make the difference',
-    desc: 'Every design begins with balance: the relationship between stone and setting, light and form, beauty and wearability. Each detail is considered so the finished piece feels effortless.',
+    place: 'How we make things',
+    title: 'Stone, setting, finish',
+    desc: 'Each design is worked out around the stone first, then the setting, then how it sits on the hand or neck. Nothing is added that does not need to be there.',
     imageUrl: '/earring-1.jpg',
   },
   {
     year: '',
-    place: 'The PSG experience',
-    title: 'Jewellery that feels personal',
-    desc: 'We believe the most meaningful jewellery reflects the person wearing it. Our approach pairs attentive service with thoughtful design to help every client find a piece that feels entirely their own.',
+    place: 'Buying from us',
+    title: 'Straightforward pricing',
+    desc: 'Metal rate, making charges and taxes are listed on every product page. Gold is BIS hallmarked and stones are certified.',
     imageUrl: '/necklace-1.jpg',
   },
 ]
 
-const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'PSG · Bangkok')
-const heroHeadline = computed(() => aboutContent.value.heroHeadline || 'Jewellery with a Sense of Self')
+const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'About Jewelet')
+const heroHeadline = computed(() => aboutContent.value.heroHeadline || 'Gold and diamond jewellery, made to be worn')
 const heroSubheadline = computed(
-  () =>
-    aboutContent.value.heroSubheadline ||
-    'Designed in Bangkok with a love for expressive details, enduring beauty and the stories we carry with us.',
+  () => aboutContent.value.heroSubheadline || 'Designed in Bangkok. Certified, priced openly, and shipped across India.',
 )
 
-// Configured milestones (with the team's own group/founder photos) replace the
-// bundled defaults as soon as at least one active milestone exists.
 const journey = computed(() => {
   const configured = aboutContent.value.journey.filter((step) => step.active)
   return configured.length ? configured : defaultJourney
 })
 
-// Founders & team portraits — the section only renders once members are
-// configured in the internal workspace.
 const team = computed(() => aboutContent.value.team.filter((member) => member.active))
-
-const openings = [
-  { title: 'Master Jeweller', type: 'Full-time', location: 'Bangkok', desc: 'Join our atelier team to craft expressive fine jewellery using traditional and modern techniques.' },
-  { title: 'Design Associate', type: 'Full-time', location: 'Bangkok', desc: 'Collaborate with our creative team to develop collections that bring a fresh perspective to contemporary jewellery.' },
-  { title: 'E-Commerce Manager', type: 'Full-time', location: 'Remote', desc: 'Lead our online presence, optimise the digital shopping experience, and drive growth across all channels.' },
-  { title: 'Brand Stylist', type: 'Part-time', location: 'Bangkok', desc: 'Style and art-direct photoshoots for campaigns, social media, and editorial features.' },
-]
-
-// Animated counters (count up when scrolled into view, like the reference site)
-const stats: Array<{ target: number | null; suffix?: string; text?: string; label: string }> = [
-  { target: null, text: 'BKK', label: 'Bangkok based' },
-  { target: null, text: 'PSG', label: 'Distinctly ours' },
-  { target: null, text: 'Fine', label: 'Made with care' },
-  { target: null, text: 'You', label: 'Always personal' },
-] as const
-
-const counts = ref(stats.map(() => 0))
-const statsEl = ref<HTMLElement | null>(null)
-let observer: IntersectionObserver | null = null
-let counted = false
-
-function runCounters() {
-  if (counted) return
-  counted = true
-  const duration = 1600
-  const start = performance.now()
-  const tick = (now: number) => {
-    const t = Math.min((now - start) / duration, 1)
-    const ease = 1 - Math.pow(1 - t, 3)
-    counts.value = stats.map(s => (s.target === null ? 0 : Math.round(s.target * ease)))
-    if (t < 1) requestAnimationFrame(tick)
-  }
-  requestAnimationFrame(tick)
-  // rAF can be throttled (background tab) — guarantee final values
-  setTimeout(() => { counts.value = stats.map(s => s.target ?? 0) }, duration + 200)
-}
-
-function observeStats() {
-  if (observer || !statsEl.value) return
-  observer = new IntersectionObserver(entries => {
-    if (entries.some(e => e.isIntersecting)) runCounters()
-  }, { threshold: 0.3 })
-  observer.observe(statsEl.value)
-}
-
-watch(activeTab, tab => {
-  if (tab === 'about') nextTick(observeStats)
-  else { observer?.disconnect(); observer = null }
-})
 
 function handleSubmit() {
   submitted.value = true
 }
 
-function setTab(tab: 'about' | 'contact' | 'careers') {
+function setTab(tab: Tab) {
   activeTab.value = tab
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
-function scrollToStory() {
-  document.getElementById('about-tabs')?.scrollIntoView({ behavior: 'smooth' })
+  window.scrollTo({ top: 0 })
 }
 
 onMounted(() => {
   const hash = window.location.hash.replace('#', '')
   if (hash === 'contact' || hash === 'careers') activeTab.value = hash
-  observeStats()
   void ensureSiteConfigLoaded()
-})
-
-onBeforeUnmount(() => {
-  observer?.disconnect()
 })
 </script>
 
 <template>
-  <main class="ect-min-h-screen ect-bg-pearl ect-pt-28">
+  <main class="ect-min-h-screen ect-bg-cream ect-pt-28">
 
-    <!-- ── FULL-BLEED HERO (Our Story) ── -->
-    <section
-      v-if="activeTab === 'about'"
-      class="ect-relative ect-overflow-hidden ect-bg-noir ect-text-cream ect-flex ect-flex-col ect-items-center ect-justify-center ect-text-center ect-px-6 ect-h-[calc(100vh-7rem)] ect-min-h-[540px]"
-    >
-      <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_75%_65%_at_50%_35%,rgba(201,162,39,0.14),transparent)]" />
-      <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_45%_40%_at_85%_90%,rgba(241,233,218,0.05),transparent)]" />
-      <!-- faint line-art diamond -->
-      <svg class="ect-absolute ect-w-[520px] ect-h-[520px] ect-text-cream/[0.045] ect-left-1/2 ect-top-1/2 -ect-translate-x-1/2 -ect-translate-y-1/2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.35">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 12L2 9l4-6zM2 9h20M9.5 3L7 9l5 12M14.5 3L17 9l-5 12" />
-      </svg>
-
-      <div class="ect-relative">
-        <p class="ect-font-display ect-italic ect-text-lg sm:ect-text-xl ect-text-gold-300 ect-mb-6">{{ heroEyebrow }}</p>
-        <h1 class="ect-font-display ect-font-light ect-text-5xl sm:ect-text-7xl ect-leading-[1.08] ect-tracking-display ect-mb-7">
-          {{ heroHeadline }}
-        </h1>
-        <p class="ect-font-body ect-text-sm sm:ect-text-base ect-text-cream/60 ect-max-w-md ect-mx-auto ect-leading-relaxed">
-          {{ heroSubheadline }}
-        </p>
-      </div>
-
-      <!-- scroll cue -->
-      <span class="ect-absolute ect-bottom-8 ect-inset-x-0 ect-flex ect-justify-center">
-        <button
-          @click="scrollToStory"
-          aria-label="Scroll to our story"
-          class="ect-w-10 ect-h-10 ect-rounded-full ect-border ect-border-cream/20 ect-flex ect-items-center ect-justify-center ect-text-cream/60 hover:ect-text-cream hover:ect-border-cream/50 ect-transition-colors ect-animate-bounce ect-bg-transparent"
-        >
-          <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
-        </button>
-      </span>
-    </section>
-
-    <!-- Compact hero strip for contact / careers -->
-    <section
-      v-else
-      class="ect-relative ect-overflow-hidden ect-bg-noir ect-text-cream ect-py-20 sm:ect-py-24 ect-px-6 ect-text-center"
-    >
-      <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_70%_80%_at_50%_0%,rgba(201,162,39,0.13),transparent)]" />
-      <div class="ect-relative">
-        <p class="ect-font-display ect-italic ect-text-lg ect-text-gold-300 ect-mb-4">{{ activeTab === 'contact' ? 'Get in touch' : 'Join the team' }}</p>
-        <h1 class="ect-font-display ect-font-light ect-text-4xl sm:ect-text-6xl ect-tracking-display">
-          {{ activeTab === 'contact' ? "Let's talk." : 'Work with us.' }}
-        </h1>
+    <!-- Page header -->
+    <section class="ect-bg-[#1a1613] ect-text-cream ect-px-6 ect-py-16 sm:ect-py-20">
+      <div class="ect-max-w-4xl ect-mx-auto ect-text-center">
+        <template v-if="activeTab === 'about'">
+          <p class="ect-font-body ect-text-sm ect-text-cream/60 ect-mb-4">{{ heroEyebrow }}</p>
+          <h1 class="ect-font-display ect-text-4xl sm:ect-text-5xl ect-leading-tight ect-mb-5">{{ heroHeadline }}</h1>
+          <p class="ect-font-body ect-text-base ect-text-cream/70 ect-max-w-xl ect-mx-auto ect-leading-relaxed">{{ heroSubheadline }}</p>
+        </template>
+        <template v-else>
+          <h1 class="ect-font-display ect-text-4xl sm:ect-text-5xl ect-leading-tight">
+            {{ activeTab === 'contact' ? 'Contact us' : 'Careers' }}
+          </h1>
+        </template>
       </div>
     </section>
 
-    <!-- Sticky tab bar -->
-    <nav id="about-tabs" class="ect-sticky ect-top-[calc(theme(spacing.16)+theme(spacing.8))] sm:ect-top-16 ect-z-40 ect-bg-pearl/95 ect-backdrop-blur-md ect-border-b ect-border-charcoal/[0.08]">
-      <ul class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-flex ect-justify-center ect-gap-2 sm:ect-gap-10 ect-list-none ect-m-0 ect-p-0">
+    <!-- Tabs -->
+    <nav id="about-tabs" class="ect-sticky ect-top-[calc(theme(spacing.16)+theme(spacing.8))] sm:ect-top-16 ect-z-40 ect-bg-cream/95 ect-backdrop-blur ect-border-b ect-border-sand">
+      <ul class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-flex ect-justify-center ect-gap-8 ect-list-none ect-m-0 ect-p-0">
         <li v-for="tab in (['about', 'contact', 'careers'] as const)" :key="tab">
           <button
+            type="button"
             @click="setTab(tab)"
-            class="ect-relative ect-px-4 sm:ect-px-1 ect-py-5 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-eyebrow ect-transition-colors ect-duration-200 ect-bg-transparent"
-            :class="activeTab === tab ? 'ect-text-charcoal' : 'ect-text-charcoal/35 hover:ect-text-charcoal/70'"
+            class="ect-relative ect-py-4 ect-font-body ect-text-sm ect-bg-transparent"
+            :class="activeTab === tab ? 'ect-text-charcoal' : 'ect-text-charcoal/50 hover:ect-text-charcoal'"
           >
-            {{ tab === 'about' ? 'Our Story' : tab === 'contact' ? 'Contact' : 'Careers' }}
-            <span
-              class="ect-absolute ect-bottom-0 ect-left-0 ect-right-0 ect-h-px ect-transition-all ect-duration-200"
-              :class="activeTab === tab ? 'ect-bg-gold-400' : 'ect-bg-transparent'"
-            />
+            {{ tab === 'about' ? 'Our story' : tab === 'contact' ? 'Contact' : 'Careers' }}
+            <span class="ect-absolute ect-bottom-0 ect-left-0 ect-right-0 ect-h-0.5" :class="activeTab === tab ? 'ect-bg-charcoal' : 'ect-bg-transparent'" />
           </button>
         </li>
       </ul>
     </nav>
 
-    <!-- ── ABOUT ── -->
+    <!-- About -->
     <template v-if="activeTab === 'about'">
-
-      <!-- Who we are — centered editorial statement -->
-      <section class="ect-max-w-3xl ect-mx-auto ect-px-6 ect-py-24 sm:ect-py-32 ect-text-center">
-        <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-mb-8">Who we are</p>
-        <p class="ect-font-display ect-font-light ect-text-2xl sm:ect-text-[2rem] ect-leading-display-relaxed ect-text-charcoal">
-          PSG is a Bangkok jewellery house creating expressive pieces for modern lives. Rooted in a city known
-          for its vibrant design culture and jewellery craft, we bring together thoughtful details, refined
-          workmanship and a personal approach to help every wearer tell their own story.
+      <section class="ect-max-w-3xl ect-mx-auto ect-px-6 ect-py-16 sm:ect-py-20">
+        <p class="ect-font-body ect-text-lg sm:ect-text-xl ect-leading-relaxed ect-text-charcoal">
+          Jewelet is a small jewellery business. We design gold and diamond pieces for everyday wear and for occasions,
+          sell them online, and talk to customers directly when they want help choosing. Prices are broken down on every
+          product page, gold is BIS hallmarked, and stones come with certificates.
         </p>
-        <span class="ect-inline-block ect-w-12 ect-h-px ect-bg-gold-400 ect-mt-10" />
       </section>
 
-      <!-- Journey — alternating editorial rows -->
       <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-8">
-        <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-16">The PSG approach</p>
-
         <article
           v-for="(step, i) in journey"
           :key="`${step.title}-${i}`"
-          class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 ect-gap-10 lg:ect-gap-20 ect-items-center ect-mb-24 sm:ect-mb-28"
+          class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 ect-gap-8 lg:ect-gap-16 ect-items-center ect-mb-16 sm:ect-mb-20"
         >
-          <figure
-            class="ect-relative ect-overflow-hidden ect-aspect-[4/3] ect-bg-cream ect-m-0"
-            :class="i % 2 === 1 ? 'lg:ect-order-2' : ''"
-          >
-            <img
-              v-if="step.imageUrl"
-              :src="step.imageUrl"
-              :alt="`${step.title}${step.place ? ', ' + step.place : ''}`"
-              class="ect-w-full ect-h-full ect-object-cover ect-grayscale hover:ect-grayscale-0 ect-transition-all ect-duration-700"
-              loading="lazy"
-            />
-            <div v-else class="ect-w-full ect-h-full ect-bg-gradient-to-br ect-from-champagne ect-via-cream ect-to-gold-50 ect-flex ect-items-center ect-justify-center">
-              <svg class="ect-w-14 ect-h-14 ect-text-gold-300/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="0.6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l4 6-10 12L2 9l4-6zM2 9h20M9.5 3L7 9l5 12M14.5 3L17 9l-5 12" />
-              </svg>
-            </div>
-            <figcaption v-if="step.year" class="ect-absolute ect-bottom-0 ect-left-0 ect-bg-noir ect-text-cream ect-font-display ect-text-2xl ect-font-light ect-px-6 ect-py-3">
+          <figure class="ect-relative ect-overflow-hidden ect-aspect-[4/3] ect-bg-[#f3ece0] ect-m-0" :class="i % 2 === 1 ? 'lg:ect-order-2' : ''">
+            <img v-if="step.imageUrl" :src="step.imageUrl" :alt="step.title" class="ect-w-full ect-h-full ect-object-cover" loading="lazy" />
+            <figcaption v-if="step.year" class="ect-absolute ect-bottom-0 ect-left-0 ect-bg-[#1a1613] ect-text-cream ect-font-body ect-text-sm ect-px-4 ect-py-2">
               {{ step.year }}
             </figcaption>
           </figure>
-
           <div :class="i % 2 === 1 ? 'lg:ect-order-1' : ''">
-            <p v-if="step.place" class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-charcoal/40 ect-mb-4">{{ step.place }}</p>
-            <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-mb-6">{{ step.title }}</h2>
-            <p class="ect-font-body ect-text-base ect-text-charcoal/60 ect-leading-body-relaxed ect-mb-8">{{ step.desc }}</p>
-            <RouterLink
-              to="/collections"
-              class="ect-inline-flex ect-items-center ect-gap-3 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
-            >
-              Explore
-              <span class="ect-w-10 ect-h-px ect-bg-charcoal/40" />
-            </RouterLink>
+            <p v-if="step.place" class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-mb-2">{{ step.place }}</p>
+            <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-charcoal ect-mb-4">{{ step.title }}</h2>
+            <p class="ect-font-body ect-text-base ect-text-charcoal/70 ect-leading-relaxed">{{ step.desc }}</p>
           </div>
         </article>
       </section>
 
-      <!-- Stats — dark band with count-up -->
-      <section ref="statsEl" class="ect-bg-noir ect-text-cream ect-py-20 sm:ect-py-24 ect-px-6 ect-relative ect-overflow-hidden">
-        <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_60%_80%_at_50%_100%,rgba(201,162,39,0.1),transparent)]" />
-        <div class="ect-relative ect-max-w-5xl ect-mx-auto">
-          <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-300 ect-text-center ect-mb-14">Made in our own language</p>
-          <ul class="ect-grid ect-grid-cols-2 sm:ect-grid-cols-4 ect-gap-y-12 ect-list-none ect-m-0 ect-p-0">
-            <li v-for="(s, i) in stats" :key="s.label" class="ect-text-center">
-              <p class="ect-font-display ect-font-light ect-text-5xl sm:ect-text-6xl ect-mb-3">
-                <template v-if="s.target !== null">{{ counts[i] }}{{ 'suffix' in s ? s.suffix : '' }}</template>
-                <template v-else>{{ s.text }}</template>
-              </p>
-              <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-cream/40">{{ s.label }}</p>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <!-- Founders & team — portraits, only when configured in the internal workspace -->
-      <section v-if="team.length" class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pt-24 sm:ect-pt-28">
-        <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-4">Our story</p>
-        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">The people behind PSG</h2>
-        <ul class="ect-grid ect-grid-cols-2 sm:ect-grid-cols-3 lg:ect-grid-cols-4 ect-gap-x-6 ect-gap-y-12 ect-justify-center ect-list-none ect-m-0 ect-p-0">
-          <li v-for="(member, i) in team" :key="`${member.name}-${i}`" class="ect-text-center">
-            <figure class="ect-relative ect-overflow-hidden ect-aspect-[3/4] ect-bg-cream ect-m-0 ect-mb-5">
-              <img
-                v-if="member.imageUrl"
-                :src="member.imageUrl"
-                :alt="member.name || 'Team member'"
-                class="ect-w-full ect-h-full ect-object-cover ect-grayscale hover:ect-grayscale-0 ect-transition-all ect-duration-700"
-                loading="lazy"
-              />
-              <div v-else class="ect-w-full ect-h-full ect-bg-gradient-to-br ect-from-champagne ect-via-cream ect-to-gold-50 ect-flex ect-items-center ect-justify-center">
-                <span class="ect-font-display ect-text-4xl ect-font-light ect-text-gold-400/70">{{ (member.name || '?').charAt(0) }}</span>
-              </div>
+      <section v-if="team.length" class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-16 sm:ect-pb-20">
+        <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-charcoal ect-mb-8">The team</h2>
+        <ul class="ect-grid ect-grid-cols-2 sm:ect-grid-cols-3 lg:ect-grid-cols-4 ect-gap-x-6 ect-gap-y-10 ect-list-none ect-m-0 ect-p-0">
+          <li v-for="(member, i) in team" :key="`${member.name}-${i}`">
+            <figure class="ect-overflow-hidden ect-aspect-[3/4] ect-bg-[#f3ece0] ect-m-0 ect-mb-3">
+              <img v-if="member.imageUrl" :src="member.imageUrl" :alt="member.name || 'Team member'" class="ect-w-full ect-h-full ect-object-cover" loading="lazy" />
             </figure>
-            <h3 class="ect-font-display ect-text-xl ect-font-light ect-text-charcoal ect-mb-1">{{ member.name }}</h3>
-            <p v-if="member.role" class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-charcoal/45">{{ member.role }}</p>
+            <h3 class="ect-font-body ect-text-base ect-font-medium ect-text-charcoal">{{ member.name }}</h3>
+            <p v-if="member.role" class="ect-font-body ect-text-sm ect-text-charcoal/55">{{ member.role }}</p>
           </li>
         </ul>
       </section>
 
-      <!-- Values — numbered editorial columns -->
-      <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-py-24 sm:ect-py-28">
-        <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-700 ect-text-center ect-mb-4">What we stand for</p>
-        <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-text-center ect-mb-16">Designed around the wearer</h2>
-        <ul class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-3 ect-gap-10 sm:ect-gap-12 ect-list-none ect-m-0 ect-p-0">
-          <li v-for="v in values" :key="v.title" class="ect-border-t ect-border-charcoal/15 ect-pt-8">
-            <p class="ect-font-body ect-text-micro ect-tracking-eyebrow ect-text-gold-700 ect-mb-5">{{ v.n }}</p>
-            <h3 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal ect-mb-3">{{ v.title }}</h3>
-            <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-leading-body-relaxed">{{ v.desc }}</p>
+      <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-20 sm:ect-pb-24">
+        <ul class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-3 ect-gap-8 ect-list-none ect-m-0 ect-p-0 ect-border-t ect-border-sand ect-pt-8">
+          <li v-for="v in values" :key="v.title">
+            <h3 class="ect-font-body ect-text-base ect-font-medium ect-text-charcoal ect-mb-2">{{ v.title }}</h3>
+            <p class="ect-font-body ect-text-sm ect-text-charcoal/65 ect-leading-relaxed">{{ v.desc }}</p>
           </li>
         </ul>
-      </section>
-
-      <!-- Process CTA band -->
-      <section class="ect-relative ect-overflow-hidden ect-bg-charcoal ect-text-cream ect-py-24 sm:ect-py-28 ect-px-6 ect-text-center">
-        <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_70%_70%_at_50%_0%,rgba(201,162,39,0.12),transparent)]" />
-        <div class="ect-relative ect-max-w-2xl ect-mx-auto">
-          <p class="ect-font-display ect-italic ect-text-xl ect-text-gold-300 ect-mb-6">Our process</p>
-          <h2 class="ect-font-display ect-font-light ect-text-3xl sm:ect-text-5xl ect-leading-display ect-mb-7">From inspiration to something personal.</h2>
-          <p class="ect-font-body ect-text-sm sm:ect-text-base ect-text-cream/55 ect-leading-body-relaxed ect-mb-10">
-            Every PSG piece begins with an idea, refined through proportion, material and detail. The result is
-            jewellery designed not simply to be admired, but to become part of how you express yourself.
-          </p>
-          <RouterLink
-            to="/collections"
-            class="ect-inline-flex ect-items-center ect-gap-2.5 ect-px-8 ect-py-4 ect-bg-cream ect-text-charcoal ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-eyebrow hover:ect-bg-champagne ect-transition-colors"
-          >
-            Explore our collections
-            <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-          </RouterLink>
-        </div>
+        <p class="ect-mt-10 ect-font-body ect-text-sm">
+          <RouterLink to="/collections" class="ect-text-charcoal ect-underline ect-underline-offset-4 ect-decoration-[#cdbfa6] hover:ect-text-[#1f3f37]">Browse the collection</RouterLink>
+        </p>
       </section>
     </template>
 
-    <!-- ── CONTACT ── -->
-    <section v-else-if="activeTab === 'contact'" class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-py-16 sm:ect-py-20">
-      <section class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-[1fr_1.4fr] ect-gap-10">
-        <!-- Info -->
-        <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
-          <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
-            <span class="ect-w-10 ect-h-10 ect-rounded-xl ect-bg-charcoal ect-flex ect-items-center ect-justify-center ect-shrink-0">
-              <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
-            </span>
-            <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Visit us</p>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">Bangkok, Thailand<br />Visits by appointment</p>
-            </div>
-          </li>
-          <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
-            <span class="ect-w-10 ect-h-10 ect-rounded-xl ect-bg-charcoal ect-flex ect-items-center ect-justify-center ect-shrink-0">
-              <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/></svg>
-            </span>
-            <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Email</p>
-              <a href="mailto:hello@psg.example" class="ect-font-body ect-text-sm ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors">hello@psg.example</a>
-            </div>
-          </li>
-          <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
-            <span class="ect-w-10 ect-h-10 ect-rounded-xl ect-bg-charcoal ect-flex ect-items-center ect-justify-center ect-shrink-0">
-              <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a11.285 11.285 0 01-3.256-3.137c-.111-.184-.006-.418.19-.6l1.13-.936c.32-.266.475-.714.407-1.146l-.382-2.26a1.125 1.125 0 00-1.09-.932H2.25z"/></svg>
-            </span>
-            <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Phone</p>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal">Available on request</p>
-            </div>
-          </li>
-          <li class="ect-bg-white ect-rounded-2xl ect-p-6 ect-border ect-border-charcoal/[0.06] ect-flex ect-items-start ect-gap-4">
-            <span class="ect-w-10 ect-h-10 ect-rounded-xl ect-bg-charcoal ect-flex ect-items-center ect-justify-center ect-shrink-0">
-              <svg class="ect-w-4 ect-h-4 ect-text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </span>
-            <div>
-              <p class="ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/40 ect-mb-1">Hours</p>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal ect-leading-relaxed">Appointments are arranged<br />in advance</p>
-            </div>
-          </li>
-        </ul>
+    <!-- Contact -->
+    <section v-else-if="activeTab === 'contact'" class="ect-max-w-5xl ect-mx-auto ect-px-6 ect-py-14 sm:ect-py-16">
+      <div class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-[1fr_1.5fr] ect-gap-10 lg:ect-gap-16">
+        <dl class="ect-m-0 ect-space-y-6 ect-font-body ect-text-sm">
+          <div>
+            <dt class="ect-text-charcoal/50 ect-mb-1">Phone</dt>
+            <dd class="ect-m-0"><a href="tel:+919216399116" class="ect-text-charcoal ect-underline ect-underline-offset-4 ect-decoration-[#cdbfa6] hover:ect-text-[#1f3f37]">+91 92163 99116</a></dd>
+          </div>
+          <div>
+            <dt class="ect-text-charcoal/50 ect-mb-1">Email</dt>
+            <dd class="ect-m-0"><a href="mailto:sales@jewelet.example" class="ect-text-charcoal ect-underline ect-underline-offset-4 ect-decoration-[#cdbfa6] hover:ect-text-[#1f3f37]">sales@jewelet.example</a></dd>
+          </div>
+          <div>
+            <dt class="ect-text-charcoal/50 ect-mb-1">Hours</dt>
+            <dd class="ect-m-0 ect-text-charcoal ect-leading-relaxed">Monday to Saturday, 10am to 8pm<br />Sunday, 11am to 6pm</dd>
+          </div>
+          <div>
+            <dt class="ect-text-charcoal/50 ect-mb-1">Office</dt>
+            <dd class="ect-m-0 ect-text-charcoal ect-leading-relaxed">SEZ-2, Sitapura Industrial Area<br />Jaipur, Rajasthan 302022</dd>
+          </div>
+        </dl>
 
-        <!-- Form -->
-        <div class="ect-bg-white ect-rounded-3xl ect-p-8 sm:ect-p-10 ect-border ect-border-charcoal/[0.06] ect-shadow-sm">
+        <div class="ect-bg-white ect-border ect-border-sand ect-rounded-lg ect-p-6 sm:ect-p-8">
           <template v-if="!submitted">
-            <h3 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal ect-mb-7">Send a message</h3>
-            <form @submit.prevent="handleSubmit" class="ect-space-y-5">
+            <h2 class="ect-font-display ect-text-2xl ect-text-charcoal ect-mb-5">Send a message</h2>
+            <form @submit.prevent="handleSubmit" class="ect-space-y-4">
               <label class="ect-block">
-                <span class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Name</span>
-                <input v-model="name" type="text" required placeholder="Your full name"
-                  class="ect-w-full ect-px-4 ect-py-3.5 ect-rounded-xl ect-bg-cream/60 ect-border ect-border-charcoal/[0.08] ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/25 focus:ect-outline-none focus:ect-border-charcoal/30 focus:ect-ring-2 focus:ect-ring-charcoal/[0.06] ect-transition-all" />
+                <span class="ect-font-body ect-text-sm ect-text-charcoal/70 ect-mb-1.5 ect-block">Name</span>
+                <input v-model="name" type="text" required class="ect-w-full ect-px-3.5 ect-py-2.5 ect-border ect-border-sand ect-rounded-md ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-border-[#1f3f37]" />
               </label>
               <label class="ect-block">
-                <span class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Email</span>
-                <input v-model="email" type="email" required placeholder="you@example.com"
-                  class="ect-w-full ect-px-4 ect-py-3.5 ect-rounded-xl ect-bg-cream/60 ect-border ect-border-charcoal/[0.08] ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/25 focus:ect-outline-none focus:ect-border-charcoal/30 focus:ect-ring-2 focus:ect-ring-charcoal/[0.06] ect-transition-all" />
+                <span class="ect-font-body ect-text-sm ect-text-charcoal/70 ect-mb-1.5 ect-block">Email</span>
+                <input v-model="email" type="email" required class="ect-w-full ect-px-3.5 ect-py-2.5 ect-border ect-border-sand ect-rounded-md ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-border-[#1f3f37]" />
               </label>
               <label class="ect-block">
-                <span class="ect-font-body ect-text-micro ect-uppercase ect-tracking-label ect-font-semibold ect-text-charcoal/40 ect-block ect-mb-2">Message</span>
-                <textarea v-model="message" required rows="5" placeholder="How can we help?"
-                  class="ect-w-full ect-px-4 ect-py-3.5 ect-rounded-xl ect-bg-cream/60 ect-border ect-border-charcoal/[0.08] ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/25 focus:ect-outline-none focus:ect-border-charcoal/30 focus:ect-ring-2 focus:ect-ring-charcoal/[0.06] ect-transition-all ect-resize-none" />
+                <span class="ect-font-body ect-text-sm ect-text-charcoal/70 ect-mb-1.5 ect-block">Message</span>
+                <textarea v-model="message" required rows="5" class="ect-w-full ect-px-3.5 ect-py-2.5 ect-border ect-border-sand ect-rounded-md ect-font-body ect-text-sm ect-text-charcoal focus:ect-outline-none focus:ect-border-[#1f3f37] ect-resize-none" />
               </label>
-              <button type="submit"
-                class="ect-w-full ect-py-4 ect-rounded-xl ect-bg-charcoal ect-text-cream ect-font-body ect-text-sm ect-font-semibold ect-tracking-wide hover:ect-bg-noir ect-transition-colors">
-                Send message →
-              </button>
+              <button type="submit" class="ect-px-6 ect-py-2.5 ect-bg-[#1f3f37] ect-text-white ect-font-body ect-text-sm ect-font-medium ect-rounded-md hover:ect-bg-[#17342d]">Send</button>
             </form>
           </template>
           <template v-else>
-            <div class="ect-flex ect-flex-col ect-items-center ect-justify-center ect-min-h-[320px] ect-text-center">
-              <span class="ect-w-16 ect-h-16 ect-rounded-2xl ect-bg-emerald-50 ect-flex ect-items-center ect-justify-center ect-mb-5">
-                <svg class="ect-w-7 ect-h-7 ect-text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </span>
-              <h3 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal ect-mb-2">Message sent!</h3>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal/50">We'll get back to you within 24 hours.</p>
-            </div>
+            <h2 class="ect-font-display ect-text-2xl ect-text-charcoal ect-mb-2">Message sent</h2>
+            <p class="ect-font-body ect-text-sm ect-text-charcoal/65">We'll reply within one working day.</p>
           </template>
         </div>
-      </section>
+      </div>
     </section>
 
-    <!-- ── CAREERS ── -->
-    <section v-else class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-py-16 sm:ect-py-20">
-      <p class="ect-font-body ect-text-base ect-text-charcoal/50 ect-max-w-xl ect-mb-12">We're looking for passionate people who share our love for craftsmanship, creativity, and excellence.</p>
-
-      <!-- Open positions -->
-      <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3 ect-mb-12">
-        <li v-for="job in openings" :key="job.title"
-          class="ect-group ect-bg-white ect-rounded-2xl ect-border ect-border-charcoal/[0.06] hover:ect-border-charcoal/20 hover:ect-shadow-lg ect-transition-all ect-duration-300">
-          <div class="ect-p-6 sm:ect-p-8 ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-center ect-gap-4">
-            <div class="ect-flex-1">
-              <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-2.5 ect-mb-2">
-                <h3 class="ect-font-display ect-text-lg ect-font-medium ect-text-charcoal">{{ job.title }}</h3>
-                <span class="ect-font-body ect-text-micro ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-champagne/60 ect-text-gold-700 ect-font-semibold ect-uppercase ect-tracking-label">{{ job.type }}</span>
-                <span class="ect-font-body ect-text-micro ect-px-2.5 ect-py-1 ect-rounded-full ect-bg-charcoal/[0.04] ect-text-charcoal/50 ect-uppercase ect-tracking-label">{{ job.location }}</span>
-              </div>
-              <p class="ect-font-body ect-text-sm ect-text-charcoal/50 ect-leading-relaxed">{{ job.desc }}</p>
-            </div>
-            <a href="mailto:careers@psg.example"
-              class="ect-shrink-0 ect-inline-flex ect-items-center ect-gap-2 ect-px-5 ect-py-2.5 ect-rounded-xl ect-border ect-border-charcoal/15 ect-font-body ect-text-sm ect-font-semibold ect-text-charcoal hover:ect-bg-charcoal hover:ect-text-cream hover:ect-border-charcoal ect-transition-all ect-duration-200">
-              Apply
-              <svg class="ect-w-3.5 ect-h-3.5 group-hover:ect-translate-x-0.5 ect-transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-            </a>
-          </div>
-        </li>
-      </ul>
-
-      <!-- Open application CTA -->
-      <div class="ect-rounded-3xl ect-bg-charcoal ect-text-cream ect-p-10 sm:ect-p-12 ect-flex ect-flex-col sm:ect-flex-row sm:ect-items-center sm:ect-justify-between ect-gap-6">
-        <div>
-          <h3 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-mb-2">Don't see your role?</h3>
-          <p class="ect-font-body ect-text-sm ect-text-cream/50 ect-max-w-sm">We're always open to meeting talented people. Send us your CV and tell us how you'd contribute.</p>
-        </div>
-        <a href="mailto:careers@psg.example"
-          class="ect-shrink-0 ect-inline-flex ect-items-center ect-gap-2 ect-px-7 ect-py-3.5 ect-rounded-xl ect-bg-cream ect-text-charcoal ect-font-body ect-text-sm ect-font-semibold hover:ect-bg-cream/90 ect-transition-colors">
-          Get in touch
-          <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-        </a>
-      </div>
+    <!-- Careers -->
+    <section v-else class="ect-max-w-3xl ect-mx-auto ect-px-6 ect-py-14 sm:ect-py-16">
+      <p class="ect-font-body ect-text-base ect-text-charcoal/75 ect-leading-relaxed ect-mb-4">
+        We don't have open roles listed right now. If you work in jewellery design, production, photography or
+        e-commerce and would like to work with us, send a short note and your CV to
+        <a href="mailto:sales@jewelet.example" class="ect-text-charcoal ect-underline ect-underline-offset-4 ect-decoration-[#cdbfa6] hover:ect-text-[#1f3f37]">sales@jewelet.example</a>.
+      </p>
+      <p class="ect-font-body ect-text-sm ect-text-charcoal/55">We read everything and reply to everyone.</p>
     </section>
 
   </main>

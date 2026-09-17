@@ -17,86 +17,79 @@ function handleSubscribe() {
 </script>
 
 <template>
-  <footer class="ect-relative ect-overflow-hidden ect-text-white">
-    <span class="ect-absolute ect-inset-0 ect-bg-gradient-to-b ect-from-espresso-800 ect-to-noir" />
-    <span class="ect-absolute ect-inset-0 ect-bg-[radial-gradient(ellipse_50%_40%_at_90%_100%,_rgba(201,162,39,0.10),transparent)]" />
-    <!-- Hairline of gold along the top edge, the one place the metal is allowed
-         to touch the full width of the page. -->
-    <span class="ect-absolute ect-inset-x-0 ect-top-0 ect-h-px ect-bg-[linear-gradient(90deg,transparent,rgba(201,162,39,0.45),transparent)]" />
+  <footer class="ect-bg-[#1a1613] ect-text-[#d9d2c5]">
+    <div class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8">
 
-    <!-- Newsletter -->
-    <section class="ect-relative ect-max-w-7xl ect-mx-auto ect-px-6 ect-pt-16 ect-pb-12 ect-border-b ect-border-white/10">
-      <div class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 ect-gap-8 lg:ect-gap-16 ect-items-center">
+      <!-- Newsletter -->
+      <section class="ect-py-10 ect-border-b ect-border-white/10 ect-grid ect-grid-cols-1 lg:ect-grid-cols-2 ect-gap-6 lg:ect-items-center">
         <div>
-          <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-400 ect-mb-3">Jewelet updates</p>
-          <h2 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-semibold ect-leading-tight ect-text-white">Be the first to see new arrivals</h2>
-          <p class="ect-font-body ect-text-sm ect-text-white/55 ect-mt-3 ect-max-w-md">New designs, festive offers, store updates and curated jewellery edits.</p>
+          <h2 class="ect-font-display ect-text-2xl ect-text-white">Sign up for updates</h2>
+          <p class="ect-mt-1.5 ect-font-body ect-text-sm ect-text-[#a89f90]">New designs and offers, once or twice a month.</p>
         </div>
-        <form @submit.prevent="handleSubscribe" class="ect-w-full">
-          <div class="ect-flex ect-flex-col sm:ect-flex-row ect-gap-3">
+        <form @submit.prevent="handleSubscribe" class="ect-w-full lg:ect-max-w-md lg:ect-justify-self-end">
+          <div class="ect-flex ect-flex-col sm:ect-flex-row ect-gap-2">
             <input
               v-model="email"
               type="email"
               required
-              placeholder="Your email address"
+              placeholder="Email address"
               aria-label="Email address"
-              class="ect-flex-1 ect-rounded-full ect-bg-white/[0.08] ect-border ect-border-white/20 ect-px-5 ect-py-3.5 ect-font-body ect-text-sm ect-text-white placeholder:ect-text-white/50 focus:ect-outline-none focus:ect-border-white/50 focus:ect-bg-white/[0.12] ect-transition-all"
+              class="ect-flex-1 ect-rounded-sm ect-bg-white ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-[#1a1613] placeholder:ect-text-[#8a8172] focus:ect-outline-none focus:ect-ring-2 focus:ect-ring-[#c9a227]/60"
             />
             <button
               type="submit"
-              class="ect-shrink-0 ect-inline-flex ect-items-center ect-justify-center ect-rounded-md ect-bg-white ect-px-7 ect-py-3.5 ect-font-body ect-text-ui ect-font-semibold ect-uppercase ect-tracking-label ect-text-espresso-800 hover:ect-bg-champagne ect-transition-colors"
+              class="ect-shrink-0 ect-rounded-sm ect-bg-[#c9a227] ect-px-6 ect-py-3 ect-font-body ect-text-sm ect-font-medium ect-text-[#1a1613] hover:ect-bg-[#dcbf72]"
             >
               Subscribe
             </button>
           </div>
-          <p v-if="subscribed" class="ect-font-body ect-text-xs ect-text-gold-400 ect-mt-3">Thank you — you are on the list.</p>
+          <p v-if="subscribed" class="ect-mt-2 ect-font-body ect-text-xs ect-text-[#dcbf72]">Thanks, you're on the list.</p>
         </form>
-      </div>
-    </section>
-
-    <section class="ect-relative ect-max-w-7xl ect-mx-auto ect-px-6 ect-pt-14 ect-grid ect-grid-cols-2 sm:ect-grid-cols-4 ect-gap-10 ect-items-start ect-mb-12">
-      <section class="ect-col-span-2 sm:ect-col-span-1">
-        <span class="ect-inline-flex ect-items-center ect-rounded-md ect-bg-white ect-px-3 ect-py-2 ect-mb-4">
-          <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-10 ect-w-auto ect-max-w-[150px] ect-object-contain" />
-        </span>
-        <p class="ect-font-body ect-text-sm ect-text-white/55 ect-leading-relaxed ect-max-w-xs">Certified fine jewellery for modern India, with gold and diamond designs for everyday wear, gifting and celebrations.</p>
       </section>
 
-      <nav>
-        <h3 class="ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-gold-400 ect-mb-4">Explore</h3>
-        <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2.5">
-          <li><RouterLink to="/#collections" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">Collections</RouterLink></li>
-          <li><RouterLink to="/about" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">Our Promise</RouterLink></li>
-          <li><RouterLink to="/contact" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">Contact</RouterLink></li>
-          <li><RouterLink to="/careers" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">Careers</RouterLink></li>
-        </ul>
-      </nav>
+      <!-- Links -->
+      <section class="ect-py-10 ect-grid ect-grid-cols-2 sm:ect-grid-cols-4 ect-gap-8">
+        <div class="ect-col-span-2 sm:ect-col-span-1">
+          <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-9 ect-w-auto ect-max-w-[140px] ect-object-contain ect-bg-white ect-rounded-sm ect-px-2 ect-py-1.5" />
+          <p class="ect-mt-4 ect-font-body ect-text-sm ect-leading-relaxed ect-text-[#a89f90] ect-max-w-xs">
+            Certified gold and diamond jewellery, shipped anywhere in India.
+          </p>
+        </div>
 
-      <nav>
-        <h3 class="ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-gold-400 ect-mb-4">Client Care</h3>
-        <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2.5">
-          <li><p class="ect-font-body ect-text-sm ect-text-white/60">BIS Hallmarked Gold</p></li>
-          <li><p class="ect-font-body ect-text-sm ect-text-white/60">Lifetime Exchange</p></li>
-          <li><p class="ect-font-body ect-text-sm ect-text-white/60">Free Insured Shipping</p></li>
-          <li><p class="ect-font-body ect-text-sm ect-text-white/60">30 Day Returns</p></li>
-        </ul>
-      </nav>
+        <nav aria-label="Shop">
+          <h3 class="ect-font-body ect-text-sm ect-font-medium ect-text-white ect-mb-3">Shop</h3>
+          <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2">
+            <li><RouterLink to="/collections/rings" class="ect-font-body ect-text-sm hover:ect-text-white">Rings</RouterLink></li>
+            <li><RouterLink to="/collections/earrings" class="ect-font-body ect-text-sm hover:ect-text-white">Earrings</RouterLink></li>
+            <li><RouterLink to="/collections/pendants" class="ect-font-body ect-text-sm hover:ect-text-white">Pendants</RouterLink></li>
+            <li><RouterLink to="/collections/necklaces" class="ect-font-body ect-text-sm hover:ect-text-white">Necklaces</RouterLink></li>
+            <li><RouterLink to="/collections" class="ect-font-body ect-text-sm hover:ect-text-white">All jewellery</RouterLink></li>
+          </ul>
+        </nav>
 
-      <nav>
-        <h3 class="ect-font-body ect-text-micro ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-gold-400 ect-mb-4">Get in Touch</h3>
-        <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2.5">
-          <li><a href="mailto:care@jewelet.example" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">care@jewelet.example</a></li>
-          <li><a href="tel:+910000000000" class="ect-font-body ect-text-sm ect-text-white/60 hover:ect-text-white ect-transition-colors">+91 00000 00000</a></li>
-          <li><p class="ect-font-body ect-text-sm ect-text-white/40">Online and retail store experience</p></li>
-        </ul>
-      </nav>
-    </section>
+        <nav aria-label="Help">
+          <h3 class="ect-font-body ect-text-sm ect-font-medium ect-text-white ect-mb-3">Help</h3>
+          <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2">
+            <li><RouterLink to="/contact" class="ect-font-body ect-text-sm hover:ect-text-white">Customer support</RouterLink></li>
+            <li><RouterLink to="/video-consultation" class="ect-font-body ect-text-sm hover:ect-text-white">Book a video call</RouterLink></li>
+            <li><RouterLink to="/orders" class="ect-font-body ect-text-sm hover:ect-text-white">My orders</RouterLink></li>
+            <li><RouterLink to="/wishlist" class="ect-font-body ect-text-sm hover:ect-text-white">Wishlist</RouterLink></li>
+          </ul>
+        </nav>
 
-    <div class="ect-relative ect-max-w-7xl ect-mx-auto ect-px-6">
-      <div class="ect-h-px ect-bg-white/10 ect-mb-6" />
-      <div class="ect-flex ect-flex-col sm:ect-flex-row ect-items-start sm:ect-items-center ect-justify-between ect-gap-3 ect-pb-8">
-        <p class="ect-font-body ect-text-xs ect-text-white/40">© {{ year }} Jewelet — Fine Jewellery</p>
-        <p class="ect-font-body ect-text-xs ect-text-white/40 ect-tracking-wide">BIS Hallmarked · Certified Stones · Lifetime Exchange</p>
+        <nav aria-label="Company">
+          <h3 class="ect-font-body ect-text-sm ect-font-medium ect-text-white ect-mb-3">Company</h3>
+          <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2">
+            <li><RouterLink to="/about" class="ect-font-body ect-text-sm hover:ect-text-white">About us</RouterLink></li>
+            <li><RouterLink to="/careers" class="ect-font-body ect-text-sm hover:ect-text-white">Careers</RouterLink></li>
+            <li><a href="tel:+919216399116" class="ect-font-body ect-text-sm hover:ect-text-white">+91 92163 99116</a></li>
+            <li><a href="mailto:sales@jewelet.example" class="ect-font-body ect-text-sm hover:ect-text-white">sales@jewelet.example</a></li>
+          </ul>
+        </nav>
+      </section>
+
+      <div class="ect-border-t ect-border-white/10 ect-py-5">
+        <p class="ect-font-body ect-text-xs ect-text-[#8a8172]">© {{ year }} Jewelet. All rights reserved.</p>
       </div>
     </div>
   </footer>

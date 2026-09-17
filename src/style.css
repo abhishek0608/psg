@@ -10,8 +10,6 @@ body {
   @apply ect-antialiased ect-bg-cream ect-text-charcoal;
   font-family: 'Jost', system-ui, sans-serif;
   font-feature-settings: 'kern' 1, 'liga' 1;
-  /* Jost is geometric, so its round letters already carry generous sidebearings;
-     it sets evenly at its natural tracking and tightening it closes the counters. */
   letter-spacing: 0;
 }
 
@@ -19,29 +17,20 @@ body {
   @apply ect-min-h-screen;
 }
 
-/* Refined text selection — quiet gold tint */
+/* Text selection */
 ::selection {
   background: rgba(201, 162, 39, 0.22);
   color: #1b1917;
 }
 
-/* Type defaults live in the components layer so that per-element `tracking-*`
-   and `leading-*` utilities (emitted into the later utilities layer) can still
-   override them. Redefining them at top level would outrank every utility. */
+/* Type defaults live in the components layer so per-element utilities still win. */
 @layer components {
-  /* Playfair's thins are genuinely hairline, so headings are set at 400–500 and
-     allowed room: weight is what makes a high-contrast serif look heavy and
-     cheap, and the contrast alone already carries the presence. */
   .ect-font-display {
     font-feature-settings: 'kern' 1, 'liga' 1;
     font-weight: 500;
     letter-spacing: -0.005em;
   }
 
-  /* Tracking tightens as display type grows — the single biggest tell of
-     typography that was set rather than defaulted. Playfair needs far less of
-     this than a low-contrast face would: past about -0.02em the serifs of
-     adjacent letters start to touch at hero sizes. */
   .ect-text-2xl.ect-font-display,
   .ect-text-3xl.ect-font-display {
     line-height: 1.18;
@@ -56,86 +45,44 @@ body {
     letter-spacing: -0.014em;
   }
 
-  /* Body copy: comfortable reading. Jost runs a shorter x-height than the
-     grotesque it replaced, so leading is opened a step to compensate. */
   .ect-font-body.ect-text-base,
   .ect-font-body.ect-text-lg {
     line-height: 1.7;
   }
 
-  /* Prices are figures, not display type. Playfair is a high-contrast serif —
-     its thins are hairlines — and a price is read at a glance at small sizes,
-     worst on the two-up phone grid where the figure gets a ~96px track beside
-     the add-to-bag button. The card name is already Jost, so the serif amount
-     was the one serif in the block and read as a mismatch rather than as a
-     flourish. Defined once here because this was previously re-typed inline at
-     eight call sites, which is how the weights drifted apart. Every price on
-     the site is this class plus a size utility. */
+  /* Prices: sans, medium weight, tabular figures so stacked amounts line up. */
   .ect-price {
     font-family: 'Jost', system-ui, sans-serif;
-    /* Jost sets lighter in colour than Playfair at the same numeric weight, so
-       prices sit at 500 to keep the presence the serif had. 600 and up turns
-       the geometric digits blocky — reads as a discount sticker, not a price. */
     font-weight: 500;
-    /* Amounts stack in the cart and checkout summaries, so figures need to be
-       the same width or the columns wobble row to row. */
     font-variant-numeric: tabular-nums;
-    /* Explicitly natural: the -0.005em on `.ect-font-display` is tuned for
-       Playfair, and on geometric digits that same tightening closes the
-       counters of 0, 6 and 8. */
     letter-spacing: 0;
-    /* Single-line figures, so none of the body leading applies. */
     line-height: 1.15;
   }
 }
 
-/* The eyebrow/kicker treatment, defined once. Previously this was re-typed
-   inline in ~30 files at 19 different tracking values, which is why nothing
-   quite lined up. */
+/* Uppercase kicker used on a few labels. */
 .ect-eyebrow {
   font-family: 'Jost', system-ui, sans-serif;
   font-size: 0.6875rem;
-  /* Jost's geometric caps are already wide and even; at 600 they crowd their own
-     tracking, so the kicker is set at 500 and given more air instead. */
   font-weight: 500;
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  /* Uppercase runs sit optically low against lowercase neighbours. */
   font-feature-settings: 'kern' 1;
 }
 
-/* Italic Playfair is a true drawn italic, not a slant — worth leaning on for
-   emphasis inside display lines. */
 .ect-font-display em,
 .ect-font-display .ect-italic {
   font-synthesis: none;
 }
 
-/* The product card's price + add-to-bag row.
-
-   The card is dropped into grids that are two-up, three-up and four-up
-   depending on the page, so how much room this row actually has is a property
-   of the card, not of the window. Sizing the button off viewport breakpoints
-   got that wrong wherever a wide window held narrow columns: at 1024px the
-   catalog goes four-up on ~223px cards, the button still claimed its full
-   ~147px labelled width, and every price in the grid hit the `truncate` and
-   rendered as "₹ …". The search grid did the same at every desktop width, and
-   the two-up phone grid did it again at 320px.
-
-   So the row measures itself. The price is never the thing that gives way —
-   it is the number the whole card exists to show — and the button yields in
-   two stages: it drops its label below the width where the label fits, and
-   wraps onto its own line when even the icon-only form won't sit beside the
-   figure. Both stages are driven by `container-type: inline-size` on the row,
-   which is why `flex-wrap` is the backstop: an unusually long amount pushes
-   the button down a line instead of clipping the price. */
+/* Product card price + add-to-bag row. The row measures its own width via a
+   container query: the button drops its label when there is no room and
+   wraps under the price if even the icon form will not fit. */
 .ect-buy-row {
   container-type: inline-size;
 }
 
-/* Icon-only is the default, because it is the form that fits the narrowest
-   card. The label is an enhancement the row opts into once it has the room. */
 .ect-buy-row-cta {
   height: 2.25rem;
   width: 2.25rem;
@@ -144,10 +91,6 @@ body {
   display: none;
 }
 
-/* 260px is the measured sum of the widest rupee amount the catalog carries at
-   `text-price` (~103px), the row gap (8px) and the labelled button at its
-   natural width (~147px). Below it the label cannot fit beside the price, so
-   it isn't offered. */
 @container (min-width: 260px) {
   .ect-buy-row-cta {
     height: 2.5rem;
@@ -160,13 +103,13 @@ body {
   }
 }
 
-/* Luxury detail: a fine gold rule used as a section accent */
+/* Thin gold rule */
 .ect-gold-rule {
   height: 1px;
   background: linear-gradient(90deg, transparent, #c99237 50%, transparent);
 }
 
-/* Tasteful entrance — elements rise gently into place on load */
+/* Fade-up entrance */
 @keyframes ectFadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
@@ -179,8 +122,7 @@ body {
   .ect-fade-up { animation: none; }
 }
 
-/* Content protection: deter casual image copying. Product imagery should not be
-   draggable or selectable. Note: this cannot block OS-level screenshots. */
+/* Product images are not draggable or selectable. */
 img {
   -webkit-user-drag: none;
   user-select: none;

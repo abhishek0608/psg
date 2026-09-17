@@ -24,15 +24,12 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <section class="ect-min-h-screen ect-flex ect-items-center ect-justify-center ect-px-4 ect-pt-24 ect-pb-16 ect-bg-gradient-to-b ect-from-cream ect-via-champagne/40 ect-to-cream">
+  <section class="ect-min-h-screen ect-flex ect-items-center ect-justify-center ect-px-4 ect-pt-24 ect-pb-16 ect-bg-cream">
     <article class="ect-w-full ect-max-w-md">
-      <div class="ect-bg-white/90 ect-backdrop-blur-sm ect-rounded-2xl ect-shadow-[0_24px_48px_-12px_rgba(0,0,0,0.08)] ect-border ect-border-sand ect-overflow-hidden">
-        <div class="ect-h-1 ect-bg-gradient-to-r ect-from-gold-200 ect-via-gold-400 ect-to-gold-200" />
-
+      <div class="ect-bg-white ect-rounded-lg ect-border ect-border-sand">
         <div class="ect-px-8 ect-pt-10 ect-pb-8 sm:ect-px-10 sm:ect-pt-12 sm:ect-pb-10">
           <header class="ect-text-center ect-mb-8">
-            <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-espresso-700 ect-mb-3">Jewelet</p>
-            <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal ect-tracking-wide ect-mb-2">Forgot password</h1>
+                        <h1 class="ect-font-display ect-text-3xl ect-text-charcoal ect-mb-2">Forgot password</h1>
             <p class="ect-font-body ect-text-base ect-text-charcoal/60">Enter your email and we'll send you a reset link</p>
           </header>
 

@@ -4,7 +4,6 @@ import ProductCard from './ProductCard.vue'
 import { useProductsApi } from '../composables/useProductsApi'
 
 const props = withDefaults(defineProps<{
-  eyebrow: string
   title: string
   mode?: 'new' | 'under-price'
   priceMax?: number
@@ -45,19 +44,11 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
 </script>
 
 <template>
-  <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-16 sm:ect-pt-20">
-    <header class="ect-flex ect-items-end ect-justify-between ect-gap-4 ect-mb-6">
-      <div>
-        <p class="ect-eyebrow ect-text-gold-600">{{ eyebrow }}</p>
-        <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
-          {{ title }}
-        </h2>
-      </div>
-      <RouterLink
-        :to="browseTo"
-        class="ect-shrink-0 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#2b2723] ect-border-b ect-border-[#cdbfa6] ect-pb-0.5 hover:ect-text-[#1f5c4d] ect-transition-colors"
-      >
-        Shop all
+  <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-12 sm:ect-pt-16">
+    <header class="ect-flex ect-items-baseline ect-justify-between ect-gap-4 ect-mb-5">
+      <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-[#2b2723]">{{ title }}</h2>
+      <RouterLink :to="browseTo" class="ect-shrink-0 ect-font-body ect-text-sm ect-text-[#5c5648] hover:ect-text-[#1f3f37] ect-underline ect-underline-offset-4 ect-decoration-[#cdbfa6]">
+        View all
       </RouterLink>
     </header>
 
@@ -75,11 +66,9 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
       </li>
     </ul>
 
-    <div v-else class="ect-rounded-xl ect-border ect-border-[#e6ddce] ect-bg-white ect-p-8 ect-text-center">
-      <p class="ect-font-body ect-text-sm ect-text-[#7a7264]">More pieces are being added to this edit.</p>
-      <RouterLink :to="browseTo" class="ect-mt-3 ect-inline-block ect-font-body ect-text-ui ect-font-semibold ect-uppercase ect-tracking-label ect-text-[#1f3f37] ect-underline ect-underline-offset-4">
-        Browse the full collection
-      </RouterLink>
-    </div>
+    <p v-else class="ect-font-body ect-text-sm ect-text-[#7a7264] ect-py-8">
+      No products in this range right now.
+      <RouterLink :to="browseTo" class="ect-underline hover:ect-text-[#1f5c4d]">Browse all jewellery</RouterLink>.
+    </p>
   </section>
 </template>

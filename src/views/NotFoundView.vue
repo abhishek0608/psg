@@ -14,9 +14,6 @@ const shortcuts = [
 ]
 
 onMounted(() => {
-  // The router's afterEach hook ran before this component resolved the match as
-  // a miss, so the title it set was the generic site name. Correct it here, and
-  // keep the page out of the index — it is a dead end, not content.
   setPageMeta({ title: 'Page Not Found', noindex: true })
 })
 </script>
@@ -25,16 +22,10 @@ onMounted(() => {
   <section
     class="ect-pt-28 sm:ect-pt-36 ect-pb-28 ect-px-6 ect-bg-cream ect-min-h-screen ect-flex ect-flex-col ect-items-center ect-justify-center ect-text-center"
   >
-    <span class="ect-w-20 ect-h-20 ect-rounded-full ect-bg-champagne ect-flex ect-items-center ect-justify-center ect-mb-6">
-      <svg class="ect-w-9 ect-h-9 ect-text-gold-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
-      </svg>
-    </span>
 
-    <p class="ect-eyebrow ect-text-charcoal/45 ect-mb-3">Error 404</p>
-    <h1 class="ect-font-display ect-text-2xl ect-font-light ect-text-charcoal ect-mb-2">This page doesn't exist</h1>
+    <h1 class="ect-font-display ect-text-3xl ect-text-charcoal ect-mb-3">Page not found</h1>
     <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mb-7 ect-max-w-xs">
-      The link may be out of date, or the page may have moved. The collections below are a good place to pick up.
+      The link may be out of date or the page may have moved.
     </p>
 
     <RouterLink

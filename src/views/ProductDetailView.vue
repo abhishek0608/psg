@@ -503,10 +503,7 @@ function handleAddToVideoCall() {
         </section>
 
         <section class="product-detail-content">
-          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">
-            <span class="ect-w-6 ect-h-px ect-bg-gold-400" />
-            {{ product.category }} · {{ product.material }}
-          </p>
+          <p class="ect-font-body ect-text-sm ect-text-charcoal/55 ect-mb-2">{{ product.category }} · {{ product.material }}</p>
           <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-font-light ect-text-charcoal ect-leading-[1.1] ect-mb-3">
             {{ product.title }}
           </h1>
@@ -698,10 +695,6 @@ function handleAddToVideoCall() {
 
       <section v-if="SITE_SETTINGS.enableReviews" class="ect-mt-16 ect-pt-12 ect-border-t ect-border-sand">
         <header class="ect-mb-6">
-          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">
-            <span class="ect-w-6 ect-h-px ect-bg-gold-400" />
-            Customer voices
-          </p>
           <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-text-charcoal">Reviews</h2>
         </header>
         <ul v-if="reviews.length" class="ect-list-none ect-m-0 ect-p-0 ect-space-y-3">
@@ -725,10 +718,6 @@ function handleAddToVideoCall() {
 
       <section v-if="relatedProducts.length" class="ect-mt-16 ect-pt-12 ect-border-t ect-border-sand">
         <header class="ect-mb-6 sm:ect-mb-8">
-          <p class="ect-inline-flex ect-items-center ect-gap-2 ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">
-            <span class="ect-w-6 ect-h-px ect-bg-gold-400" />
-            Discover more
-          </p>
           <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-font-light ect-text-charcoal">You may also like</h2>
         </header>
         <ul class="ect-list-none ect-m-0 ect-p-0 ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4">

@@ -14,14 +14,11 @@ onMounted(() => {
   void ensureProductsLoaded()
 })
 
-// Quick filter chips (Aurelle design). "Under ₹X" cuts across categories.
 const UNDER_PRICE_LABEL = `Under ${formatInr(UNDER_PRICE)}`
 const FILTERS = ['All', 'Rings', 'Earrings', 'Necklaces', 'Bracelets', UNDER_PRICE_LABEL] as const
 const activeFilter = ref<string>('All')
 
-// Curated teaser within the active filter: lead with best sellers, then new
-// arrivals, then fill with the rest — capped at LIMIT. The full filterable
-// catalogue lives at /collections.
+// Best sellers first, then new arrivals, then the rest, capped at LIMIT.
 const featured = computed(() => {
   let pool = products.value
   if (activeFilter.value === UNDER_PRICE_LABEL) {
@@ -49,22 +46,11 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
 </script>
 
 <template>
-  <section id="collections" class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-14 sm:ect-pt-16">
-    <!-- Eyebrow + heading, matching the two sections either side of this one.
-         Without the kicker this heading sat a line higher than its neighbours
-         and broke the vertical rhythm down the page. -->
-    <header class="ect-flex ect-items-end ect-justify-between ect-gap-4 ect-mb-6">
-      <div>
-        <p class="ect-eyebrow ect-text-gold-600">The pieces you come back to</p>
-        <h2 class="ect-mt-2 ect-font-display ect-text-3xl sm:ect-text-[2.5rem] ect-font-medium ect-leading-tight ect-text-[#2b2723]">
-          Best sellers
-        </h2>
-      </div>
-      <RouterLink
-        to="/collections"
-        class="ect-shrink-0 ect-font-body ect-text-ui ect-tracking-wide ect-text-[#2b2723] ect-border-b ect-border-[#cdbfa6] ect-pb-0.5 hover:ect-text-[#1f5c4d] ect-transition-colors"
-      >
-        View all jewellery
+  <section id="collections" class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8 ect-pt-12 sm:ect-pt-16">
+    <header class="ect-flex ect-items-baseline ect-justify-between ect-gap-4 ect-mb-5">
+      <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-[#2b2723]">Best sellers</h2>
+      <RouterLink to="/collections" class="ect-shrink-0 ect-font-body ect-text-sm ect-text-[#5c5648] hover:ect-text-[#1f3f37] ect-underline ect-underline-offset-4 ect-decoration-[#cdbfa6]">
+        View all
       </RouterLink>
     </header>
 
@@ -87,8 +73,6 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
       </button>
     </div>
 
-    <!-- Skeleton. Mirrors the real card's block so the grid doesn't jump when
-         the products resolve. -->
     <ul v-if="showSkeleton" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0">
       <li v-for="n in LIMIT" :key="`skeleton-${n}`" class="ect-animate-pulse">
         <section class="ect-aspect-square ect-rounded-t-lg ect-bg-[#efe7d6]" />
@@ -103,8 +87,6 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
       </li>
     </ul>
 
-    <!-- Curated grid. Same gaps as the collection page: the two grids show the
-         same cards, so they should not sit on different rhythms. -->
     <ul v-else-if="featured.length" class="ect-grid ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-x-2.5 ect-gap-y-2 sm:ect-gap-x-[22px] sm:ect-gap-y-4 ect-list-none ect-m-0 ect-p-0">
       <li v-for="piece in featured" :key="piece.slug" class="ect-h-full">
         <ProductCard :slug="piece.slug" :title="piece.title" :category="piece.category" :material="piece.material" :price="piece.price" :images="piece.images" :product="piece" />
@@ -112,7 +94,7 @@ const showSkeleton = computed(() => (loading.value || !loaded.value) && !product
     </ul>
 
     <p v-else class="ect-font-body ect-text-sm ect-text-[#7a7264] ect-py-8">
-      Nothing here just yet — try another filter or
+      Nothing in this filter yet. Try another, or
       <RouterLink to="/collections" class="ect-underline hover:ect-text-[#1f5c4d]">browse all jewellery</RouterLink>.
     </p>
   </section>
