@@ -98,7 +98,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- Campaign artwork stays unobstructed; the introduction sits below it. -->
+  <!-- Campaign artwork stays unobstructed. -->
   <section
     class="ect-relative ect-w-full ect-overflow-hidden ect-bg-[#efe7d6]"
     :style="{ marginTop: headerOffset + 'px' }"
@@ -149,7 +149,7 @@ onUnmounted(() => {
             @click.prevent="navigateTo(slide.ctaHref)"
           />
         </div>
-        <!-- Uploaded artwork carries its own typography; the page heading follows below. -->
+        <!-- Uploaded artwork carries its own typography. -->
         <button
           v-if="currentSlide.ctaLabel && currentSlide.ctaHref"
           type="button"
@@ -167,9 +167,7 @@ onUnmounted(() => {
       <div v-else class="campaign-fallback">
         <div class="campaign-fallback-copy">
           <p class="ect-eyebrow">THE JEWELET COLLECTION</p>
-          <h1 class="ect-font-display">A little brilliance.<br /><em>Every single day.</em></h1>
           <p>For the moments you celebrate, and the ones you make your own. Discover jewellery that feels like you.</p>
-          <RouterLink to="/collections" class="campaign-shop">Explore jewellery <span aria-hidden="true">↗</span></RouterLink>
         </div>
         <img src="/editorial-everyday-diamonds.webp" alt="A considered selection of everyday diamond jewellery" fetchpriority="high" />
       </div>
@@ -225,16 +223,6 @@ onUnmounted(() => {
         </div>
       </template>
     </div>
-    <div v-if="!showSkeleton && activeSlides.length" class="campaign-intro">
-      <div>
-        <p class="ect-eyebrow">FINE JEWELLERY. PERSONAL BY NATURE.</p>
-        <h1 class="ect-font-display">A little brilliance. <em>Every single day.</em></h1>
-      </div>
-      <div class="campaign-intro-actions">
-        <RouterLink to="/collections" class="campaign-shop">Explore jewellery <span aria-hidden="true">↗</span></RouterLink>
-        <RouterLink :to="{ path: '/collections', query: { tab: 'new' } }" class="campaign-new">Discover new arrivals <span aria-hidden="true">→</span></RouterLink>
-      </div>
-    </div>
   </section>
 </template>
 
@@ -247,31 +235,15 @@ onUnmounted(() => {
 .campaign-pause { position: absolute; right: 16px; bottom: 16px; z-index: 2; padding: 7px 12px; border-radius: 20px; color: #fff8df; background: #2b272399; font-size: 11px; }
 @media (prefers-reduced-motion: reduce) { .campaign-slide { transition: none; } }
 
-.campaign-intro { display: flex; align-items: center; justify-content: space-between; gap: 36px; padding: 38px max(32px, calc((100vw - 1216px) / 2)); background: #f3eee5; color: #243e35; }
-.campaign-intro .ect-eyebrow, .campaign-fallback .ect-eyebrow { color: #796343; font-size: 10px; line-height: 1.5; }
-.campaign-intro h1 { margin-top: 12px; font-size: clamp(28px, 2.6vw, 40px); line-height: 1.25; font-weight: 400; }
-.campaign-intro h1 em { white-space: nowrap; }
-.campaign-intro-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; flex-shrink: 0; }
-.campaign-shop { display: inline-flex; justify-content: space-between; align-items: center; gap: 36px; padding: 15px 24px; background: #243e35; color: #fffaf0; font-size: 13px; transition: background .2s; }
-.campaign-shop:hover { background: #345647; }
-.campaign-shop span { font-size: 20px; line-height: 1; }
-.campaign-new { font-size: 12px; border-bottom: 1px solid #b7b2a4; padding-bottom: 3px; }
-.campaign-new span { margin-left: 12px; }
+.campaign-fallback .ect-eyebrow { color: #796343; font-size: 10px; line-height: 1.5; }
 .campaign-fallback { display: grid; grid-template-columns: 1fr 1fr; height: 100%; background: #eee7db; }
 .campaign-fallback-copy { align-self: center; padding: 40px 10%; }
-.campaign-fallback h1 { font-size: clamp(36px, 4vw, 60px); line-height: 1.12; margin: 20px 0; color: #243e35; }
 .campaign-fallback-copy > p:not(.ect-eyebrow) { max-width: 380px; font-size: 15px; line-height: 1.7; color: #6b655a; margin-bottom: 24px; }
 .campaign-fallback > img { width: 100%; height: 100%; object-fit: cover; min-height: 0; }
 @media (max-width: 767px) {
   .campaign-frame { aspect-ratio: 660 / 793; }
   [data-carousel-arrow] { top: auto; bottom: 14px; transform: none; width: 32px; height: 32px; }
   [data-carousel-arrow="next"] { left: 56px; right: auto; }
-  .campaign-intro { padding: 28px 20px; flex-direction: column; align-items: flex-start; gap: 24px; }
-  .campaign-intro h1 { max-width: 340px; font-size: 32px; }
-  .campaign-intro h1 em { display: block; }
-  .campaign-intro-actions { flex-direction: row; flex-wrap: wrap; gap: 18px; }
-  .campaign-shop { padding: 12px 18px; gap: 20px; }
-  .campaign-new { font-size: 11px; }
   .campaign-fallback { grid-template-columns: 1fr; position: relative; }
   .campaign-fallback-copy { position: relative; z-index: 1; padding: 28px 24px; background: linear-gradient(90deg, #eee7db 30%, #eee7dbdd 70%, #eee7db88); height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
   .campaign-fallback > img { position: absolute; inset: 0; }
