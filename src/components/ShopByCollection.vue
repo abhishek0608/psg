@@ -87,7 +87,7 @@ const collectionImage = (item: (typeof collections)[number]) => collectionImages
 </template>
 
 <style scoped>
-.category-image { border-radius: 120px 120px 4px 4px; margin-bottom: 18px; }
+.category-image { border-radius: 0; margin-bottom: 18px; }
 .category-link { min-width: 0; }
 .category-link > span:last-child { width: 100%; font-size: 14px; }
 @media (max-width: 639px) {

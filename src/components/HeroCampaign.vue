@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHeaderOffset } from '../composables/useHeaderOffset'
 import { useHomepageSlides, type HomepageSlide } from '../composables/useHomepageSlides'
-import { defaultHomepageSlides } from '../data/homepageCampaign'
+import { additionalHomepageSlides, defaultHomepageSlides } from '../data/homepageCampaign'
 
 const router = useRouter()
 const { headerOffset } = useHeaderOffset()
@@ -40,7 +40,8 @@ function usableSlides(items: HomepageSlide[]) {
 // Images configured in the internal editor take precedence per device.
 const activeSlides = computed(() => {
   const configured = usableSlides(slides.value)
-  return configured.length ? configured : usableSlides(defaultHomepageSlides)
+  const primary = configured.length ? configured : usableSlides(defaultHomepageSlides)
+  return [...usableSlides(additionalHomepageSlides), ...primary]
 })
 const currentSlide = computed(() => activeSlides.value[activeSlideIndex.value] || null)
 const showSkeleton = computed(() => !loaded.value)
@@ -111,7 +112,7 @@ onUnmounted(() => {
     @keydown.left.prevent="showPreviousSlide"
     @keydown.right.prevent="showNextSlide"
   >
-    <div class="campaign-frame">
+    <div class="campaign-frame" :style="{ aspectRatio: currentSlide?.frameAspectRatio }">
       <!-- Loading frame: same height as the banner, deliberately wordless. -->
       <div
         v-if="showSkeleton"
@@ -135,7 +136,7 @@ onUnmounted(() => {
           <img
             :src="resolveImageUrl(slide)"
             :alt="slide.headline || 'Homepage jewellery campaign'"
-            :style="{ objectPosition: slide.imagePosition || 'center' }"
+            :style="{ objectPosition: slide.imagePosition || 'center', objectFit: slide.imageFit || 'cover' }"
             :fetchpriority="index === 0 ? 'high' : 'auto'"
             decoding="async"
             class="ect-h-full ect-w-full ect-object-cover"

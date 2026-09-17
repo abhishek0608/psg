@@ -6,6 +6,8 @@ export interface HomepageSlide {
   imageUrl: string
   mobileImageUrl?: string
   imagePosition?: string
+  imageFit?: 'cover' | 'contain'
+  frameAspectRatio?: string
   // Legacy video fields are retained for compatibility; the hero uses images.
   videoUrl?: string
   mobileVideoUrl?: string
