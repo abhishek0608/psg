@@ -75,7 +75,7 @@ Replace the gradient placeholders in `ProductCard` with real image URLs when you
 ## Homepage image campaign
 
 The homepage renders images only. The initial customer artwork is served from
-`https://psg-images-855663231212.s3.us-east-1.amazonaws.com/homepage/timeless-gold-v1.png`.
+`https://psg-images-855663231212.s3.us-east-1.amazonaws.com/homepage/timeless-gold-v2.png`.
 Desktop shows the complete three-panel banner; mobile shows each panel as a
 separate slide using CSS framing of the same cached image. The default campaign
 is defined in `src/data/homepageCampaign.ts`.
