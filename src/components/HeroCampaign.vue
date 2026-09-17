@@ -112,7 +112,7 @@ onUnmounted(() => {
     @keydown.left.prevent="showPreviousSlide"
     @keydown.right.prevent="showNextSlide"
   >
-    <div class="campaign-frame" :style="{ aspectRatio: currentSlide?.frameAspectRatio }">
+    <div class="campaign-frame">
       <!-- Loading frame: same height as the banner, deliberately wordless. -->
       <div
         v-if="showSkeleton"
@@ -136,7 +136,13 @@ onUnmounted(() => {
           <img
             :src="resolveImageUrl(slide)"
             :alt="slide.headline || 'Homepage jewellery campaign'"
-            :style="{ objectPosition: slide.imagePosition || 'center', objectFit: slide.imageFit || 'cover' }"
+            :style="{
+              objectPosition: isMobile && slide.panelIndex !== undefined ? 'center bottom' : slide.imagePosition || 'center',
+              objectFit: slide.imageFit || 'cover',
+              width: isMobile && slide.panelIndex !== undefined ? '300%' : undefined,
+              maxWidth: isMobile && slide.panelIndex !== undefined ? 'none' : undefined,
+              transform: isMobile && slide.panelIndex !== undefined ? `translateX(-${slide.panelIndex * 100 / 3}%)` : undefined,
+            }"
             :fetchpriority="index === 0 ? 'high' : 'auto'"
             decoding="async"
             class="ect-h-full ect-w-full ect-object-cover"
