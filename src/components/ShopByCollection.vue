@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { COLLECTION_LINKS } from '../data/collections'
+import { HOMEPAGE_COLLECTION_LINKS } from '../data/collections'
 import { useSiteConfig } from '../composables/useSiteConfig'
 
-const collections = COLLECTION_LINKS
+const collections = HOMEPAGE_COLLECTION_LINKS
 
 const { collectionImages, ensureSiteConfigLoaded } = useSiteConfig()
 
@@ -24,21 +24,12 @@ const tileBgs = [
   'linear-gradient(150deg,#f0e9dc,#d3c5ab)',
 ]
 
-const fallbackImages: Record<string, string> = {
-  rings: '/ring-1.jpg',
-  earrings: '/earring-1.jpg',
-  pendants: '/pendant-1.jpg',
-  bracelets: '/bracelet-1.jpg',
-  necklaces: '/necklace-1.jpg',
-  mangalsutras: '/raaga-mangalsutra-1.png',
-}
-
 // The configured image for a collection (if any). Rendered via an <img> element
 // rather than a CSS background-image: iOS/mobile Safari silently refuses to
 // paint background-images whose decoded area exceeds a memory threshold (large
 // uploaded photos easily hit it), leaving only the gradient on mobile while
 // desktop renders fine. <img> decodes progressively and has no such limit.
-const collectionImage = (slug: string) => collectionImages.value[slug] || fallbackImages[slug] || ''
+const collectionImage = (item: (typeof collections)[number]) => collectionImages.value[item.slug] || item.fallbackImage
 </script>
 
 <template>
@@ -58,21 +49,21 @@ const collectionImage = (slug: string) => collectionImages.value[slug] || fallba
       </RouterLink>
     </header>
 
-    <div class="ect-grid ect-grid-cols-3 lg:ect-grid-cols-6 ect-gap-3 sm:ect-gap-4">
+    <div class="ect-grid ect-grid-cols-3 lg:ect-grid-cols-6 ect-gap-x-3 sm:ect-gap-x-4 ect-gap-y-6 sm:ect-gap-y-8">
       <!-- Keep image and label aligned when a category name wraps. -->
       <RouterLink
         v-for="(item, index) in collections"
         :key="item.slug"
         class="category-link ect-group ect-flex ect-flex-col ect-text-center"
-        :to="`/collections/${item.slug}`"
+        :to="item.to"
       >
         <span
           class="category-image ect-relative ect-block ect-w-full ect-shrink-0 ect-aspect-[4/5] ect-overflow-hidden ect-mb-3 ect-ring-1 ect-ring-inset ect-ring-sand group-hover:ect-ring-gold-300 ect-transition-all"
           :style="{ background: tileBgs[index % tileBgs.length] }"
         >
           <img
-            v-if="collectionImage(item.slug)"
-            :src="collectionImage(item.slug)"
+            v-if="collectionImage(item)"
+            :src="collectionImage(item)"
             alt=""
             loading="lazy"
             decoding="async"

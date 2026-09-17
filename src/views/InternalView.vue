@@ -20,7 +20,7 @@ import {
   type VideoCallBooking,
   type VideoCallStatus,
 } from '../composables/useVideoCallBookings'
-import { COLLECTION_LINKS } from '../data/collections'
+import { HOMEPAGE_COLLECTION_LINKS } from '../data/collections'
 import { CATEGORIES } from '../data/products'
 
 
@@ -117,8 +117,8 @@ const logoMessage = ref('')
 
 // --- Shop by Collection tile images ---
 // The fixed collections rendered on the homepage grid. The admin can attach an
-// image to each; slugs left blank keep the bundled gradient placeholder.
-const collectionLinks = COLLECTION_LINKS
+// image to each; slugs left blank keep their bundled fallback image.
+const collectionLinks = HOMEPAGE_COLLECTION_LINKS
 const collectionImages = ref<Record<string, string>>({})
 const collectionImagesSaving = ref(false)
 const collectionImagesUploading = ref(false)
