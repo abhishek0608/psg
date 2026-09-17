@@ -7,7 +7,8 @@ export interface HomepageSlide {
   mobileImageUrl?: string
   imagePosition?: string
   imageFit?: 'cover' | 'contain'
-  frameAspectRatio?: string
+  // Zero-based panel within a three-column campaign artwork.
+  panelIndex?: number
   // Legacy video fields are retained for compatibility; the hero uses images.
   videoUrl?: string
   mobileVideoUrl?: string
