@@ -28,7 +28,7 @@ const router = createRouter({
     { path: '/order-confirmation', name: 'order-confirmation', component: () => import('../views/OrderConfirmationView.vue'), meta: { title: 'Order Confirmation', noindex: true } },
     { path: '/about', name: 'about', component: () => import('../views/AboutView.vue'), meta: { title: 'About Us', description: 'Jewelet trust promise for certified jewellery, lifetime exchange, free shipping and assisted buying.' } },
     { path: '/video-consultation', name: 'video-consultation', component: () => import('../views/VideoConsultationView.vue'), meta: { title: 'Book a Video Consultation', description: 'Book a private online appointment with a Jewelet jewellery expert.' } },
-    { path: '/contact', redirect: '/about' },
+    { path: '/contact', name: 'contact', component: () => import('../views/ContactView.vue'), meta: { title: 'Customer Support', description: 'Reach the Jewelet support team by phone, email or message — order help, sizing, repairs and returns.' } },
     { path: '/careers', name: 'careers', component: () => import('../views/CareersView.vue'), meta: { title: 'Careers', noindex: true } },
     { path: '/search', name: 'search', component: () => import('../views/SearchView.vue'), meta: { title: 'Search', noindex: true } },
     { path: '/chat', redirect: '/' },

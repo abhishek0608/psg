@@ -229,11 +229,19 @@ function toggleNotifications() {
               v-model="query"
               type="text"
               placeholder="Search for jewellery…"
-              class="ect-w-44 focus:ect-w-64 ect-px-2.5 ect-py-2 ect-bg-transparent ect-font-body ect-text-xs ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all ect-duration-300"
+              class="ect-w-56 focus:ect-w-72 xl:ect-w-72 xl:focus:ect-w-96 ect-px-2.5 ect-py-2 ect-bg-transparent ect-font-body ect-text-xs ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all ect-duration-300"
               @focus="searchFocused = true"
               @blur="searchFocused = false"
             />
           </form>
+
+          <!-- Customer support -->
+          <RouterLink v-if="!isInternalPath" to="/contact" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Customer support">
+            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0115 0m-15 0v4.5a1.5 1.5 0 001.5 1.5h.75a.75.75 0 00.75-.75v-4.5a.75.75 0 00-.75-.75H4.5zm15 0v4.5a3 3 0 01-3 3h-3m6-7.5h-2.25a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h.75a1.5 1.5 0 001.5-1.5" />
+            </svg>
+            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Support</span>
+          </RouterLink>
 
           <!-- Video call -->
           <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Video consultation">
@@ -397,6 +405,11 @@ function toggleNotifications() {
           <RouterLink v-if="!isInternalPath" to="/search" class="ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Search">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+            </svg>
+          </RouterLink>
+          <RouterLink v-if="!isInternalPath" to="/contact" class="ect-hidden min-[360px]:ect-block ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Customer support">
+            <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0115 0m-15 0v4.5a1.5 1.5 0 001.5 1.5h.75a.75.75 0 00.75-.75v-4.5a.75.75 0 00-.75-.75H4.5zm15 0v4.5a3 3 0 01-3 3h-3m6-7.5h-2.25a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h.75a1.5 1.5 0 001.5-1.5" />
             </svg>
           </RouterLink>
           <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Video consultation">
@@ -783,6 +796,14 @@ function toggleNotifications() {
                 <span v-if="videoCallCount > 0" class="ect-min-w-[20px] ect-h-5 ect-px-1.5 ect-rounded-full ect-bg-rose-500 ect-text-white ect-font-body ect-text-xs ect-font-bold ect-flex ect-items-center ect-justify-center">{{ videoCallCount }}</span>
                 <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
               </span>
+            </RouterLink>
+            <RouterLink
+              to="/contact"
+              @click="mobileNavOpen = false"
+              class="ect-flex ect-items-center ect-justify-between ect-py-4 ect-border-b ect-border-charcoal/[0.08] ect-font-body ect-text-ui-lg ect-text-charcoal hover:ect-text-gold-700 ect-transition-colors"
+            >
+              <span>Customer Support</span>
+              <svg class="ect-w-4 ect-h-4 ect-text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </RouterLink>
             <RouterLink
               to="/about"
