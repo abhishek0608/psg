@@ -217,7 +217,7 @@ onUnmounted(() => {
         <img src="/showcase/necklace-ruby-cascade.webp" alt="A ruby and diamond necklace in 18k gold" fetchpriority="high" />
       </div>
 
-      <!-- Numbered slide indicator + arrows -->
+      <!-- Numbered slide indicator + autoplay control -->
       <div v-if="!showSkeleton && activeSlides.length > 1" class="campaign-controls">
         <div class="ect-flex ect-items-center ect-gap-4">
           <button
@@ -242,26 +242,6 @@ onUnmounted(() => {
             :aria-pressed="paused"
             @click="paused = !paused"
           >{{ paused ? 'Play' : 'Pause' }}</button>
-          <button
-            type="button"
-            aria-label="Show previous slide"
-            class="campaign-arrow"
-            @click="showPreviousSlide"
-          >
-            <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            aria-label="Show next slide"
-            class="campaign-arrow"
-            @click="showNextSlide"
-          >
-            <svg class="ect-h-4 ect-w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>
@@ -312,14 +292,6 @@ onUnmounted(() => {
   max-width: 80rem; margin: 0 auto; padding: 0 20px;
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
-.campaign-arrow {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 40px; height: 40px; border-radius: 999px;
-  color: #faf7f2; border: 1px solid rgba(250,247,242,.35);
-  transition: background-color .2s ease, border-color .2s ease;
-}
-.campaign-arrow:hover { background: rgba(250,247,242,.14); border-color: rgba(250,247,242,.7); }
-
 @media (prefers-reduced-motion: reduce) { .campaign-slide { transition: none; } }
 
 .campaign-fallback-title { font-family: "Playfair Display", Georgia, serif; font-size: 28px; color: #faf7f2; margin-bottom: 12px; }
