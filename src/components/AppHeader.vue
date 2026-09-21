@@ -17,12 +17,12 @@ const router = useRouter()
 const route = useRoute()
 const { collectionImages, ensureSiteConfigLoaded, logoSrc, flatOffer } = useSiteConfig()
 const brandName = 'Jewelet'
-// The header chrome is midnight navy, so the bundled logo (navy medallion,
+// The header chrome is midnight navy, so the bundled logo (navy leaf mark,
 // navy wordmark) would disappear into it. Swap in the ivory variant — but only
 // while the bundled logo is in use, since an uploaded logo is the client's own
 // artwork and we have no light version of it.
 const headerLogoSrc = computed(() =>
-  logoSrc.value === DEFAULT_LOGO_SRC ? '/jewelet-logo-light.svg' : logoSrc.value,
+  logoSrc.value === DEFAULT_LOGO_SRC ? '/jewelet-logo-light.png' : logoSrc.value,
 )
 // Promo strip copy. Only advertises a discount when one is actually configured
 // and applied at checkout; otherwise it states the service promises, which are
@@ -246,7 +246,7 @@ function toggleNotifications() {
             :to="isInternalPath ? { path: '/internal', query: { tab: 'orders' } } : '/'"
             class="ect-flex ect-items-center ect-gap-2.5 ect-shrink-0"
           >
-            <img :src="headerLogoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-11 ect-w-auto ect-max-w-[80px] min-[360px]:ect-max-w-[104px] sm:ect-max-w-[140px] lg:ect-max-w-[200px] ect-object-contain" />
+            <img :src="headerLogoSrc" :alt="`${brandName} logo`" class="ect-h-12 lg:ect-h-[60px] ect-w-auto ect-max-w-[80px] min-[360px]:ect-max-w-[104px] sm:ect-max-w-[140px] lg:ect-max-w-[200px] ect-object-contain" />
           </RouterLink>
         </section>
 
