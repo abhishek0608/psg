@@ -211,28 +211,12 @@ function toggleNotifications() {
             Support
           </RouterLink>
 
-          <RouterLink to="/video-consultation" class="ect-relative ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
-            <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-            </svg>
-            Video
-            <span v-if="videoCallCount > 0" class="ect-ml-0.5 ect-min-w-[16px] ect-h-4 ect-bg-gold-400 ect-text-navy-900 ect-rounded-full ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ videoCallCount }}</span>
-          </RouterLink>
-
           <RouterLink to="/recently-viewed" class="ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
             <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-9-9 8.96 8.96 0 016.36 2.64M18 3v4h-4" />
             </svg>
             Recently viewed
             <span v-if="recentlyViewedCount > 0" class="ect-ml-0.5 ect-min-w-[16px] ect-h-4 ect-bg-gold-400 ect-text-navy-900 ect-rounded-full ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ recentlyViewedCount }}</span>
-          </RouterLink>
-
-          <RouterLink to="/wishlist" class="ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
-            <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-rose-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-            </svg>
-            Wishlist
-            <span v-if="wishlistCount > 0" class="ect-ml-0.5 ect-min-w-[16px] ect-h-4 ect-bg-rose-400 ect-text-navy-900 ect-rounded-full ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
           </RouterLink>
 
           <!-- Signed-in users get the avatar menu on the logo row instead; it
@@ -313,10 +297,20 @@ function toggleNotifications() {
           </button>
         </form>
 
-        <!-- Desktop right actions: cart (plus the avatar menu when signed in).
-             Support, video, wishlist and recently-viewed live in the utility
-             bar above, so this row stays as uncluttered as the campaign art. -->
+        <!-- Desktop main navigation actions. -->
         <section class="ect-hidden lg:ect-flex ect-items-center ect-gap-5 ect-shrink-0">
+          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-p-1.5 ect-text-cream/70 hover:ect-text-gold-300 ect-transition-colors" aria-label="Video consultation" title="Video consultation">
+            <svg aria-hidden="true" class="ect-w-[21px] ect-h-[21px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            <span v-if="videoCallCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ videoCallCount }}</span>
+          </RouterLink>
+          <RouterLink v-if="!isInternalPath" to="/wishlist" class="ect-relative ect-p-1.5 ect-text-cream/70 hover:ect-text-rose-300 ect-transition-colors" aria-label="Wishlist" title="Wishlist">
+            <svg aria-hidden="true" class="ect-w-[21px] ect-h-[21px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            </svg>
+            <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
+          </RouterLink>
           <!-- Cart -->
           <RouterLink v-if="!isInternalPath" to="/cart" class="ect-group ect-flex ect-items-center ect-gap-2 ect-font-body ect-text-ui ect-text-cream/85 hover:ect-text-white ect-transition-colors" aria-label="Cart">
             <svg class="ect-w-[21px] ect-h-[21px] ect-text-cream/70 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -553,14 +547,6 @@ function toggleNotifications() {
             @click="activeDropdown = null"
           >
             {{ item.title }}
-          </RouterLink>
-        </li>
-        <li @mouseenter="activeDropdown = null">
-          <RouterLink
-            to="/video-consultation"
-            class="ect-flex ect-items-center ect-h-12 ect-px-3 xl:ect-px-5 ect-whitespace-nowrap ect-font-body ect-text-ui xl:ect-text-ui-lg ect-text-cream/85 hover:ect-text-white ect-transition-colors"
-          >
-            Video Consultation
           </RouterLink>
         </li>
         <li @mouseenter="activeDropdown = null">

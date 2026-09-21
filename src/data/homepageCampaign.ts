@@ -6,14 +6,14 @@ import type { HomepageSlide } from '../composables/useHomepageSlides'
 // counter are painted into the image, so nothing is overlaid on top of it and
 // the whole banner is the link.
 //
-// The artwork is 4.4:1, which is an unreadable sliver on a phone and crops to
+// The desktop artwork is approximately 2.7:1, which is too wide on a phone and crops to
 // nothing useful, so mobile gets an `editorial` slide instead — same campaign
 // copy, set live over the navy ground, with one product shot above it.
 export const defaultHomepageSlides: HomepageSlide[] = [
   {
     id: 'fine-jewellery-edit-desktop',
     device: 'desktop',
-    imageUrl: '/homepage/fine-jewellery-edit-banner.jpg',
+    imageUrl: '/homepage/fine-jewellery-edit-tall-v2.webp',
     headline: 'The fine jewellery edit — moments made brighter',
     ctaHref: '/collections',
     sortOrder: 0,

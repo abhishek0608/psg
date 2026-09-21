@@ -34,32 +34,20 @@ interface HomepageCollectionLink {
   image: string
 }
 
-const collectionTileImages: Record<string, string> = {
-  rings: '/showcase/ring-ruby-bloom.webp',
-  earrings: '/showcase/earrings-butterfly-studs.webp',
-  pendants: '/showcase/pendant-emerald-clover.webp',
-  bracelets: '/showcase/bracelet-emerald-tennis.webp',
-  necklaces: '/showcase/necklace-ruby-cascade.webp',
-  mangalsutras: '/showcase/mangalsutra-emerald.webp',
-}
-
-// The homepage "Shop by category" row. Style tiles use existing catalogue
-// filters and keep the main navigation compact. Slugs are shared with the
-// internal image editor, whose uploads still drive the mega menu and the
-// mobile drawer — the homepage row uses the curated artwork below.
+// Curated campaign photography. Audience and gifting entries use catalogue
+// search until dedicated filters exist.
 export const HOMEPAGE_COLLECTION_LINKS: HomepageCollectionLink[] = [
-  ...COLLECTION_LINKS.map(({ slug, title }) => ({
-    slug,
-    title,
-    to: `/collections/${slug}`,
-    image: collectionTileImages[slug] || '',
-  })),
-  { slug: 'solitaire-rings', title: 'Solitaire Rings', to: { path: '/collections/rings', query: { type: 'solitaire' } }, image: '/celeste-solitaire-ring-1.webp' },
-  { slug: 'open-rings', title: 'Open Rings', to: { path: '/collections/rings', query: { type: 'open-ring' } }, image: '/verde-duet-ring-1.png' },
-  { slug: 'drop-earrings', title: 'Drop Earrings', to: { path: '/collections/earrings', query: { type: 'drop' } }, image: '/showcase/earrings-sapphire-drops.webp' },
-  { slug: 'emerald-jewellery', title: 'Emerald Jewellery', to: { path: '/collections', query: { stone: 'emerald' } }, image: '/showcase/ring-emerald-cocktail.webp' },
-  { slug: 'chain-bracelets', title: 'Chain Bracelets', to: { path: '/collections/bracelets', query: { type: 'chain-bracelet' } }, image: '/indra-link-bracelet-1.jpg' },
-  { slug: 'diamond-jewellery', title: 'Diamond Jewellery', to: { path: '/collections', query: { stone: 'diamond' } }, image: '/editorial-everyday-diamonds.webp' },
+  { slug: 'rings', title: 'Rings', to: '/collections/rings', image: '/categories/rings.webp' },
+  { slug: 'earrings', title: 'Earrings', to: '/collections/earrings', image: '/categories/earrings.webp' },
+  { slug: 'necklaces', title: 'Necklaces', to: '/collections/necklaces', image: '/categories/necklaces.webp' },
+  { slug: 'pendants', title: 'Pendants', to: '/collections/pendants', image: '/categories/pendants.webp' },
+  { slug: 'bracelets', title: 'Bracelets', to: '/collections/bracelets', image: '/categories/bracelets.webp' },
+  { slug: 'mangalsutras', title: 'Mangalsutra', to: '/collections/mangalsutras', image: '/categories/mangalsutra.webp' },
+  { slug: 'solitaire-rings', title: 'Solitaire', to: { path: '/collections/rings', query: { type: 'solitaire' } }, image: '/celeste-solitaire-ring-1.webp' },
+  { slug: 'men', title: 'Men', to: { path: '/search', query: { q: 'men' } }, image: '/categories/men.webp' },
+  { slug: 'kids', title: 'Kids', to: { path: '/search', query: { q: 'kids' } }, image: '/categories/kids.webp' },
+  { slug: 'gifts', title: 'Gifts', to: { path: '/search', query: { q: 'gift' } }, image: '/categories/gifts.webp' },
+  { slug: 'collections', title: 'Collections', to: '/collections', image: '/categories/collections.webp' },
 ]
 
 export function findCollectionBySlug(slug: string): CollectionLink | null {

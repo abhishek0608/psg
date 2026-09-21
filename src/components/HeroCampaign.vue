@@ -47,8 +47,7 @@ const activeSlides = computed(() => {
 const currentSlide = computed(() => activeSlides.value[activeSlideIndex.value] || null)
 const showSkeleton = computed(() => !loaded.value)
 // Campaign artwork carries its own headline, CTA and counter, so the frame
-// takes the image's proportions instead of a fixed height that would crop
-// them. Editorial slides keep the fixed height — their copy sets the height.
+// takes the image's natural proportions to retain the headline, CTA and box.
 const artworkOnly = computed(
   () => activeSlides.value.length > 0 && activeSlides.value.every((slide) => slide.layout !== 'editorial'),
 )
@@ -173,7 +172,7 @@ onUnmounted(() => {
               :src="resolveImageUrl(slide)"
               :alt="slide.headline || 'Homepage jewellery campaign'"
               :style="{
-                objectPosition: isMobile && slide.panelIndex !== undefined ? 'center bottom' : slide.imagePosition || 'center',
+                '--artwork-position': isMobile && slide.panelIndex !== undefined ? 'center bottom' : slide.imagePosition || 'center',
                 objectFit: slide.imageFit || 'cover',
                 width: isMobile && slide.panelIndex !== undefined ? '300%' : undefined,
                 maxWidth: isMobile && slide.panelIndex !== undefined ? 'none' : undefined,
@@ -181,7 +180,7 @@ onUnmounted(() => {
               }"
               :fetchpriority="index === 0 ? 'high' : 'auto'"
               decoding="async"
-              class="ect-h-full ect-w-full ect-object-cover"
+              class="campaign-artwork-image ect-h-full ect-w-full ect-object-cover"
               @error="failedImages.add(resolveImageUrl(slide))"
             />
             <a
@@ -274,10 +273,13 @@ onUnmounted(() => {
    the frame is as tall as its tallest slide and still cross-fades. Absolute
    slides collapsed the frame to nothing wherever no fixed height was set. */
 .campaign-frame { position: relative; display: grid; min-height: 520px; }
-/* Artwork campaigns are sized by the image itself, so the baked-in headline,
-   CTA and counter are never cropped by a frame height we picked. */
+/* Artwork retains its native proportions, including the taller desktop asset. */
 .campaign-frame.is-artwork { min-height: 0; }
 .campaign-frame.is-artwork .campaign-slide img { height: auto; }
+.campaign-artwork-image { object-position: var(--artwork-position, center); }
+@media (min-width: 1024px) {
+  .campaign-frame { min-height: 624px; }
+}
 .campaign-skeleton { grid-area: 1 / 1; min-height: 320px; }
 .campaign-glow {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
