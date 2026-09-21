@@ -134,6 +134,16 @@ function editSelectedDetails() {
   isEditingDetails.value = true
 }
 
+/**
+ * The phone hint and postal format follow the country, so a value typed under
+ * the previous country's format is dropped when the shopper picks another one.
+ * Only fires on user interaction; loading a saved address leaves fields intact.
+ */
+function onCountryChange() {
+  form.value.phone = ''
+  form.value.pincode = ''
+}
+
 function restoreSelectedAddress() {
   const a = selectedAddress.value
   if (a) applySavedAddress(a)
@@ -682,6 +692,13 @@ const inputClass = 'ect-w-full ect-px-4 ect-py-3 ect-bg-white ect-border ect-bor
               <h2 class="ect-font-body ect-text-sm ect-font-semibold ect-uppercase ect-tracking-label ect-text-charcoal/70">Contact Details</h2>
             </header>
             <section class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 ect-gap-4">
+              <!-- Country leads: the phone hint and address labels below depend on it -->
+              <label class="ect-block sm:ect-col-span-2">
+                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Shipping to *</span>
+                <select v-model="form.country" required autocomplete="country" :class="inputClass" @change="onCountryChange">
+                  <option v-for="c in COUNTRY_OPTIONS" :key="c.code" :value="c.code">{{ c.name }}</option>
+                </select>
+              </label>
               <label class="ect-block">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Full Name *</span>
                 <input v-model="form.name" type="text" required placeholder="Priya Sharma" :class="inputClass" />
@@ -719,12 +736,6 @@ const inputClass = 'ect-w-full ect-px-4 ect-py-3 ect-bg-white ect-border ect-bor
               <label class="ect-block">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">{{ addressFields.stateLabel }} *</span>
                 <input v-model="form.state" type="text" required autocomplete="address-level1" :placeholder="addressFields.statePlaceholder" :class="inputClass" />
-              </label>
-              <label class="ect-block">
-                <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">Country *</span>
-                <select v-model="form.country" required autocomplete="country" :class="inputClass">
-                  <option v-for="c in COUNTRY_OPTIONS" :key="c.code" :value="c.code">{{ c.name }}</option>
-                </select>
               </label>
               <label class="ect-block">
                 <span class="ect-font-body ect-text-xs ect-font-medium ect-text-charcoal/60 ect-mb-1.5 ect-block">{{ addressFields.postalLabel }} *</span>
