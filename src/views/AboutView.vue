@@ -11,47 +11,56 @@ const email = ref('')
 const message = ref('')
 const submitted = ref(false)
 
-const values = [
-  { title: 'Craftsmanship', desc: 'Careful setting and finishing on every piece, checked by hand before it ships.' },
-  { title: 'Design', desc: 'Contemporary pieces meant to be worn often, not kept for occasions.' },
-  { title: 'Service', desc: 'Help with sizing, stones and budgets, by phone, email or video call.' },
+const story = [
+  'At Jewelet, we believe that every gemstone is more than just a stone – it is a story of nature, energy, and timeless beauty. Since our founding on July 22, 2009, we have grown from a passionate vision into a trusted global supplier of precious and semi-precious gemstones.',
+  'Over the years, we have mastered the art of sourcing rare and natural gemstones, crafting fresh precision cuts, and delivering exceptional customer service. What began as a small passion has now transformed into Jewelet Global Co., Ltd., a company with over 17 years of proven excellence in gemstone supply.',
+  'Today, we proudly serve jewelers, collectors, and enthusiasts worldwide with sustainably sourced, professionally sorted, and meticulously graded gemstones. From Bangkok, India, Hong Kong, USA, and Germany, our reach is truly international – yet our values remain rooted in authenticity, trust, and quality.',
 ]
 
-// Defaults until photos and copy are set from Internal → About page.
-const defaultJourney = [
+const founder = [
+  'Jewelet was established July 22, 2009, by Mr. Pawan Mishra, a former field worker whose passion and interest drove him to create the company.',
+  'He found it intriguing that gemstones carry certain vibrations and channel good energy that can change the mental and physical outlook of the wearer.',
+  'Driven by compassion, he got the motivation to start a company that caters to the need of people looking for healing and metaphysical properties of the gems.',
+  'Today, Jewelet Global has a proven record of over 12 years of a consistent supply of sustainably sourced, professionally sorted, and graded gemstones.',
+]
+
+const testimonials = [
   {
-    year: '',
-    place: 'Bangkok',
-    title: 'Where we started',
-    desc: 'Jewelet was started in Bangkok, a city with a long jewellery trade. We design there and work with workshops we know well.',
-    imageUrl: '/pendant-1.jpg',
+    title: 'Recommend it to everyone',
+    quote: 'I have never been disappointed, either for myself or as gifts, the pieces are lovely, reasonably priced, and I love the personal touches.',
+    name: 'Linda Maria',
+    role: 'Designer',
   },
   {
-    year: '',
-    place: 'How we make things',
-    title: 'Stone, setting, finish',
-    desc: 'Each design is worked out around the stone first, then the setting, then how it sits on the hand or neck. Nothing is added that does not need to be there.',
-    imageUrl: '/earring-1.jpg',
+    title: 'Perfect service',
+    quote: 'A great company to buy from. Excellent quality products at good value. Delivery is efficient and quick.',
+    name: 'Ann Smith',
+    role: 'CEO & Founder',
   },
   {
-    year: '',
-    place: 'Buying from us',
-    title: 'Straightforward pricing',
-    desc: 'Metal rate, making charges and taxes are listed on every product page. Gold is BIS hallmarked and stones are certified.',
-    imageUrl: '/necklace-1.jpg',
+    title: 'Makes me happy',
+    quote: '5-star rating 100%. So amazing and helpful. Stress-free and fun. Eileen was amazing. So wonderful.',
+    name: 'Anana',
+    role: 'Photographer',
+  },
+  {
+    title: 'I love Jewelet',
+    quote: 'I look forward to future transactions with your company and will gladly recommend your services to others.',
+    name: 'Linda',
+    role: 'Designer',
   },
 ]
 
-const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'About Jewelet')
-const heroHeadline = computed(() => aboutContent.value.heroHeadline || 'Gold and diamond jewellery, made to be worn')
+const heroEyebrow = computed(() => aboutContent.value.heroEyebrow || 'About Us')
+const heroHeadline = computed(() => aboutContent.value.heroHeadline || 'Jewelet Global Gems')
 const heroSubheadline = computed(
-  () => aboutContent.value.heroSubheadline || 'Designed in Bangkok. Certified, priced openly, and shipped across India.',
+  () =>
+    aboutContent.value.heroSubheadline ||
+    'Every gemstone is more than just a stone – it is a story of nature, energy, and timeless beauty.',
 )
 
-const journey = computed(() => {
-  const configured = aboutContent.value.journey.filter((step) => step.active)
-  return configured.length ? configured : defaultJourney
-})
+// Journey steps only render once configured from Internal → About page.
+const journey = computed(() => aboutContent.value.journey.filter((step) => step.active))
 
 const team = computed(() => aboutContent.value.team.filter((member) => member.active))
 
@@ -110,14 +119,51 @@ onMounted(() => {
     <!-- About -->
     <template v-if="activeTab === 'about'">
       <section class="ect-max-w-3xl ect-mx-auto ect-px-6 ect-py-16 sm:ect-py-20">
-        <p class="ect-font-body ect-text-lg sm:ect-text-xl ect-leading-relaxed ect-text-charcoal">
-          Jewelet is a small jewellery business. We design gold and diamond pieces for everyday wear and for occasions,
-          sell them online, and talk to customers directly when they want help choosing. Prices are broken down on every
-          product page, gold is BIS hallmarked, and stones come with certificates.
+        <p
+          v-for="(paragraph, i) in story"
+          :key="`story-${i}`"
+          class="ect-font-body ect-leading-relaxed ect-text-charcoal"
+          :class="i === 0 ? 'ect-text-lg sm:ect-text-xl' : 'ect-text-base ect-text-charcoal/75 ect-mt-6'"
+        >
+          {{ paragraph }}
         </p>
       </section>
 
-      <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-8">
+      <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-16 sm:ect-pb-20">
+        <div class="ect-border-t ect-border-sand ect-pt-10 ect-grid ect-grid-cols-1 lg:ect-grid-cols-[minmax(0,320px)_1fr] ect-gap-10 lg:ect-gap-16 ect-items-start">
+          <figure class="ect-m-0 ect-max-w-[320px]">
+            <img
+              src="/about/pawan-mishra-portrait.webp"
+              alt="Pawan Mishra, founder of Jewelet"
+              width="240"
+              height="334"
+              class="ect-w-full ect-h-auto ect-block ect-bg-[#f3ece0]"
+              loading="lazy"
+            />
+            <figcaption class="ect-mt-3 ect-font-body ect-text-sm">
+              <span class="ect-block ect-text-charcoal ect-font-medium">Pawan Mishra</span>
+              <span class="ect-block ect-text-charcoal/55">CEO &amp; Founder, Jewelet</span>
+            </figcaption>
+          </figure>
+          <div>
+            <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-charcoal ect-mb-6">Our Founder</h2>
+            <p
+              v-for="(paragraph, i) in founder"
+              :key="`founder-${i}`"
+              class="ect-font-body ect-text-base ect-text-charcoal/75 ect-leading-relaxed"
+              :class="i > 0 ? 'ect-mt-4' : ''"
+            >
+              {{ paragraph }}
+            </p>
+            <blockquote class="ect-mt-8 ect-pl-5 ect-border-l-2 ect-border-[#cdbfa6] ect-m-0 ect-font-display ect-text-lg sm:ect-text-xl ect-italic ect-text-charcoal ect-leading-relaxed">
+              “Within each stone lies a unique energy, a story waiting to be told. As we journey through life, may we
+              harness the vibrance of these gems to illuminate our path and inspire our souls.”
+            </blockquote>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="journey.length" class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-8">
         <article
           v-for="(step, i) in journey"
           :key="`${step.title}-${i}`"
@@ -151,10 +197,15 @@ onMounted(() => {
       </section>
 
       <section class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-pb-20 sm:ect-pb-24">
-        <ul class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-3 ect-gap-8 ect-list-none ect-m-0 ect-p-0 ect-border-t ect-border-sand ect-pt-8">
-          <li v-for="v in values" :key="v.title">
-            <h3 class="ect-font-body ect-text-base ect-font-medium ect-text-charcoal ect-mb-2">{{ v.title }}</h3>
-            <p class="ect-font-body ect-text-sm ect-text-charcoal/65 ect-leading-relaxed">{{ v.desc }}</p>
+        <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-charcoal ect-mb-8 ect-border-t ect-border-sand ect-pt-10">What our customers say</h2>
+        <ul class="ect-grid ect-grid-cols-1 sm:ect-grid-cols-2 lg:ect-grid-cols-4 ect-gap-6 ect-list-none ect-m-0 ect-p-0">
+          <li v-for="t in testimonials" :key="t.name + t.title" class="ect-bg-white ect-border ect-border-sand ect-rounded-lg ect-p-6 ect-flex ect-flex-col">
+            <h3 class="ect-font-body ect-text-base ect-font-medium ect-text-charcoal ect-mb-3">{{ t.title }}</h3>
+            <blockquote class="ect-m-0 ect-font-body ect-text-sm ect-text-charcoal/70 ect-leading-relaxed ect-flex-1">“{{ t.quote }}”</blockquote>
+            <footer class="ect-mt-5 ect-font-body ect-text-sm">
+              <span class="ect-text-charcoal ect-font-medium">{{ t.name }}</span>
+              <span class="ect-text-charcoal/50"> · {{ t.role }}</span>
+            </footer>
           </li>
         </ul>
         <p class="ect-mt-10 ect-font-body ect-text-sm">
