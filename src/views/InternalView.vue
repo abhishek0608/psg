@@ -3,7 +3,6 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import InternalWorkspaceTabs from '../components/InternalWorkspaceTabs.vue'
 import InternalNewOrderModal from '../components/InternalNewOrderModal.vue'
-import InternalNewQuoteModal from '../components/InternalNewQuoteModal.vue'
 import InternalNewUserModal from '../components/InternalNewUserModal.vue'
 import UiSelect from '../components/UiSelect.vue'
 import { API_BASE } from '../config-api'
@@ -13,7 +12,6 @@ import { invalidateProductsCache } from '../composables/useProductsApi'
 import { invalidateSiteConfig, DEFAULT_LOGO_SRC } from '../composables/useSiteConfig'
 import { useInternalWorkspaceTab } from '../composables/useInternalWorkspaceTab'
 import { useOrders } from '../composables/useOrders'
-import { useQuotes } from '../composables/useQuotes'
 import {
   fetchVideoCallBookings,
   updateVideoCallStatus,
@@ -82,7 +80,6 @@ interface HomepageSlideRecord {
 const router = useRouter()
 const { user, isInternalUser, isAdminUser } = useAuth()
 const { orders: localOrders } = useOrders()
-const { quotes } = useQuotes()
 const { activeTabId } = useInternalWorkspaceTab()
 const error = ref('')
 const videoCallBookings = ref<VideoCallBooking[]>([])
@@ -318,7 +315,6 @@ function onUserSearchInput() {
 
 // --- "New …" creation modals, one per tab ---
 const newOrderOpen = ref(false)
-const newQuoteOpen = ref(false)
 const newUserOpen = ref(false)
 
 function onOrderCreated() {
@@ -330,24 +326,6 @@ function onUserCreated() {
   newUserOpen.value = false
   void loadUsers(true)
 }
-
-// Quotes are reactive through useQuotes, so closing the modal is enough.
-function onQuoteCreated() {
-  newQuoteOpen.value = false
-}
-
-// --- Quotes tab: this list lives in this browser's storage, so a simple
-// client-side filter covers everything ---
-const quoteSearch = ref('')
-const filteredQuotes = computed(() => {
-  const q = quoteSearch.value.trim().toLowerCase()
-  if (!q) return quotes.value
-  return quotes.value.filter((quote) =>
-    [quote.id, quote.customerName, quote.customerEmail, quote.status].some((v) =>
-      String(v || '').toLowerCase().includes(q)
-    )
-  )
-})
 
 const filteredVideoCallBookings = computed(() => {
   const query = videoCallSearch.value.trim().toLowerCase()
@@ -1878,69 +1856,6 @@ onBeforeUnmount(() => {
               {{ orderLoadingMore ? 'Loading…' : 'Load more' }}
             </button>
           </div>
-        </div>
-
-        <div v-else-if="activeTabId === 'quotes'" class="ect-overflow-x-auto">
-          <div class="ect-flex ect-flex-wrap ect-items-center ect-gap-2 ect-border-b ect-border-sand ect-bg-cream ect-px-4 ect-py-3">
-            <div class="ect-relative ect-w-full sm:ect-w-72">
-              <svg class="ect-absolute ect-left-3 ect-top-1/2 -ect-translate-y-1/2 ect-w-4 ect-h-4 ect-text-charcoal/35" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
-              <input
-                v-model="quoteSearch"
-                type="search"
-                placeholder="Search quotes…"
-                class="ect-w-full ect-rounded-full ect-border ect-border-charcoal/15 ect-bg-white ect-pl-9 ect-pr-3 ect-py-2 ect-font-body ect-text-sm ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-border-gold-400 focus:ect-outline-none"
-              />
-            </div>
-            <button
-              type="button"
-              class="sm:ect-ml-auto ect-inline-flex ect-items-center ect-justify-center ect-rounded-full ect-bg-charcoal ect-px-4 ect-py-2 ect-font-body ect-text-sm ect-font-semibold ect-text-white hover:ect-bg-noir ect-transition-colors"
-              @click="newQuoteOpen = true"
-            >
-              New quote
-            </button>
-          </div>
-          <InternalNewQuoteModal v-if="newQuoteOpen" @close="newQuoteOpen = false" @created="onQuoteCreated" />
-          <table class="ect-w-full ect-min-w-[860px] ect-border-collapse">
-            <thead class="ect-bg-cream">
-              <tr>
-                <th v-for="h in ['Quote', 'Customer', 'Items', 'Total', 'Status', 'Created']" :key="h" class="ect-px-4 ect-py-3 ect-text-left ect-font-body ect-text-xs ect-uppercase ect-tracking-label ect-text-charcoal/45">{{ h }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="quote in filteredQuotes"
-                :key="quote.id"
-                class="ect-cursor-pointer ect-border-t ect-border-sand hover:ect-bg-cream"
-                tabindex="0"
-                @click="router.push({ name: 'internal-quote', params: { id: quote.id } })"
-                @keydown.enter="router.push({ name: 'internal-quote', params: { id: quote.id } })"
-              >
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-semibold">
-                  <RouterLink :to="{ name: 'internal-quote', params: { id: quote.id } }" class="ect-text-charcoal hover:ect-text-gold-700 hover:ect-underline" @click.stop>{{ quote.id }}</RouterLink>
-                </td>
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/70">
-                  {{ quote.customerName }}
-                  <span class="ect-block ect-text-xs ect-text-charcoal/40">{{ quote.customerEmail }}</span>
-                </td>
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm">{{ quote.itemCount }}</td>
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-font-semibold">{{ quote.formattedTotal }}</td>
-                <td class="ect-px-4 ect-py-3">
-                  <span class="ect-rounded-full ect-px-2.5 ect-py-1 ect-font-body ect-text-xs ect-font-semibold ect-capitalize"
-                    :class="{
- 'ect-bg-amber-100 ect-text-amber-700': quote.status === 'pending',
-                      'ect-bg-blue-100 ect-text-blue-700': quote.status === 'reviewing',
-                      'ect-bg-purple-100 ect-text-purple-700': quote.status === 'quoted',
-                      'ect-bg-emerald-100 ect-text-emerald-700': quote.status === 'accepted',
-                    }"
-                  >{{ quote.status }}</span>
-                </td>
-                <td class="ect-px-4 ect-py-3 ect-font-body ect-text-sm ect-text-charcoal/55">{{ formatDate(quote.createdAt) }}</td>
-              </tr>
-              <tr v-if="!filteredQuotes.length" class="ect-border-t ect-border-sand">
-                <td colspan="6" class="ect-px-4 ect-py-6 ect-font-body ect-text-sm ect-text-charcoal/45">{{ quoteSearch.trim() ? 'No quotes match your search.' : 'No quotes yet.' }}</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
 
         <div v-else-if="activeTabId === 'video-calls'">

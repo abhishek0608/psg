@@ -33,7 +33,6 @@ const router = createRouter({
     { path: '/chat', redirect: '/' },
     { path: '/internal', name: 'internal', component: () => import('../views/InternalView.vue') },
     { path: '/internal/orders/:id', name: 'internal-order', component: () => import('../views/InternalOrderDetailView.vue') },
-    { path: '/internal/quotes/:id', name: 'internal-quote', component: () => import('../views/InternalQuoteDetailView.vue') },
     { path: '/internal/users/:id', name: 'internal-user', component: () => import('../views/InternalUserDetailView.vue') },
     { path: '/internal/products/import', name: 'internal-product-import', component: () => import('../views/InternalProductImportView.vue') },
     { path: '/internal/products/:slug', name: 'internal-product', component: InternalProductDetailView },
