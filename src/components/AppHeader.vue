@@ -189,18 +189,10 @@ function toggleNotifications() {
       </p>
     </section>
 
-    <!-- Desktop utility bar: delivery promise, the live offer, and the
-         secondary account actions that used to crowd the logo row. -->
+    <!-- Desktop utility bar: the live offer and the secondary account
+         actions that used to crowd the logo row. -->
     <section v-if="!isInternalPath" class="ect-hidden lg:ect-block ect-bg-navy-900 ect-text-cream/80">
       <div class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-center ect-justify-between ect-gap-6 ect-h-9">
-        <p class="ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70">
-          <svg class="ect-w-3.5 ect-h-3.5 ect-text-gold-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-          </svg>
-          Free insured delivery across India
-        </p>
-
         <p class="ect-font-body ect-text-micro ect-tracking-label ect-text-gold-200">{{ offerText }}</p>
 
         <nav class="ect-flex ect-items-center ect-gap-5" aria-label="Account and support">
