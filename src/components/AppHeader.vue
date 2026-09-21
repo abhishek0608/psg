@@ -320,10 +320,10 @@ function toggleNotifications() {
               :aria-expanded="notificationOpen"
               @click="toggleNotifications"
             >
-              <svg class="ect-w-[18px] ect-h-[18px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <svg class="ect-w-[21px] ect-h-[21px] ect-text-cream/70 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a3 3 0 11-5.714 0" />
               </svg>
-              <span v-if="notificationCount > 0" class="ect-absolute -ect-top-0.5 -ect-right-0.5 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ notificationCount }}</span>
+              <span v-if="notificationCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ notificationCount }}</span>
             </button>
 
             <Transition
