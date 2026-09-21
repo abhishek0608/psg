@@ -44,7 +44,7 @@ export const HOMEPAGE_COLLECTION_LINKS: HomepageCollectionLink[] = [
   { slug: 'pendants', title: 'Pendants', to: '/collections/pendants', image: '/categories/pendants.webp' },
   { slug: 'bracelets', title: 'Bracelets', to: '/collections/bracelets', image: '/categories/bracelets.webp' },
   { slug: 'mangalsutras', title: 'Mangalsutra', to: '/collections/mangalsutras', image: '/categories/mangalsutra.webp' },
-  { slug: 'solitaire-rings', title: 'Solitaire', to: { path: '/collections/rings', query: { type: 'solitaire' } }, image: '/celeste-solitaire-ring-1.webp' },
+  { slug: 'solitaire-rings', title: 'Solitaire', to: { path: '/collections/rings', query: { type: 'solitaire' } }, image: '/categories/solitaire.webp' },
   { slug: 'men', title: 'Men', to: { path: '/search', query: { q: 'men' } }, image: '/categories/men.webp' },
   { slug: 'kids', title: 'Kids', to: { path: '/search', query: { q: 'kids' } }, image: '/categories/kids.webp' },
   { slug: 'gifts', title: 'Gifts', to: { path: '/search', query: { q: 'gift' } }, image: '/categories/gifts.webp' },
