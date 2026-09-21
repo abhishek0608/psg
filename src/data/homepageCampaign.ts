@@ -13,7 +13,7 @@ export const defaultHomepageSlides: HomepageSlide[] = [
   {
     id: 'fine-jewellery-edit-desktop',
     device: 'desktop',
-    imageUrl: '/homepage/fine-jewellery-edit-tall-v3.webp',
+    imageUrl: '/homepage/fine-jewellery-edit-tall-v4.webp',
     headline: 'The fine jewellery edit — moments made brighter',
     ctaHref: '/collections',
     sortOrder: 0,
