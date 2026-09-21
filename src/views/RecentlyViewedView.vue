@@ -6,7 +6,7 @@ const { items, remove, clear } = useRecentlyViewed()
 </script>
 
 <template>
-  <section class="ect-pt-28 sm:ect-pt-36 ect-pb-24 ect-px-6 ect-bg-cream ect-min-h-screen">
+  <section class="ect-pt-28 sm:ect-pt-36 lg:ect-pt-44 ect-pb-24 ect-px-6 ect-bg-cream ect-min-h-screen">
     <article class="ect-max-w-7xl ect-mx-auto">
       <header class="ect-mb-8 ect-flex ect-flex-wrap ect-items-end ect-justify-between ect-gap-4">
         <div>

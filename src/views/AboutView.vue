@@ -72,7 +72,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="ect-min-h-screen ect-bg-cream ect-pt-28">
+  <main class="ect-min-h-screen ect-bg-cream ect-pt-28 lg:ect-pt-44">
 
     <!-- Page header -->
     <section class="ect-bg-[#1a1613] ect-text-cream ect-px-6 ect-py-16 sm:ect-py-20">

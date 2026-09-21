@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import HeroCampaign from '../components/HeroCampaign.vue'
 import ShopByCollection from '../components/ShopByCollection.vue'
+import ExploreByMaterial from '../components/ExploreByMaterial.vue'
 import FeaturedProducts from '../components/FeaturedProducts.vue'
 import EditorialCollections from '../components/EditorialCollections.vue'
 import ProductShelf from '../components/ProductShelf.vue'
@@ -12,6 +13,7 @@ import AboutSection from '../components/AboutSection.vue'
   <div class="homepage ect-bg-[#faf7f2] ect-pb-16 sm:ect-pb-20">
     <HeroCampaign />
     <ShopByCollection />
+    <ExploreByMaterial />
     <FeaturedProducts />
     <EditorialCollections />
     <ProductShelf title="New arrivals" mode="new" :limit="4" />

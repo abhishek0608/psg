@@ -20,7 +20,7 @@ onMounted(() => {
 
 <template>
   <section
-    class="ect-pt-28 sm:ect-pt-36 ect-pb-28 ect-px-6 ect-bg-cream ect-min-h-screen ect-flex ect-flex-col ect-items-center ect-justify-center ect-text-center"
+    class="ect-pt-28 sm:ect-pt-36 lg:ect-pt-44 ect-pb-28 ect-px-6 ect-bg-cream ect-min-h-screen ect-flex ect-flex-col ect-items-center ect-justify-center ect-text-center"
   >
 
     <h1 class="ect-font-display ect-text-3xl ect-text-charcoal ect-mb-3">Page not found</h1>

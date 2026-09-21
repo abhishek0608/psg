@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const budgets = [
-  { label: 'Under ₹25,000', to: { path: '/collections', query: { priceMax: '25000' } }, image: '/amara-hoop-earrings-1.png' },
-  { label: '₹25,000 – ₹50,000', to: { path: '/collections', query: { priceMin: '25000', priceMax: '50000' } }, image: '/pendant-1.jpg' },
-  { label: '₹50,000 – ₹1,00,000', to: { path: '/collections', query: { priceMin: '50000', priceMax: '100000' } }, image: '/celeste-solitaire-ring-1.webp' },
-  { label: 'Above ₹1,00,000', to: { path: '/collections', query: { priceMin: '100000' } }, image: '/verde-duet-ring-1.png' },
+  { label: 'Under ₹25,000', to: { path: '/collections', query: { priceMax: '25000' } }, image: '/showcase/earrings-butterfly-studs.webp' },
+  { label: '₹25,000 – ₹50,000', to: { path: '/collections', query: { priceMin: '25000', priceMax: '50000' } }, image: '/showcase/pendant-emerald-clover.webp' },
+  { label: '₹50,000 – ₹1,00,000', to: { path: '/collections', query: { priceMin: '50000', priceMax: '100000' } }, image: '/showcase/men-sapphire-signet.webp' },
+  { label: 'Above ₹1,00,000', to: { path: '/collections', query: { priceMin: '100000' } }, image: '/showcase/ring-ruby-bloom.webp' },
 ]
 </script>
 

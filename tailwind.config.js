@@ -132,6 +132,21 @@ export default {
           800: '#2b2723',
           900: '#1a1613',
         },
+        // Midnight navy: the header chrome and the homepage hero ground. The
+        // gold accent above is tuned to sit on `navy-800`/`navy-900`, which is
+        // where the brand's satin-and-gold campaign imagery lives.
+        navy: {
+          50: '#f2f5fa',
+          100: '#dfe6f1',
+          200: '#b9c8de',
+          300: '#8ba2c4',
+          400: '#4f6d9c',
+          500: '#2c4a78',
+          600: '#1f3a61',
+          700: '#1a2f4e',
+          800: '#15263f',
+          900: '#101c2e',
+        },
         // The single action colour. Both CTAs used to disagree — deep green on
         // the listing cards, crimson on the product page — so "add to bag" and
         // "add to cart" looked like different buttons for the same thing.

@@ -8,7 +8,7 @@ const edits = [
   },
   {
     title: 'Emerald jewellery',
-    image: '/editorial-emerald-edit.webp',
+    image: '/showcase/bracelet-emerald-tennis.webp',
     to: { path: '/collections', query: { stone: 'emerald' } },
     className: '',
   },

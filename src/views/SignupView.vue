@@ -27,7 +27,7 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <section class="ect-min-h-screen ect-flex ect-items-center ect-justify-center ect-px-4 ect-pt-24 ect-pb-16 ect-bg-cream">
+  <section class="ect-min-h-screen ect-flex ect-items-center ect-justify-center ect-px-4 ect-pt-24 lg:ect-pt-44 ect-pb-16 ect-bg-cream">
     <article class="ect-w-full ect-max-w-md">
       <div class="ect-bg-white ect-rounded-lg ect-border ect-border-sand">
         <div class="ect-px-8 ect-pt-10 ect-pb-8 sm:ect-px-10 sm:ect-pt-12 sm:ect-pb-10">

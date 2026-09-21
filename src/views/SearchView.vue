@@ -57,7 +57,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="ect-min-h-screen ect-bg-[#faf7f2] ect-pt-32 ect-pb-20 ect-px-5">
+  <main class="ect-min-h-screen ect-bg-[#faf7f2] ect-pt-32 lg:ect-pt-44 ect-pb-20 ect-px-5">
     <section class="ect-max-w-5xl ect-mx-auto">
       <!-- The search field is its own visual title, so the page carried no
            heading at all — leaving anyone navigating by headings with nothing

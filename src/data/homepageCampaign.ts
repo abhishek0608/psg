@@ -1,30 +1,33 @@
 import type { HomepageSlide } from '../composables/useHomepageSlides'
 
-// Clean campaign artwork has no embedded CTA buttons. CSS frames each panel
-// on mobile, so all three slides reuse one cached image.
-const artworkUrl = '/homepage/timeless-gold-clean.png'
-const goldenArtworkUrl = '/homepage/golden-jewellery-clean.png'
+// One slide per device.
+//
+// Desktop runs the campaign artwork as-is: the headline, the CTA and the slide
+// counter are painted into the image, so nothing is overlaid on top of it and
+// the whole banner is the link.
+//
+// The artwork is 4.4:1, which is an unreadable sliver on a phone and crops to
+// nothing useful, so mobile gets an `editorial` slide instead — same campaign
+// copy, set live over the navy ground, with one product shot above it.
 export const defaultHomepageSlides: HomepageSlide[] = [
-  { id: 'psg-campaign-desktop', imageUrl: artworkUrl, device: 'desktop', headline: 'Emerald necklace, diamond ring and bracelet, and gemstone earrings.', ctaHref: '/collections' },
-  ...[
-    { headline: 'Emerald and diamond necklace', imagePosition: 'left center' },
-    { headline: 'Diamond ring and bracelet', imagePosition: 'center' },
-    { headline: 'Colourful gemstone earrings', imagePosition: 'right center' },
-  ].map((panel, index): HomepageSlide => ({
-    id: `psg-campaign-mobile-${index}`, imageUrl: artworkUrl, device: 'mobile',
-    ctaHref: '/collections', panelIndex: index, sortOrder: index, ...panel,
-  })),
-]
-
-// Feature the new campaign before either the editor's slides or the default campaign.
-export const additionalHomepageSlides: HomepageSlide[] = [
-  { id: 'psg-golden-campaign-desktop', imageUrl: goldenArtworkUrl, device: 'desktop', headline: 'Layered gold necklaces, sculptural rings and bracelets, and diamond drop earrings.', imagePosition: 'center bottom', ctaHref: '/collections' },
-  ...[
-    { headline: 'Layered gold and diamond necklaces', imagePosition: 'left center' },
-    { headline: 'Sculptural gold rings and diamond bracelets', imagePosition: 'center' },
-    { headline: 'Gold and diamond drop earrings', imagePosition: 'right center' },
-  ].map((panel, index): HomepageSlide => ({
-    id: `psg-golden-campaign-mobile-${index}`, imageUrl: goldenArtworkUrl, device: 'mobile',
-    ctaHref: '/collections', panelIndex: index, sortOrder: index, ...panel,
-  })),
+  {
+    id: 'fine-jewellery-edit-desktop',
+    device: 'desktop',
+    imageUrl: '/homepage/fine-jewellery-edit-banner.jpg',
+    headline: 'The fine jewellery edit — moments made brighter',
+    ctaHref: '/collections',
+    sortOrder: 0,
+  },
+  {
+    id: 'fine-jewellery-edit-mobile',
+    layout: 'editorial',
+    device: 'mobile',
+    imageUrl: '/showcase/gifting-navy-box.webp',
+    eyebrow: 'The fine jewellery edit',
+    headline: 'Moments Made Brighter',
+    subheadline: 'Hand-set gemstones, certified gold, and a price breakdown on every piece — wrapped and ready to give.',
+    ctaLabel: 'Explore collection',
+    ctaHref: '/collections',
+    sortOrder: 0,
+  },
 ]

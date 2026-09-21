@@ -3,6 +3,13 @@ import { API_BASE } from '../config-api'
 
 export interface HomepageSlide {
   id?: string
+  /**
+   * `artwork` (the default, and what the internal slide editor uploads) paints
+   * the image full-bleed with its own baked-in headline. `editorial` composes
+   * the slide instead: eyebrow/headline/subheadline as live text on the navy
+   * ground, with the photograph beside it.
+   */
+  layout?: 'artwork' | 'editorial'
   imageUrl: string
   mobileImageUrl?: string
   imagePosition?: string
@@ -12,6 +19,8 @@ export interface HomepageSlide {
   // Legacy video fields are retained for compatibility; the hero uses images.
   videoUrl?: string
   mobileVideoUrl?: string
+  /** Small uppercase kicker above the headline on `editorial` slides. */
+  eyebrow?: string
   headline?: string
   subheadline?: string
   ctaLabel?: string

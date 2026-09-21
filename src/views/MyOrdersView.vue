@@ -17,7 +17,7 @@ function paymentLabel(method: string) {
 </script>
 
 <template>
-  <section class="ect-pt-28 ect-pb-24 ect-px-4 sm:ect-px-6 ect-bg-gradient-to-b ect-from-cream ect-via-champagne/40 ect-to-cream ect-min-h-screen">
+  <section class="ect-pt-28 lg:ect-pt-44 ect-pb-24 ect-px-4 sm:ect-px-6 ect-bg-gradient-to-b ect-from-cream ect-via-champagne/40 ect-to-cream ect-min-h-screen">
     <article class="ect-max-w-3xl ect-mx-auto">
       <header class="ect-mb-8">
         <p class="ect-font-body ect-text-micro ect-uppercase ect-tracking-eyebrow ect-text-gold-700 ect-mb-2">Account</p>

@@ -107,7 +107,7 @@ function customizationEntries(item: CartItem) {
 </script>
 
 <template>
-  <section class="ect-pt-28 sm:ect-pt-36 ect-pb-28 ect-px-4 sm:ect-px-6 ect-bg-cream ect-min-h-screen">
+  <section class="ect-pt-28 sm:ect-pt-36 lg:ect-pt-44 ect-pb-28 ect-px-4 sm:ect-px-6 ect-bg-cream ect-min-h-screen">
     <article class="ect-max-w-6xl ect-mx-auto">
 
       <!-- Page heading -->

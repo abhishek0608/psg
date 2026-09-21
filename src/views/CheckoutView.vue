@@ -552,7 +552,7 @@ const inputClass = 'ect-w-full ect-px-4 ect-py-3 ect-bg-white ect-border ect-bor
 </script>
 
 <template>
-  <section class="ect-min-h-screen ect-bg-cream ect-pt-28 sm:ect-pt-36 ect-pb-28 ect-px-4 sm:ect-px-6">
+  <section class="ect-min-h-screen ect-bg-cream ect-pt-28 sm:ect-pt-36 lg:ect-pt-44 ect-pb-28 ect-px-4 sm:ect-px-6">
 
     <!-- Empty cart state -->
     <article v-if="!items.length" class="ect-max-w-lg ect-mx-auto ect-text-center ect-py-28">

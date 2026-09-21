@@ -11,12 +11,30 @@ import { useVideoCallList } from '../composables/useVideoCallList'
 import { useOrders } from '../composables/useOrders'
 import { COLLECTION_LINKS, type CollectionLink } from '../data/collections'
 import { MEGA_MENUS, MEGA_PRICE_RANGES } from '../data/megaMenu'
-import { useSiteConfig } from '../composables/useSiteConfig'
+import { DEFAULT_LOGO_SRC, useSiteConfig } from '../composables/useSiteConfig'
 
 const router = useRouter()
 const route = useRoute()
-const { collectionImages, ensureSiteConfigLoaded, logoSrc } = useSiteConfig()
+const { collectionImages, ensureSiteConfigLoaded, logoSrc, flatOffer } = useSiteConfig()
 const brandName = 'Jewelet'
+// The header chrome is midnight navy, so the bundled logo (navy medallion,
+// navy wordmark) would disappear into it. Swap in the ivory variant — but only
+// while the bundled logo is in use, since an uploaded logo is the client's own
+// artwork and we have no light version of it.
+const headerLogoSrc = computed(() =>
+  logoSrc.value === DEFAULT_LOGO_SRC ? '/jewelet-logo-light.svg' : logoSrc.value,
+)
+// Promo strip copy. Only advertises a discount when one is actually configured
+// and applied at checkout; otherwise it states the service promises, which are
+// always true.
+const offerText = computed(() => {
+  const offer = flatOffer.value
+  if (!offer.enabled || offer.value <= 0) return 'Certified gold & diamond jewellery · Lifetime exchange'
+  if (offer.label.trim()) return offer.label.trim()
+  return offer.type === 'PERCENT'
+    ? `Flat ${offer.value}% off your order`
+    : `Flat ₹${offer.value.toLocaleString('en-IN')} off every piece`
+})
 const { user, isLoggedIn, isInternalUser, refreshCurrentUser, logout } = useAuth()
 const { query, submitTextSearch } = useSearch()
 const { totalItems } = useCart()
@@ -163,24 +181,81 @@ function toggleNotifications() {
 
 <template>
   <header class="ect-fixed ect-top-0 ect-left-0 ect-right-0 ect-z-50">
-    <!-- Announcement bar (mobile only — on desktop the dark category bar
-         below the logo row takes its place, matching the Bluestone layout) -->
-    <section class="lg:ect-hidden ect-bg-espresso-800 ect-text-champagne ect-text-center ect-py-1.5 ect-px-4">
+    <!-- Announcement bar (mobile) -->
+    <section class="lg:ect-hidden ect-bg-navy-900 ect-text-champagne ect-text-center ect-py-1.5 ect-px-4">
       <p class="ect-font-body ect-text-nano sm:ect-text-micro ect-tracking-eyebrow sm:ect-tracking-eyebrow ect-uppercase ect-whitespace-nowrap ect-text-cream/85">
         <span class="sm:ect-hidden">Free shipping &middot; Certified jewellery</span>
         <span class="ect-hidden sm:ect-inline">Free insured shipping &middot; Certified gold and diamond jewellery &middot; Lifetime exchange</span>
       </p>
     </section>
 
+    <!-- Desktop utility bar: delivery promise, the live offer, and the
+         secondary account actions that used to crowd the logo row. -->
+    <section v-if="!isInternalPath" class="ect-hidden lg:ect-block ect-bg-navy-900 ect-text-cream/80">
+      <div class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-center ect-justify-between ect-gap-6 ect-h-9">
+        <p class="ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70">
+          <svg class="ect-w-3.5 ect-h-3.5 ect-text-gold-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+          Free insured delivery across India
+        </p>
+
+        <p class="ect-font-body ect-text-micro ect-tracking-label ect-text-gold-200">{{ offerText }}</p>
+
+        <nav class="ect-flex ect-items-center ect-gap-5" aria-label="Account and support">
+          <RouterLink to="/contact" class="ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
+            <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0115 0m-15 0v4.5a1.5 1.5 0 001.5 1.5h.75a.75.75 0 00.75-.75v-4.5a.75.75 0 00-.75-.75H4.5zm15 0v4.5a3 3 0 01-3 3h-3m6-7.5h-2.25a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h.75a1.5 1.5 0 001.5-1.5" />
+            </svg>
+            Support
+          </RouterLink>
+
+          <RouterLink to="/video-consultation" class="ect-relative ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
+            <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            Video
+            <span v-if="videoCallCount > 0" class="ect-ml-0.5 ect-min-w-[16px] ect-h-4 ect-bg-gold-400 ect-text-navy-900 ect-rounded-full ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ videoCallCount }}</span>
+          </RouterLink>
+
+          <RouterLink to="/recently-viewed" class="ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
+            <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-9-9 8.96 8.96 0 016.36 2.64M18 3v4h-4" />
+            </svg>
+            Recently viewed
+            <span v-if="recentlyViewedCount > 0" class="ect-ml-0.5 ect-min-w-[16px] ect-h-4 ect-bg-gold-400 ect-text-navy-900 ect-rounded-full ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ recentlyViewedCount }}</span>
+          </RouterLink>
+
+          <RouterLink to="/wishlist" class="ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
+            <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-rose-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+            </svg>
+            Wishlist
+            <span v-if="wishlistCount > 0" class="ect-ml-0.5 ect-min-w-[16px] ect-h-4 ect-bg-rose-400 ect-text-navy-900 ect-rounded-full ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
+          </RouterLink>
+
+          <!-- Signed-in users get the avatar menu on the logo row instead; it
+               also carries sign-out and the internal workspace toggle. -->
+          <RouterLink v-if="!isLoggedIn" to="/login" class="ect-group ect-flex ect-items-center ect-gap-1.5 ect-font-body ect-text-micro ect-text-cream/70 hover:ect-text-white ect-transition-colors">
+            <svg class="ect-w-4 ect-h-4 ect-text-cream/55 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Sign in
+          </RouterLink>
+        </nav>
+      </div>
+    </section>
+
     <!-- Main nav -->
-    <nav class="ect-relative ect-z-20 ect-bg-white/95 ect-backdrop-blur-xl lg:ect-border-b lg:ect-border-sand">
+    <nav class="ect-relative ect-z-20 ect-bg-navy-800">
       <!-- At 320px the logo stays compact so the left cluster and the
            customer action icons remain on one row. -->
-      <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-5 ect-flex ect-items-center ect-justify-between ect-h-16">
+      <section class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-5 ect-flex ect-items-center ect-justify-between lg:ect-gap-10 ect-h-16 lg:ect-h-[76px]">
         <!-- Left: mobile hamburger + logo (mobile) / logo only (desktop) -->
         <section class="ect-flex ect-items-center ect-gap-3 ect-shrink-0">
           <button
-            class="lg:ect-hidden ect-p-0.5 ect-text-charcoal/70 hover:ect-text-charcoal ect-transition-colors"
+            class="lg:ect-hidden ect-p-0.5 ect-text-cream/75 hover:ect-text-white ect-transition-colors"
             aria-label="Toggle menu"
             @click="mobileNavOpen = !mobileNavOpen"
           >
@@ -195,7 +270,7 @@ function toggleNotifications() {
             :to="isInternalPath ? { path: '/internal', query: { tab: 'orders' } } : '/'"
             class="ect-flex ect-items-center ect-gap-2.5 ect-shrink-0"
           >
-            <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-10 ect-w-auto ect-max-w-[80px] min-[360px]:ect-max-w-[104px] sm:ect-max-w-[140px] lg:ect-max-w-[180px] ect-object-contain" />
+            <img :src="headerLogoSrc" :alt="`${brandName} logo`" class="ect-h-8 lg:ect-h-11 ect-w-auto ect-max-w-[80px] min-[360px]:ect-max-w-[104px] sm:ect-max-w-[140px] lg:ect-max-w-[200px] ect-object-contain" />
           </RouterLink>
         </section>
 
@@ -204,79 +279,50 @@ function toggleNotifications() {
           <li>
             <RouterLink
               :to="{ path: '/internal', query: { tab: 'orders' } }"
-              class="ect-font-body ect-text-ui ect-font-medium ect-uppercase ect-tracking-label ect-text-gold-700 hover:ect-text-gold-800 ect-transition-colors ect-py-1"
+              class="ect-font-body ect-text-ui ect-font-medium ect-uppercase ect-tracking-label ect-text-gold-300 hover:ect-text-gold-200 ect-transition-colors ect-py-1"
             >
               Internal workspace
             </RouterLink>
           </li>
         </ul>
 
-        <!-- Desktop right actions -->
-        <section class="ect-hidden lg:ect-flex ect-items-center ect-gap-5">
-          <!-- Search -->
-          <form v-if="!isInternalPath" @submit.prevent="handleSearch" class="ect-flex ect-items-center ect-rounded-full ect-transition-all ect-duration-300" :class="searchFocused ? 'ect-bg-white ect-shadow-sm ect-ring-1 ect-ring-gold-400/40' : 'ect-bg-champagne/50'">
-            <button
-              type="submit"
-              title="Search"
-              aria-label="Search"
-              class="ect-ml-1.5 ect-p-1.5 ect-rounded-full ect-text-charcoal/30 hover:ect-text-gold-700 hover:ect-bg-champagne ect-transition-colors ect-shrink-0"
-            >
-              <svg class="ect-w-4 ect-h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-            </button>
-            <input
-              v-model="query"
-              type="text"
-              placeholder="Search for jewellery…"
-              class="ect-w-56 focus:ect-w-72 xl:ect-w-72 xl:focus:ect-w-96 ect-px-2.5 ect-py-2 ect-bg-transparent ect-font-body ect-text-xs ect-text-charcoal placeholder:ect-text-charcoal/35 focus:ect-outline-none ect-transition-all ect-duration-300"
-              @focus="searchFocused = true"
-              @blur="searchFocused = false"
-            />
-          </form>
-
-          <!-- Customer support -->
-          <RouterLink v-if="!isInternalPath" to="/contact" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Customer support">
-            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0115 0m-15 0v4.5a1.5 1.5 0 001.5 1.5h.75a.75.75 0 00.75-.75v-4.5a.75.75 0 00-.75-.75H4.5zm15 0v4.5a3 3 0 01-3 3h-3m6-7.5h-2.25a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h.75a1.5 1.5 0 001.5-1.5" />
+        <!-- Desktop search: the wide centre field, between the logo and the cart -->
+        <form
+          v-if="!isInternalPath"
+          @submit.prevent="handleSearch"
+          class="ect-hidden lg:ect-flex ect-flex-1 ect-max-w-[640px] ect-items-center ect-rounded-sm ect-bg-white ect-transition-shadow"
+          :class="searchFocused ? 'ect-ring-2 ect-ring-gold-300' : 'ect-ring-1 ect-ring-white/20'"
+        >
+          <input
+            v-model="query"
+            type="text"
+            placeholder="Search for jewellery, diamonds, rings and more…"
+            class="ect-flex-1 ect-min-w-0 ect-px-4 ect-py-2.5 ect-bg-transparent ect-font-body ect-text-ui ect-text-charcoal placeholder:ect-text-charcoal/40 focus:ect-outline-none"
+            @focus="searchFocused = true"
+            @blur="searchFocused = false"
+          />
+          <button
+            type="submit"
+            title="Search"
+            aria-label="Search"
+            class="ect-shrink-0 ect-self-stretch ect-px-4 ect-text-navy-800 hover:ect-text-gold-600 ect-transition-colors"
+          >
+            <svg class="ect-w-[18px] ect-h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
-            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Support</span>
-          </RouterLink>
+          </button>
+        </form>
 
-          <!-- Video call -->
-          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Video consultation">
-            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-            </svg>
-            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Video call</span>
-            <span v-if="videoCallCount > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ videoCallCount }}</span>
-          </RouterLink>
-
-          <!-- Wishlist -->
-          <RouterLink v-if="!isInternalPath" to="/wishlist" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Wishlist">
-            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-rose-500 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-            </svg>
-            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Wishlist</span>
-            <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
-          </RouterLink>
-
-          <!-- Recently viewed -->
-          <RouterLink v-if="!isInternalPath" to="/recently-viewed" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Recently viewed">
-            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-gold-700 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-9-9 8.96 8.96 0 016.36 2.64M18 3v4h-4" />
-            </svg>
-            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Recently viewed</span>
-            <span v-if="recentlyViewedCount > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-gold-600 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ recentlyViewedCount }}</span>
-          </RouterLink>
-
+        <!-- Desktop right actions: cart (plus the avatar menu when signed in).
+             Support, video, wishlist and recently-viewed live in the utility
+             bar above, so this row stays as uncluttered as the campaign art. -->
+        <section class="ect-hidden lg:ect-flex ect-items-center ect-gap-5 ect-shrink-0">
           <!-- Cart -->
-          <RouterLink v-if="!isInternalPath" to="/cart" class="ect-relative ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Cart">
-            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-charcoal ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+          <RouterLink v-if="!isInternalPath" to="/cart" class="ect-group ect-flex ect-items-center ect-gap-2 ect-font-body ect-text-ui ect-text-cream/85 hover:ect-text-white ect-transition-colors" aria-label="Cart">
+            <svg class="ect-w-[21px] ect-h-[21px] ect-text-cream/70 group-hover:ect-text-gold-300 ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
-            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Cart</span>
-            <span v-if="totalItems > 0" class="ect-absolute -ect-top-1.5 ect-left-1/2 ect-ml-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ totalItems }}</span>
+            <span>Cart ({{ totalItems }})</span>
           </RouterLink>
 
           <!-- Internal notifications -->
@@ -332,8 +378,8 @@ function toggleNotifications() {
               @click="menuOpen = !menuOpen"
               class="ect-flex ect-items-center ect-gap-2 ect-group"
             >
-              <span class="ect-inline-flex ect-items-center ect-justify-center ect-w-8 ect-h-8 ect-rounded-full ect-bg-charcoal ect-text-white ect-font-body ect-text-micro ect-font-bold ect-uppercase group-hover:ect-bg-noir ect-transition-colors">{{ user?.name?.charAt(0) }}</span>
-              <svg class="ect-w-3.5 ect-h-3.5 ect-text-charcoal/40 ect-transition-transform ect-duration-200" :class="{ 'ect-rotate-180': menuOpen }" viewBox="0 0 20 20" fill="currentColor">
+              <span class="ect-inline-flex ect-items-center ect-justify-center ect-w-8 ect-h-8 ect-rounded-full ect-bg-gold-400 ect-text-navy-900 ect-font-body ect-text-micro ect-font-bold ect-uppercase group-hover:ect-bg-gold-300 ect-transition-colors">{{ user?.name?.charAt(0) }}</span>
+              <svg class="ect-w-3.5 ect-h-3.5 ect-text-cream/50 ect-transition-transform ect-duration-200" :class="{ 'ect-rotate-180': menuOpen }" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
               </svg>
             </button>
@@ -390,12 +436,6 @@ function toggleNotifications() {
             </Transition>
           </section>
 
-          <RouterLink v-else to="/login" class="ect-group ect-flex ect-flex-col ect-items-center ect-gap-0.5 ect-px-0.5" aria-label="Sign in">
-            <svg class="ect-w-[19px] ect-h-[19px] ect-text-charcoal/60 group-hover:ect-text-charcoal ect-transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span class="ect-font-body ect-text-nano ect-text-charcoal/55 group-hover:ect-text-charcoal ect-transition-colors">Sign in</span>
-          </RouterLink>
         </section>
 
         <!-- Mobile right: search, support, video call, wishlist, recently viewed, cart (sign-in lives in the drawer).
@@ -404,44 +444,44 @@ function toggleNotifications() {
              recently viewed below `sm` so the remaining icons keep a comfortable gap;
              both are still reachable from the drawer. -->
         <section class="lg:ect-hidden ect-flex ect-items-center ect-gap-1.5 min-[375px]:ect-gap-2 sm:ect-gap-2.5">
-          <RouterLink v-if="!isInternalPath" to="/search" class="ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Search">
+          <RouterLink v-if="!isInternalPath" to="/search" class="ect-p-1.5 ect-text-cream/70 hover:ect-text-gold-300 ect-transition-colors" aria-label="Search">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
           </RouterLink>
-          <RouterLink v-if="!isInternalPath" to="/contact" class="ect-hidden min-[360px]:ect-block ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Customer support">
+          <RouterLink v-if="!isInternalPath" to="/contact" class="ect-hidden min-[360px]:ect-block ect-p-1.5 ect-text-cream/70 hover:ect-text-gold-300 ect-transition-colors" aria-label="Customer support">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12a7.5 7.5 0 0115 0m-15 0v4.5a1.5 1.5 0 001.5 1.5h.75a.75.75 0 00.75-.75v-4.5a.75.75 0 00-.75-.75H4.5zm15 0v4.5a3 3 0 01-3 3h-3m6-7.5h-2.25a.75.75 0 00-.75.75v4.5c0 .414.336.75.75.75h.75a1.5 1.5 0 001.5-1.5" />
             </svg>
           </RouterLink>
-          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Video consultation">
+          <RouterLink v-if="!isInternalPath" to="/video-consultation" class="ect-relative ect-p-1.5 ect-text-cream/70 hover:ect-text-gold-300 ect-transition-colors" aria-label="Video consultation">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
             </svg>
             <span v-if="videoCallCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ videoCallCount }}</span>
           </RouterLink>
-          <RouterLink v-if="!isInternalPath" to="/wishlist" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-rose-500 ect-transition-colors" aria-label="Wishlist">
+          <RouterLink v-if="!isInternalPath" to="/wishlist" class="ect-relative ect-p-1.5 ect-text-cream/70 hover:ect-text-rose-300 ect-transition-colors" aria-label="Wishlist">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
             </svg>
             <span v-if="wishlistCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-rose-500 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ wishlistCount }}</span>
           </RouterLink>
-          <RouterLink v-if="!isInternalPath" to="/recently-viewed" class="ect-relative ect-hidden sm:ect-block ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors" aria-label="Recently viewed">
+          <RouterLink v-if="!isInternalPath" to="/recently-viewed" class="ect-relative ect-hidden sm:ect-block ect-p-1.5 ect-text-cream/70 hover:ect-text-gold-300 ect-transition-colors" aria-label="Recently viewed">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m5-2a9 9 0 11-9-9 8.96 8.96 0 016.36 2.64M18 3v4h-4" />
             </svg>
             <span v-if="recentlyViewedCount > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-gold-600 ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ recentlyViewedCount }}</span>
           </RouterLink>
-          <RouterLink v-if="!isInternalPath" to="/cart" class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-charcoal ect-transition-colors" aria-label="Cart">
+          <RouterLink v-if="!isInternalPath" to="/cart" class="ect-relative ect-p-1.5 ect-text-cream/70 hover:ect-text-white ect-transition-colors" aria-label="Cart">
             <svg class="ect-w-5 ect-h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
-            <span v-if="totalItems > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-charcoal ect-text-white ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ totalItems }}</span>
+            <span v-if="totalItems > 0" class="ect-absolute -ect-top-1 -ect-right-1 ect-min-w-[18px] ect-h-[18px] ect-bg-gold-400 ect-text-navy-900 ect-rounded-full ect-font-body ect-text-nano ect-font-bold ect-flex ect-items-center ect-justify-center ect-px-1">{{ totalItems }}</span>
           </RouterLink>
           <section v-if="isInternalUser && isInternalPath" class="ect-relative">
             <button
               type="button"
-              class="ect-relative ect-p-1.5 ect-text-charcoal/60 hover:ect-text-gold-700 ect-transition-colors"
+              class="ect-relative ect-p-1.5 ect-text-cream/70 hover:ect-text-gold-300 ect-transition-colors"
               aria-label="Internal notifications"
               :aria-expanded="notificationOpen"
               @click="toggleNotifications"
@@ -489,35 +529,44 @@ function toggleNotifications() {
     <!-- Desktop category bar + Bluestone-style mega menu -->
     <nav
       v-if="!isInternalPath"
-      class="ect-hidden lg:ect-block ect-relative ect-z-10 ect-bg-espresso-800"
+      class="ect-hidden lg:ect-block ect-relative ect-z-10 ect-bg-navy-800 ect-border-t ect-border-white/10"
       @mouseleave="activeDropdown = null"
     >
-      <ul class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-stretch ect-list-none ect-m-0 ect-p-0">
-        <li v-for="item in collectionItems" :key="item.slug" @mouseenter="activeDropdown = item.slug">
-          <RouterLink
-            :to="`/collections/${item.slug}`"
-            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-label ect-transition-colors"
-            :class="activeDropdown === item.slug ? 'ect-bg-white ect-text-espresso-800' : 'ect-text-cream/85 hover:ect-text-white'"
-            @click="activeDropdown = null"
-          >
-            {{ item.title }}
-          </RouterLink>
-        </li>
+      <!-- Centred under the logo row, title case rather than the old all-caps
+           bar: the campaign type is Playfair, and shouting nav competed with it. -->
+      <ul class="ect-max-w-7xl ect-mx-auto ect-px-5 ect-flex ect-items-stretch ect-justify-center ect-list-none ect-m-0 ect-p-0">
         <li @mouseenter="openAllJewellery">
           <RouterLink
             to="/collections"
-            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-label ect-transition-colors"
-            :class="isAllJewelleryOpen ? 'ect-bg-white ect-text-espresso-800' : 'ect-text-cream/85 hover:ect-text-white'"
+            class="ect-flex ect-items-center ect-h-12 ect-px-3 xl:ect-px-5 ect-whitespace-nowrap ect-font-body ect-text-ui xl:ect-text-ui-lg ect-transition-colors"
+            :class="isAllJewelleryOpen ? 'ect-bg-white ect-text-navy-800' : 'ect-text-cream/85 hover:ect-text-white'"
             @click="activeDropdown = null"
           >
             All Jewellery
           </RouterLink>
         </li>
-
-        <li class="ect-ml-auto" @mouseenter="activeDropdown = null">
+        <li v-for="item in collectionItems" :key="item.slug" @mouseenter="activeDropdown = item.slug">
+          <RouterLink
+            :to="`/collections/${item.slug}`"
+            class="ect-flex ect-items-center ect-h-12 ect-px-3 xl:ect-px-5 ect-whitespace-nowrap ect-font-body ect-text-ui xl:ect-text-ui-lg ect-transition-colors"
+            :class="activeDropdown === item.slug ? 'ect-bg-white ect-text-navy-800' : 'ect-text-cream/85 hover:ect-text-white'"
+            @click="activeDropdown = null"
+          >
+            {{ item.title }}
+          </RouterLink>
+        </li>
+        <li @mouseenter="activeDropdown = null">
+          <RouterLink
+            to="/video-consultation"
+            class="ect-flex ect-items-center ect-h-12 ect-px-3 xl:ect-px-5 ect-whitespace-nowrap ect-font-body ect-text-ui xl:ect-text-ui-lg ect-text-cream/85 hover:ect-text-white ect-transition-colors"
+          >
+            Video Consultation
+          </RouterLink>
+        </li>
+        <li @mouseenter="activeDropdown = null">
           <RouterLink
             to="/about"
-            class="ect-flex ect-items-center ect-h-11 ect-px-4 ect-font-body ect-text-xs ect-font-medium ect-uppercase ect-tracking-label ect-text-cream/85 hover:ect-text-white ect-transition-colors"
+            class="ect-flex ect-items-center ect-h-12 ect-px-3 xl:ect-px-5 ect-whitespace-nowrap ect-font-body ect-text-ui xl:ect-text-ui-lg ect-text-cream/85 hover:ect-text-white ect-transition-colors"
           >
             About Us
           </RouterLink>

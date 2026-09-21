@@ -26,37 +26,40 @@ export const COLLECTION_LINKS: CollectionLink[] = [
 ]
 
 interface HomepageCollectionLink {
-  /** Stable key for the tile's configurable image. */
+  /** Stable key, also the key an internal-workspace upload is stored under. */
   slug: string
   title: string
   to: RouteLocationRaw
-  fallbackImage: string
+  /** Curated tile artwork. Takes precedence over an uploaded image. */
+  image: string
 }
 
-const collectionFallbackImages: Record<string, string> = {
-  rings: '/ring-1.jpg',
-  earrings: '/earring-1.jpg',
-  pendants: '/pendant-1.jpg',
-  bracelets: '/bracelet-1.jpg',
-  necklaces: '/necklace-1.jpg',
-  mangalsutras: '/raaga-mangalsutra-1.png',
+const collectionTileImages: Record<string, string> = {
+  rings: '/showcase/ring-ruby-bloom.webp',
+  earrings: '/showcase/earrings-butterfly-studs.webp',
+  pendants: '/showcase/pendant-emerald-clover.webp',
+  bracelets: '/showcase/bracelet-emerald-tennis.webp',
+  necklaces: '/showcase/necklace-ruby-cascade.webp',
+  mangalsutras: '/showcase/mangalsutra-emerald.webp',
 }
 
-// Shared with the image editor so every homepage tile can be customized.
-// Style tiles use existing catalogue filters and keep the main navigation compact.
+// The homepage "Shop by category" row. Style tiles use existing catalogue
+// filters and keep the main navigation compact. Slugs are shared with the
+// internal image editor, whose uploads still drive the mega menu and the
+// mobile drawer — the homepage row uses the curated artwork below.
 export const HOMEPAGE_COLLECTION_LINKS: HomepageCollectionLink[] = [
   ...COLLECTION_LINKS.map(({ slug, title }) => ({
     slug,
     title,
     to: `/collections/${slug}`,
-    fallbackImage: collectionFallbackImages[slug] || '',
+    image: collectionTileImages[slug] || '',
   })),
-  { slug: 'solitaire-rings', title: 'Solitaire Rings', to: { path: '/collections/rings', query: { type: 'solitaire' } }, fallbackImage: '/celeste-solitaire-ring-1.webp' },
-  { slug: 'open-rings', title: 'Open Rings', to: { path: '/collections/rings', query: { type: 'open-ring' } }, fallbackImage: '/verde-duet-ring-1.png' },
-  { slug: 'drop-earrings', title: 'Drop Earrings', to: { path: '/collections/earrings', query: { type: 'drop' } }, fallbackImage: '/isha-chandelier-1.png' },
-  { slug: 'emerald-jewellery', title: 'Emerald Jewellery', to: { path: '/collections', query: { stone: 'emerald' } }, fallbackImage: '/editorial-emerald-edit.webp' },
-  { slug: 'chain-bracelets', title: 'Chain Bracelets', to: { path: '/collections/bracelets', query: { type: 'chain-bracelet' } }, fallbackImage: '/indra-link-bracelet-1.jpg' },
-  { slug: 'diamond-jewellery', title: 'Diamond Jewellery', to: { path: '/collections', query: { stone: 'diamond' } }, fallbackImage: '/editorial-everyday-diamonds.webp' },
+  { slug: 'solitaire-rings', title: 'Solitaire Rings', to: { path: '/collections/rings', query: { type: 'solitaire' } }, image: '/celeste-solitaire-ring-1.webp' },
+  { slug: 'open-rings', title: 'Open Rings', to: { path: '/collections/rings', query: { type: 'open-ring' } }, image: '/verde-duet-ring-1.png' },
+  { slug: 'drop-earrings', title: 'Drop Earrings', to: { path: '/collections/earrings', query: { type: 'drop' } }, image: '/showcase/earrings-sapphire-drops.webp' },
+  { slug: 'emerald-jewellery', title: 'Emerald Jewellery', to: { path: '/collections', query: { stone: 'emerald' } }, image: '/showcase/ring-emerald-cocktail.webp' },
+  { slug: 'chain-bracelets', title: 'Chain Bracelets', to: { path: '/collections/bracelets', query: { type: 'chain-bracelet' } }, image: '/indra-link-bracelet-1.jpg' },
+  { slug: 'diamond-jewellery', title: 'Diamond Jewellery', to: { path: '/collections', query: { stone: 'diamond' } }, image: '/editorial-everyday-diamonds.webp' },
 ]
 
 export function findCollectionBySlug(slug: string): CollectionLink | null {

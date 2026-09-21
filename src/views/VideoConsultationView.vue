@@ -69,7 +69,7 @@ async function submit() {
 </script>
 
 <template>
-  <main class="ect-min-h-screen ect-bg-cream ect-pt-28 lg:ect-pt-32 ect-pb-16">
+  <main class="ect-min-h-screen ect-bg-cream ect-pt-28 lg:ect-pt-44 ect-pb-16">
     <section class="ect-bg-charcoal ect-px-6 ect-py-14 sm:ect-py-20 ect-text-cream">
       <div class="ect-mx-auto ect-max-w-5xl ect-text-center">
         <p class="ect-mb-4 ect-font-body ect-text-xs ect-font-semibold ect-uppercase ect-tracking-eyebrow ect-text-gold-400">Personal jewellery guidance</p>

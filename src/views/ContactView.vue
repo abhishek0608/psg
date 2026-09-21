@@ -12,7 +12,7 @@ function handleSubmit() {
 </script>
 
 <template>
-  <section class="ect-min-h-screen ect-bg-cream ect-pt-28 sm:ect-pt-36 ect-pb-20 ect-px-4 sm:ect-px-6">
+  <section class="ect-min-h-screen ect-bg-cream ect-pt-28 sm:ect-pt-36 lg:ect-pt-44 ect-pb-20 ect-px-4 sm:ect-px-6">
     <div class="ect-max-w-5xl ect-mx-auto">
       <header class="ect-mb-10 sm:ect-mb-12">
         <h1 class="ect-font-display ect-text-3xl sm:ect-text-4xl ect-text-charcoal ect-mb-3">Customer support</h1>
