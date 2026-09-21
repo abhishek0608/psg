@@ -23,6 +23,7 @@ export const COLLECTION_LINKS: CollectionLink[] = [
   { slug: 'bracelets', label: 'Bracelet / Bangle', title: 'Bracelets & Bangles', description: 'Cuffs, chains and classic bangles.', icon: 'bracelet', preset: { category: 'Bracelets' } },
   { slug: 'necklaces', label: 'Necklace', title: 'Necklaces', description: 'Statement necklaces and timeless chains.', icon: 'necklace', preset: { category: 'Necklaces' } },
   { slug: 'mangalsutras', label: 'Mangalsutra', title: 'Mangalsutras', description: 'Traditional meaning, reimagined for today.', icon: 'necklace', preset: { category: 'Mangal Sutra' } },
+  { slug: 'gold-coins', label: 'Gold Coin', title: 'Gold Coins', description: 'Hallmarked investment coins in assorted weights.', icon: 'coin', preset: { category: 'Gold Coins' } },
 ]
 
 interface HomepageCollectionLink {
@@ -47,6 +48,7 @@ export const HOMEPAGE_COLLECTION_LINKS: HomepageCollectionLink[] = [
   { slug: 'men', title: 'Men', to: { path: '/search', query: { q: 'men' } }, image: '/categories/men.webp' },
   { slug: 'kids', title: 'Kids', to: { path: '/search', query: { q: 'kids' } }, image: '/categories/kids.webp' },
   { slug: 'gifts', title: 'Gifts', to: { path: '/search', query: { q: 'gift' } }, image: '/categories/gifts.webp' },
+  { slug: 'gold-coins', title: 'Gold Coins', to: '/collections/gold-coins', image: '/categories/gold-coins.webp' },
   { slug: 'collections', title: 'Collections', to: '/collections', image: '/categories/collections.webp' },
 ]
 

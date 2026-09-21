@@ -28,6 +28,10 @@ const CATEGORY_ALIASES = {
   braclets: 'bracelets',
   mangalsutra: 'mangal sutra',
   'mangal sutra': 'mangal sutra',
+  coin: 'gold coins',
+  coins: 'gold coins',
+  'gold coin': 'gold coins',
+  'gold coins': 'gold coins',
 }
 
 const MATERIAL_ALIASES = {

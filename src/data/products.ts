@@ -53,7 +53,7 @@ export type ProductSubtype =
   | 'mangal-sutra'
   | 'jhumka'
 
-export const CATEGORIES = ['Rings', 'Earrings', 'Mangal Sutra', 'Necklaces', 'Bracelets'] as const
+export const CATEGORIES = ['Rings', 'Earrings', 'Mangal Sutra', 'Necklaces', 'Bracelets', 'Gold Coins'] as const
 export type Category = (typeof CATEGORIES)[number]
 
 export const COLORS: { id: Color; label: string; hex: string }[] = [

@@ -16,7 +16,7 @@ const collections = HOMEPAGE_COLLECTION_LINKS
       <nav class="category-row" aria-label="Shop by category">
         <RouterLink v-for="item in collections" :key="item.slug" class="category-link" :to="item.to">
           <span class="category-image">
-            <img :src="item.image" alt="" width="140" height="140" loading="lazy" decoding="async" />
+            <img :src="item.image" alt="" width="190" height="190" loading="lazy" decoding="async" />
           </span>
           <span>{{ item.title }}</span>
         </RouterLink>
@@ -51,20 +51,18 @@ const collections = HOMEPAGE_COLLECTION_LINKS
 .category-row {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 24px 16px;
-  max-width: 1100px;
+  gap: 28px 20px;
+  max-width: 1320px;
   margin: 0 auto;
 }
-.category-link { grid-column: span 2; }
-/* Offset the five-item second row by half a tile to keep it centered. */
-.category-link:nth-child(7) { grid-column: 2 / span 2; }
 .category-link {
+  grid-column: span 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   min-width: 0;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
   text-align: center;
   white-space: nowrap;
@@ -72,7 +70,7 @@ const collections = HOMEPAGE_COLLECTION_LINKS
 .category-image {
   display: block;
   width: 100%;
-  max-width: 140px;
+  max-width: 190px;
   aspect-ratio: 1;
   overflow: hidden;
   border-radius: 50%;
@@ -95,7 +93,7 @@ const collections = HOMEPAGE_COLLECTION_LINKS
   .category-row {
     grid-template-columns: none;
     grid-auto-flow: column;
-    grid-auto-columns: 96px;
+    grid-auto-columns: 116px;
     justify-content: space-between;
     overflow-x: auto;
     overscroll-behavior-x: contain;
@@ -105,13 +103,13 @@ const collections = HOMEPAGE_COLLECTION_LINKS
     scrollbar-width: thin;
     scrollbar-color: #d4c8b6 transparent;
   }
-  .category-link, .category-link:nth-child(7) { grid-column: auto; scroll-snap-align: start; }
+  .category-link { grid-column: auto; scroll-snap-align: start; }
 }
 @media (max-width: 639px) {
   .category-inner { padding: 0 16px; }
   .category-header h2 { font-size: 22px; }
   .category-header { margin-bottom: 10px; }
-  .category-row { grid-auto-columns: 82px; gap: 14px; margin: 0 -16px; padding: 4px 16px 10px; }
-  .category-link { font-size: 13px; }
+  .category-row { grid-auto-columns: 96px; gap: 14px; margin: 0 -16px; padding: 4px 16px 10px; }
+  .category-link { font-size: 14px; }
 }
 </style>
