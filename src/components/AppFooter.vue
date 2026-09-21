@@ -50,7 +50,7 @@ function handleSubscribe() {
       <!-- Links -->
       <section class="ect-py-10 ect-grid ect-grid-cols-2 sm:ect-grid-cols-4 ect-gap-8">
         <div class="ect-col-span-2 sm:ect-col-span-1">
-          <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-9 ect-w-auto ect-max-w-[140px] ect-object-contain ect-bg-white ect-rounded-sm ect-px-2 ect-py-1.5" />
+          <img :src="logoSrc" :alt="`${brandName} logo`" class="ect-h-14 ect-w-auto ect-max-w-[140px] ect-object-contain ect-bg-white ect-rounded-sm ect-px-2 ect-py-1.5" />
           <p class="ect-mt-4 ect-font-body ect-text-sm ect-leading-relaxed ect-text-[#a89f90] ect-max-w-xs">
             Certified gold and diamond jewellery, shipped anywhere in India.
           </p>
