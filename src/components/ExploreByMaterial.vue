@@ -11,7 +11,7 @@ const materials = [
 </script>
 
 <template>
-  <section class="ect-bg-champagne/60 ect-mt-12 sm:ect-mt-16 ect-py-10 sm:ect-py-14">
+  <section class="ect-bg-champagne/60 ect-py-10 sm:ect-py-14">
     <div class="ect-max-w-7xl ect-mx-auto ect-px-4 sm:ect-px-6 lg:ect-px-8">
       <header class="ect-flex ect-items-baseline ect-justify-between ect-gap-4 ect-mb-5 sm:ect-mb-6">
         <h2 class="ect-font-display ect-text-2xl sm:ect-text-3xl ect-text-[#2b2723]">Explore by material</h2>
