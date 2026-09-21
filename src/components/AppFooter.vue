@@ -81,7 +81,6 @@ function handleSubscribe() {
           <h3 class="ect-font-body ect-text-sm ect-font-medium ect-text-white ect-mb-3">Company</h3>
           <ul class="ect-list-none ect-m-0 ect-p-0 ect-space-y-2">
             <li><RouterLink to="/about" class="ect-font-body ect-text-sm hover:ect-text-white">About us</RouterLink></li>
-            <li><RouterLink to="/careers" class="ect-font-body ect-text-sm hover:ect-text-white">Careers</RouterLink></li>
             <li><a href="tel:+919216399116" class="ect-font-body ect-text-sm hover:ect-text-white">+91 92163 99116</a></li>
             <li><a href="mailto:sales@jewelet.example" class="ect-font-body ect-text-sm hover:ect-text-white">sales@jewelet.example</a></li>
           </ul>

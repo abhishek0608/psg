@@ -4,7 +4,7 @@ import { useSiteConfig } from '../composables/useSiteConfig'
 
 const { aboutContent, ensureSiteConfigLoaded } = useSiteConfig()
 
-type Tab = 'about' | 'contact' | 'careers'
+type Tab = 'about' | 'contact'
 const activeTab = ref<Tab>('about')
 const name = ref('')
 const email = ref('')
@@ -75,7 +75,7 @@ function setTab(tab: Tab) {
 
 onMounted(() => {
   const hash = window.location.hash.replace('#', '')
-  if (hash === 'contact' || hash === 'careers') activeTab.value = hash
+  if (hash === 'contact') activeTab.value = hash
   void ensureSiteConfigLoaded()
 })
 </script>
@@ -92,9 +92,7 @@ onMounted(() => {
           <p class="ect-font-body ect-text-base ect-text-cream/70 ect-max-w-xl ect-mx-auto ect-leading-relaxed">{{ heroSubheadline }}</p>
         </template>
         <template v-else>
-          <h1 class="ect-font-display ect-text-4xl sm:ect-text-5xl ect-leading-tight">
-            {{ activeTab === 'contact' ? 'Contact us' : 'Careers' }}
-          </h1>
+          <h1 class="ect-font-display ect-text-4xl sm:ect-text-5xl ect-leading-tight">Contact us</h1>
         </template>
       </div>
     </section>
@@ -102,14 +100,14 @@ onMounted(() => {
     <!-- Tabs -->
     <nav id="about-tabs" class="ect-sticky ect-top-[calc(theme(spacing.16)+theme(spacing.8))] sm:ect-top-16 ect-z-40 ect-bg-cream/95 ect-backdrop-blur ect-border-b ect-border-sand">
       <ul class="ect-max-w-6xl ect-mx-auto ect-px-6 ect-flex ect-justify-center ect-gap-8 ect-list-none ect-m-0 ect-p-0">
-        <li v-for="tab in (['about', 'contact', 'careers'] as const)" :key="tab">
+        <li v-for="tab in (['about', 'contact'] as const)" :key="tab">
           <button
             type="button"
             @click="setTab(tab)"
             class="ect-relative ect-py-4 ect-font-body ect-text-sm ect-bg-transparent"
             :class="activeTab === tab ? 'ect-text-charcoal' : 'ect-text-charcoal/50 hover:ect-text-charcoal'"
           >
-            {{ tab === 'about' ? 'Our story' : tab === 'contact' ? 'Contact' : 'Careers' }}
+            {{ tab === 'about' ? 'Our story' : 'Contact' }}
             <span class="ect-absolute ect-bottom-0 ect-left-0 ect-right-0 ect-h-0.5" :class="activeTab === tab ? 'ect-bg-charcoal' : 'ect-bg-transparent'" />
           </button>
         </li>
@@ -215,7 +213,7 @@ onMounted(() => {
     </template>
 
     <!-- Contact -->
-    <section v-else-if="activeTab === 'contact'" class="ect-max-w-5xl ect-mx-auto ect-px-6 ect-py-14 sm:ect-py-16">
+    <section v-else class="ect-max-w-5xl ect-mx-auto ect-px-6 ect-py-14 sm:ect-py-16">
       <div class="ect-grid ect-grid-cols-1 lg:ect-grid-cols-[1fr_1.5fr] ect-gap-10 lg:ect-gap-16">
         <dl class="ect-m-0 ect-space-y-6 ect-font-body ect-text-sm">
           <div>
@@ -261,16 +259,6 @@ onMounted(() => {
           </template>
         </div>
       </div>
-    </section>
-
-    <!-- Careers -->
-    <section v-else class="ect-max-w-3xl ect-mx-auto ect-px-6 ect-py-14 sm:ect-py-16">
-      <p class="ect-font-body ect-text-base ect-text-charcoal/75 ect-leading-relaxed ect-mb-4">
-        We don't have open roles listed right now. If you work in jewellery design, production, photography or
-        e-commerce and would like to work with us, send a short note and your CV to
-        <a href="mailto:sales@jewelet.example" class="ect-text-charcoal ect-underline ect-underline-offset-4 ect-decoration-[#cdbfa6] hover:ect-text-[#1f3f37]">sales@jewelet.example</a>.
-      </p>
-      <p class="ect-font-body ect-text-sm ect-text-charcoal/55">We read everything and reply to everyone.</p>
     </section>
 
   </main>
