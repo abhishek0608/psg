@@ -9,6 +9,7 @@ const DB_CATEGORY_MAP = {
   'mangal sutra': 'Mangal Sutra',
   necklaces: 'Necklaces',
   bracelets: 'Bracelets',
+  'gold coins': 'Gold Coins',
 }
 
 export default async function handler(req, res) {
